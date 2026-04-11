@@ -1,3 +1,4 @@
+use web_push::WebPushClient;
 use crate::config::Config;
 
 /// Send Web Push notification to a user via VAPID
@@ -36,10 +37,10 @@ pub async fn push_to_user(db: &sqlx::MySqlPool, config: &Config, user_id: &str, 
             web_push::URL_SAFE_NO_PAD,
         );
 
-        let sig_builder = match sig_builder {
+        let signature = match sig_builder {
             Ok(mut b) => {
                 b.add_sub_info(&sub);
-                b.add_claim("sub", &subject);
+                b.set_sub_info(subject.clone());
                 match b.build() {
                     Ok(sig) => sig,
                     Err(_) => continue,
@@ -50,7 +51,7 @@ pub async fn push_to_user(db: &sqlx::MySqlPool, config: &Config, user_id: &str, 
 
         let mut builder = web_push::WebPushMessageBuilder::new(&sub);
         builder.set_payload(web_push::ContentEncoding::Aes128Gcm, payload_str.as_bytes());
-        builder.set_vapid_signature(sig_builder);
+        builder.set_vapid_signature(signature);
 
         if let Ok(message) = builder.build() {
             let client = web_push::IsahcWebPushClient::new().ok();

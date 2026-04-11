@@ -32,7 +32,10 @@ async fn proxy_file(
         match s3.get_object().bucket(bucket).key(&key).send().await {
             Ok(output) => {
                 let content_type = output.content_type().unwrap_or("application/octet-stream").to_string();
-                let body = output.body.collect().await.unwrap_or_default().into_bytes();
+                let body = match output.body.collect().await {
+                    Ok(b) => b.into_bytes(),
+                    Err(_) => return (StatusCode::INTERNAL_SERVER_ERROR, "Failed to read body").into_response(),
+                };
                 return (
                     StatusCode::OK,
                     [(header::CONTENT_TYPE, content_type), (header::CACHE_CONTROL, "public, max-age=31536000".to_string())],

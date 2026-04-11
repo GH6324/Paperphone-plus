@@ -128,7 +128,7 @@ struct UpdateGroupReq {
 
 async fn update_group(
     State(state): State<Arc<AppState>>,
-    auth: AuthUser,
+    _auth: AuthUser,
     Path(id): Path<String>,
     Json(body): Json<UpdateGroupReq>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {

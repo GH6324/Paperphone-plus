@@ -90,7 +90,7 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppState>) {
     let (tx, mut rx) = mpsc::unbounded_channel::<String>();
 
     let mut user_id: Option<String> = None;
-    let mut session_id: Option<String> = None;
+    let mut session_id: Option<String>;
 
     // Spawn task to forward messages from channel to websocket
     let send_task = tokio::spawn(async move {

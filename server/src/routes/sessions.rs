@@ -21,7 +21,7 @@ async fn list_sessions(
     .bind(&auth.0.id)
     .fetch_all(&state.db).await.unwrap_or_default();
 
-    let sessions: Vec<serde_json::Value> = rows.iter().map(|(id, device, dtype, os, browser, ip, last_active, created, revoked)| {
+    let sessions: Vec<serde_json::Value> = rows.iter().map(|(id, device, dtype, os, browser, ip, last_active, created, _revoked)| {
         serde_json::json!({
             "id": id, "device_name": device, "device_type": dtype,
             "os": os, "browser": browser, "ip_address": ip,

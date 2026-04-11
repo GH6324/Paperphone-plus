@@ -89,7 +89,7 @@ struct MomentsQuery {
 
 async fn list_moments(
     State(state): State<Arc<AppState>>,
-    auth: AuthUser,
+    _auth: AuthUser,
     Query(params): Query<MomentsQuery>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
     let limit = params.limit.unwrap_or(20).min(50);

@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use axum::{Router, routing::{get, post, delete}, extract::{State, Path, Query}, Json};
+use axum::{Router, routing::{get, post, delete}, extract::{State, Path}, Json};
 use serde::Deserialize;
 
 use crate::AppState;

@@ -16,18 +16,31 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/recovery", post(use_recovery_code))
 }
 
+/// Helper: create a TOTP instance with the standard PaperPhone parameters
+fn make_totp(secret_bytes: Vec<u8>, account: &str) -> Result<totp_rs::TOTP, totp_rs::TotpUrlError> {
+    totp_rs::TOTP::new(
+        totp_rs::Algorithm::SHA1,
+        6,
+        1,
+        30,
+        secret_bytes,
+        Some("PaperPhone".to_string()),
+        account.to_string(),
+    )
+}
+
 async fn setup_totp(
     State(state): State<Arc<AppState>>,
     auth: AuthUser,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    use totp_rs::{TOTP, Algorithm, Secret};
+    use totp_rs::Secret;
 
     let secret = Secret::generate_secret();
-    let totp = TOTP::new(Algorithm::SHA1, 6, 1, 30, secret.to_bytes().unwrap())
+    let totp = make_totp(secret.to_bytes().unwrap(), &auth.0.username)
         .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
 
     let secret_base32 = secret.to_encoded().to_string();
-    let uri = totp.get_url(&auth.0.username, "PaperPhone");
+    let uri = totp.get_url();
 
     // Generate 8 recovery codes
     let mut rng = rand::thread_rng();
@@ -57,7 +70,7 @@ async fn enable_totp(
     auth: AuthUser,
     Json(body): Json<VerifyReq>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    use totp_rs::{TOTP, Algorithm, Secret};
+    use totp_rs::Secret;
 
     let row: Option<(String,)> = sqlx::query_as("SELECT totp_secret FROM user_totp WHERE user_id = ?")
         .bind(&auth.0.id).fetch_optional(&state.db).await.unwrap_or(None);
@@ -67,7 +80,7 @@ async fn enable_totp(
     let secret = Secret::Encoded(secret_b32).to_bytes()
         .map_err(|_| (axum::http::StatusCode::BAD_REQUEST, Json(serde_json::json!({ "error": "Invalid secret" }))))?;
 
-    let totp = TOTP::new(Algorithm::SHA1, 6, 1, 30, secret)
+    let totp = make_totp(secret, &auth.0.username)
         .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
 
     if !totp.check_current(&body.code).unwrap_or(false) {
@@ -84,7 +97,7 @@ async fn verify_totp(
     State(state): State<Arc<AppState>>,
     Json(body): Json<VerifyWithTokenReq>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    use totp_rs::{TOTP, Algorithm, Secret};
+    use totp_rs::Secret;
 
     // Verify the pending 2FA token
     let claims = verify_token(&body.login_token, &state.config.jwt_secret)
@@ -102,7 +115,7 @@ async fn verify_totp(
     let secret = Secret::Encoded(secret_b32).to_bytes()
         .map_err(|_| (axum::http::StatusCode::BAD_REQUEST, Json(serde_json::json!({ "error": "Invalid secret" }))))?;
 
-    let totp = TOTP::new(Algorithm::SHA1, 6, 1, 30, secret)
+    let totp = make_totp(secret, &claims.username)
         .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
 
     if !totp.check_current(&body.code).unwrap_or(false) {
@@ -138,7 +151,7 @@ async fn disable_totp(
     auth: AuthUser,
     Json(body): Json<VerifyReq>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    use totp_rs::{TOTP, Algorithm, Secret};
+    use totp_rs::Secret;
 
     let row: Option<(String,)> = sqlx::query_as("SELECT totp_secret FROM user_totp WHERE user_id = ? AND enabled = 1")
         .bind(&auth.0.id).fetch_optional(&state.db).await.unwrap_or(None);
@@ -148,7 +161,7 @@ async fn disable_totp(
     let secret = Secret::Encoded(secret_b32).to_bytes()
         .map_err(|_| (axum::http::StatusCode::BAD_REQUEST, Json(serde_json::json!({ "error": "Invalid secret" }))))?;
 
-    let totp = TOTP::new(Algorithm::SHA1, 6, 1, 30, secret)
+    let totp = make_totp(secret, &auth.0.username)
         .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
 
     if !totp.check_current(&body.code).unwrap_or(false) {
