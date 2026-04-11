@@ -3,7 +3,7 @@ use crate::config::Config;
 
 /// Send Web Push notification to a user via VAPID
 pub async fn push_to_user(db: &sqlx::MySqlPool, config: &Config, user_id: &str, title: &str, body: &str) {
-    let (public_key, private_key, subject) = match (&config.vapid_public_key, &config.vapid_private_key, &config.vapid_subject) {
+    let (_public_key, private_key, _subject) = match (&config.vapid_public_key, &config.vapid_private_key, &config.vapid_subject) {
         (Some(pub_k), Some(priv_k), Some(subj)) => (pub_k.clone(), priv_k.clone(), subj.clone()),
         _ => return, // VAPID not configured
     };
@@ -32,20 +32,16 @@ pub async fn push_to_user(db: &sqlx::MySqlPool, config: &Config, user_id: &str, 
             },
         };
 
-        let sig_builder = web_push::VapidSignatureBuilder::from_base64_no_sub(
+        // Use from_base64 which takes SubscriptionInfo directly and returns full VapidSignatureBuilder
+        let signature = match web_push::VapidSignatureBuilder::from_base64(
             &private_key,
             web_push::URL_SAFE_NO_PAD,
-        );
-
-        let signature = match sig_builder {
-            Ok(mut b) => {
-                b.add_sub_info(&sub);
-                b.set_sub_info(subject.clone());
-                match b.build() {
-                    Ok(sig) => sig,
-                    Err(_) => continue,
-                }
-            }
+            &sub,
+        ) {
+            Ok(mut b) => match b.build() {
+                Ok(sig) => sig,
+                Err(_) => continue,
+            },
             Err(_) => continue,
         };
 
@@ -54,8 +50,7 @@ pub async fn push_to_user(db: &sqlx::MySqlPool, config: &Config, user_id: &str, 
         builder.set_vapid_signature(signature);
 
         if let Ok(message) = builder.build() {
-            let client = web_push::IsahcWebPushClient::new().ok();
-            if let Some(client) = client {
+            if let Ok(client) = web_push::IsahcWebPushClient::new() {
                 let _ = client.send(message).await;
             }
         }

@@ -1,7 +1,6 @@
 use std::sync::Arc;
 use axum::{Router, routing::post, extract::State, Json};
 use serde::Deserialize;
-use rand::Rng;
 
 use crate::AppState;
 use crate::auth::middleware::AuthUser;
@@ -16,7 +15,7 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/recovery", post(use_recovery_code))
 }
 
-/// Helper: create a TOTP instance with the standard PaperPhone parameters
+/// Helper: create a TOTP instance (sync, returns owned values)
 fn make_totp(secret_bytes: Vec<u8>, account: &str) -> Result<totp_rs::TOTP, totp_rs::TotpUrlError> {
     totp_rs::TOTP::new(
         totp_rs::Algorithm::SHA1,
@@ -33,21 +32,26 @@ async fn setup_totp(
     State(state): State<Arc<AppState>>,
     auth: AuthUser,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    use totp_rs::Secret;
+    // Compute everything synchronously, then drop non-Send types before .await
+    let (secret_base32, uri, codes, codes_json) = {
+        use totp_rs::Secret;
+        use rand::Rng;
 
-    let secret = Secret::generate_secret();
-    let totp = make_totp(secret.to_bytes().unwrap(), &auth.0.username)
-        .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
+        let secret = Secret::generate_secret();
+        let totp = make_totp(secret.to_bytes().unwrap(), &auth.0.username)
+            .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
 
-    let secret_base32 = secret.to_encoded().to_string();
-    let uri = totp.get_url();
+        let secret_base32 = secret.to_encoded().to_string();
+        let uri = totp.get_url();
 
-    // Generate 8 recovery codes
-    let mut rng = rand::thread_rng();
-    let codes: Vec<String> = (0..8).map(|_| format!("{:08x}", rng.gen::<u32>())).collect();
-    let codes_json = serde_json::to_string(&codes).unwrap_or_default();
+        let mut rng = rand::thread_rng();
+        let codes: Vec<String> = (0..8).map(|_| format!("{:08x}", rng.gen::<u32>())).collect();
+        let codes_json = serde_json::to_string(&codes).unwrap_or_default();
 
-    // Store (not yet enabled)
+        (secret_base32, uri, codes, codes_json)
+    };
+
+    // Now only Send types are alive across .await
     sqlx::query(
         "INSERT INTO user_totp (user_id, totp_secret, recovery_codes, enabled) VALUES (?, ?, ?, 0)
          ON DUPLICATE KEY UPDATE totp_secret = VALUES(totp_secret), recovery_codes = VALUES(recovery_codes), enabled = 0"
@@ -70,20 +74,22 @@ async fn enable_totp(
     auth: AuthUser,
     Json(body): Json<VerifyReq>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    use totp_rs::Secret;
-
     let row: Option<(String,)> = sqlx::query_as("SELECT totp_secret FROM user_totp WHERE user_id = ?")
         .bind(&auth.0.id).fetch_optional(&state.db).await.unwrap_or(None);
 
     let (secret_b32,) = row.ok_or_else(|| (axum::http::StatusCode::NOT_FOUND, Json(serde_json::json!({ "error": "TOTP not set up" }))))?;
 
-    let secret = Secret::Encoded(secret_b32).to_bytes()
-        .map_err(|_| (axum::http::StatusCode::BAD_REQUEST, Json(serde_json::json!({ "error": "Invalid secret" }))))?;
+    // Scope non-Send TOTP types
+    let valid = {
+        use totp_rs::Secret;
+        let secret = Secret::Encoded(secret_b32).to_bytes()
+            .map_err(|_| (axum::http::StatusCode::BAD_REQUEST, Json(serde_json::json!({ "error": "Invalid secret" }))))?;
+        let totp = make_totp(secret, &auth.0.username)
+            .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
+        totp.check_current(&body.code).unwrap_or(false)
+    };
 
-    let totp = make_totp(secret, &auth.0.username)
-        .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
-
-    if !totp.check_current(&body.code).unwrap_or(false) {
+    if !valid {
         return Err((axum::http::StatusCode::UNAUTHORIZED, Json(serde_json::json!({ "error": "Invalid code" }))));
     }
 
@@ -97,9 +103,6 @@ async fn verify_totp(
     State(state): State<Arc<AppState>>,
     Json(body): Json<VerifyWithTokenReq>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    use totp_rs::Secret;
-
-    // Verify the pending 2FA token
     let claims = verify_token(&body.login_token, &state.config.jwt_secret)
         .map_err(|_| (axum::http::StatusCode::UNAUTHORIZED, Json(serde_json::json!({ "error": "Invalid or expired token" }))))?;
 
@@ -112,17 +115,19 @@ async fn verify_totp(
 
     let (secret_b32,) = row.ok_or_else(|| (axum::http::StatusCode::NOT_FOUND, Json(serde_json::json!({ "error": "2FA not enabled" }))))?;
 
-    let secret = Secret::Encoded(secret_b32).to_bytes()
-        .map_err(|_| (axum::http::StatusCode::BAD_REQUEST, Json(serde_json::json!({ "error": "Invalid secret" }))))?;
+    let valid = {
+        use totp_rs::Secret;
+        let secret = Secret::Encoded(secret_b32).to_bytes()
+            .map_err(|_| (axum::http::StatusCode::BAD_REQUEST, Json(serde_json::json!({ "error": "Invalid secret" }))))?;
+        let totp = make_totp(secret, &claims.username)
+            .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
+        totp.check_current(&body.code).unwrap_or(false)
+    };
 
-    let totp = make_totp(secret, &claims.username)
-        .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
-
-    if !totp.check_current(&body.code).unwrap_or(false) {
+    if !valid {
         return Err((axum::http::StatusCode::UNAUTHORIZED, Json(serde_json::json!({ "error": "Invalid TOTP code" }))));
     }
 
-    // Create session and issue full token
     let session_id = uuid::Uuid::new_v4().to_string();
     sqlx::query("INSERT INTO sessions (id, user_id) VALUES (?, ?)")
         .bind(&session_id).bind(&claims.id).execute(&state.db).await.ok();
@@ -151,20 +156,21 @@ async fn disable_totp(
     auth: AuthUser,
     Json(body): Json<VerifyReq>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    use totp_rs::Secret;
-
     let row: Option<(String,)> = sqlx::query_as("SELECT totp_secret FROM user_totp WHERE user_id = ? AND enabled = 1")
         .bind(&auth.0.id).fetch_optional(&state.db).await.unwrap_or(None);
 
     let (secret_b32,) = row.ok_or_else(|| (axum::http::StatusCode::NOT_FOUND, Json(serde_json::json!({ "error": "2FA not enabled" }))))?;
 
-    let secret = Secret::Encoded(secret_b32).to_bytes()
-        .map_err(|_| (axum::http::StatusCode::BAD_REQUEST, Json(serde_json::json!({ "error": "Invalid secret" }))))?;
+    let valid = {
+        use totp_rs::Secret;
+        let secret = Secret::Encoded(secret_b32).to_bytes()
+            .map_err(|_| (axum::http::StatusCode::BAD_REQUEST, Json(serde_json::json!({ "error": "Invalid secret" }))))?;
+        let totp = make_totp(secret, &auth.0.username)
+            .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
+        totp.check_current(&body.code).unwrap_or(false)
+    };
 
-    let totp = make_totp(secret, &auth.0.username)
-        .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
-
-    if !totp.check_current(&body.code).unwrap_or(false) {
+    if !valid {
         return Err((axum::http::StatusCode::UNAUTHORIZED, Json(serde_json::json!({ "error": "Invalid code" }))));
     }
 
@@ -201,7 +207,6 @@ async fn use_recovery_code(
         sqlx::query("UPDATE user_totp SET recovery_codes = ? WHERE user_id = ?")
             .bind(&updated).bind(&claims.id).execute(&state.db).await.ok();
 
-        // Issue full token
         let session_id = uuid::Uuid::new_v4().to_string();
         sqlx::query("INSERT INTO sessions (id, user_id) VALUES (?, ?)")
             .bind(&session_id).bind(&claims.id).execute(&state.db).await.ok();
