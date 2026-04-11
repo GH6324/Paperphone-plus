@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 # build-and-push.sh — Build multi-arch Docker images and push to Docker Hub
 #
+# Cross-compilation strategy (fast on x86-64 VPS):
+#   Server (Rust):  Builder stage always runs on x86-64, uses cargo
+#                   cross-compile toolchain for ARM64 (no QEMU).
+#   Client (React): Builder stage uses --platform=$BUILDPLATFORM (native),
+#                   only the nginx runtime layer is multi-arch.
+#
 # Usage:
 #   bash build-and-push.sh                        # push as 'latest'
 #   TAG=v1.2.0 bash build-and-push.sh             # push as specific tag + also retag 'latest'
@@ -9,9 +15,6 @@
 # Prerequisites:
 #   docker login
 #   docker buildx create --use --name multiarch-builder  # only needed once
-#
-# Environment:
-#   Copy server/.env.example → server/.env and fill in secrets before deploying.
 
 set -euo pipefail
 
