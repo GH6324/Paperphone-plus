@@ -7,8 +7,8 @@ use crate::auth::middleware::AuthUser;
 
 pub fn router() -> Router<Arc<AppState>> {
     Router::new()
-        .route("/private/:user_id", get(get_private_messages))
-        .route("/group/:group_id", get(get_group_messages))
+        .route("/private/{user_id}", get(get_private_messages))
+        .route("/group/{group_id}", get(get_group_messages))
         .route("/expired", delete(delete_expired))
 }
 
