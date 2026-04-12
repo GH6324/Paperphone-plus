@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { get, post, del } from '../api/http'
+import { get, post, del, uploadFile as httpUploadFile } from '../api/http'
 import { useStore, Friend } from '../store'
 import { useI18n } from '../hooks/useI18n'
 
@@ -249,18 +249,10 @@ function MomentComposer({ t, friends, onBack, onPublished }: {
     get<Tag[]>('/api/tags').then(setTags).catch(() => {})
   }, [])
 
-  // Upload file helper
-  const uploadFile = async (file: File): Promise<string> => {
-    const fd = new FormData()
-    fd.append('file', file)
-    const token = useStore.getState().token
-    const res = await fetch('/api/upload', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: fd,
-    })
-    const data = await res.json()
-    return data.url
+  // Upload file helper (uses shared upload with URL normalization)
+  const uploadOneFile = async (file: File): Promise<string> => {
+    const res = await httpUploadFile(file)
+    return res.url
   }
 
   const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -272,7 +264,7 @@ function MomentComposer({ t, friends, onBack, onPublished }: {
 
     for (const file of toUpload) {
       try {
-        const url = await uploadFile(file)
+        const url = await uploadOneFile(file)
         setImages(prev => [...prev, url])
         setMediaMode('images')
       } catch {
@@ -296,7 +288,7 @@ function MomentComposer({ t, friends, onBack, onPublished }: {
     }
 
     try {
-      const url = await uploadFile(file)
+      const url = await uploadOneFile(file)
       setVideoUrl(url)
       setVideoDuration(Math.round(duration))
       setMediaMode('video')

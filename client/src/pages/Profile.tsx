@@ -4,7 +4,7 @@ import { useStore } from '../store'
 import { useI18n } from '../hooks/useI18n'
 import { clearKeys, getKeys } from '../crypto/keystore'
 import { disconnectWs } from '../api/socket'
-import { get, post, put, del } from '../api/http'
+import { get, post, put, del, uploadFile } from '../api/http'
 import { allLangs, langNames, LangCode } from '../i18n'
 import { QRCodeCanvas } from '../components/QRCode'
 import { isPushSupported, isPushSubscribed, subscribePush, unsubscribePush } from '../api/push'
@@ -245,9 +245,7 @@ function ChangeAvatar({ onBack, t, user, setAuth }: { onBack: () => void; t: (k:
     setUploading(true)
     try {
       // Upload file
-      const form = new FormData()
-      form.append('file', file)
-      const res = await post<{ url: string }>('/api/upload', form)
+      const res = await uploadFile(file)
       // Update avatar
       await put('/api/users/avatar', { avatar: res.url })
       setPreview(res.url)

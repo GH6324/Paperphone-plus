@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { get, post, del } from '../api/http'
+import { get, post, del, uploadFile as httpUploadFile } from '../api/http'
 import { useStore } from '../store'
 import { useI18n } from '../hooks/useI18n'
 
@@ -389,17 +389,9 @@ function PostComposer({ t, onBack, onPublished }: {
   const imageInputRef = useRef<HTMLInputElement>(null)
   const videoInputRef = useRef<HTMLInputElement>(null)
 
-  const uploadFile = async (file: File): Promise<string> => {
-    const fd = new FormData()
-    fd.append('file', file)
-    const token = useStore.getState().token
-    const res = await fetch('/api/upload', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: fd,
-    })
-    const data = await res.json()
-    return data.url
+  const uploadOneFile = async (file: File): Promise<string> => {
+    const res = await httpUploadFile(file)
+    return res.url
   }
 
   const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -410,7 +402,7 @@ function PostComposer({ t, onBack, onPublished }: {
     setError('')
     for (const file of toUpload) {
       try {
-        const url = await uploadFile(file)
+        const url = await uploadOneFile(file)
         setImages(prev => [...prev, url])
         setMediaMode('images')
       } catch { setError(t('timeline.upload_failed')) }
@@ -429,7 +421,7 @@ function PostComposer({ t, onBack, onPublished }: {
       return
     }
     try {
-      const url = await uploadFile(file)
+      const url = await uploadOneFile(file)
       setVideoUrl(url)
       setVideoDuration(Math.round(duration))
       setMediaMode('video')

@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use axum::{Router, routing::get, extract::DefaultBodyLimit};
-use tower_http::cors::{CorsLayer, Any};
+use axum::http::Method;
+use tower_http::cors::CorsLayer;
 use tracing_subscriber::EnvFilter;
 
 mod config;
@@ -53,10 +54,31 @@ async fn main() {
         ws_clients: ws::server::WsClients::default(),
     });
 
+    // Ensure upload directory exists
+    let upload_path = format!("{}/uploads", state.config.upload_dir);
+    tokio::fs::create_dir_all(&upload_path).await.ok();
+    tracing::info!("✅ Upload directory ready: {}", upload_path);
+
+    // CORS: mirror the request Origin so that credentialed/preflight requests
+    // work across Vercel (client) → Zeabur (server).
     let cors = CorsLayer::new()
-        .allow_origin(Any)
-        .allow_methods(Any)
-        .allow_headers(Any);
+        .allow_origin(tower_http::cors::AllowOrigin::mirror_request())
+        .allow_methods([
+            Method::GET, Method::POST, Method::PUT,
+            Method::DELETE, Method::PATCH, Method::OPTIONS,
+        ])
+        .allow_headers([
+            axum::http::header::AUTHORIZATION,
+            axum::http::header::CONTENT_TYPE,
+            axum::http::header::ACCEPT,
+            axum::http::header::ORIGIN,
+            axum::http::header::HeaderName::from_static("x-requested-with"),
+        ])
+        .expose_headers([
+            axum::http::header::CONTENT_LENGTH,
+            axum::http::header::CONTENT_TYPE,
+        ])
+        .max_age(std::time::Duration::from_secs(86400));
 
     let app = Router::new()
         // Health check

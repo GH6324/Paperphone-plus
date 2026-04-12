@@ -24,7 +24,14 @@ async fn upload_file(
         let ext = filename.rsplit('.').next().unwrap_or("bin");
         let key = format!("uploads/{}.{}", Uuid::new_v4(), ext);
 
-        // Try R2 upload
+        // Always save to local filesystem first (ensures file is persisted)
+        let upload_dir = &state.config.upload_dir;
+        tokio::fs::create_dir_all(format!("{}/uploads", upload_dir)).await.ok();
+        let file_path = format!("{}/{}", upload_dir, key);
+        tokio::fs::write(&file_path, &data).await
+            .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": format!("Local save failed: {}", e) }))))?;
+
+        // Try R2 upload (optional, best-effort)
         if let (Some(account_id), Some(access_key), Some(secret_key), Some(bucket)) = (
             &state.config.r2_account_id,
             &state.config.r2_access_key_id,
@@ -42,31 +49,30 @@ async fn upload_file(
                 .await;
 
             let s3 = aws_sdk_s3::Client::new(&config);
-            s3.put_object()
+            match s3.put_object()
                 .bucket(bucket)
                 .key(&key)
                 .body(aws_sdk_s3::primitives::ByteStream::from(data.to_vec()))
                 .content_type(&content_type)
                 .send()
                 .await
-                .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
-
-            let url = if let Some(ref public_url) = state.config.r2_public_url {
-                format!("{}/{}", public_url.trim_end_matches('/'), key)
-            } else {
-                format!("/api/files/{}", key)
-            };
-
-            return Ok(Json(serde_json::json!({ "url": url, "key": key })));
+            {
+                Ok(_) => {
+                    let url = if let Some(ref public_url) = state.config.r2_public_url {
+                        format!("{}/{}", public_url.trim_end_matches('/'), key)
+                    } else {
+                        format!("/api/files/{}", key)
+                    };
+                    return Ok(Json(serde_json::json!({ "url": url, "key": key })));
+                }
+                Err(e) => {
+                    tracing::warn!("R2 upload failed, using local fallback: {}", e);
+                    // Fall through to return local URL
+                }
+            }
         }
 
-        // Fallback: save to local filesystem
-        let upload_dir = &state.config.upload_dir;
-        tokio::fs::create_dir_all(format!("{}/uploads", upload_dir)).await.ok();
-        let file_path = format!("{}/{}", upload_dir, key);
-        tokio::fs::write(&file_path, &data).await
-            .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
-
+        // Return local URL
         let url = format!("/api/files/{}", key);
         return Ok(Json(serde_json::json!({ "url": url, "key": key })));
     }

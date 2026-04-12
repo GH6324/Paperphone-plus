@@ -43,7 +43,7 @@ async fn proxy_file(
                 ).into_response();
             }
             Err(_) => {
-                return (StatusCode::NOT_FOUND, "File not found").into_response();
+                // R2 miss — fall through to local filesystem
             }
         }
     }

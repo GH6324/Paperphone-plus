@@ -20,7 +20,7 @@ async fn list_friends(
     State(state): State<Arc<AppState>>,
     auth: AuthUser,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    let rows: Vec<(String, String, String, Option<String>, i8, i32, String, String, Option<String>)> = sqlx::query_as(
+    let rows: Vec<(String, String, String, Option<String>, i8, i32, Option<String>, Option<String>, Option<String>)> = sqlx::query_as(
         "SELECT u.id, u.username, u.nickname, u.avatar, u.is_online, f.auto_delete, u.ik_pub, u.kem_pub, f.remark
          FROM friends f JOIN users u ON u.id = f.friend_id
          WHERE f.user_id = ? AND f.status = 'accepted'
