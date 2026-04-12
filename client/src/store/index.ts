@@ -89,6 +89,7 @@ interface AppStore {
   addMessage: (chatId: string, msg: ChatMessage) => void
   setMessages: (chatId: string, msgs: ChatMessage[]) => void
   prependMessages: (chatId: string, msgs: ChatMessage[]) => void
+  markMessagesRead: (msgIds: string[], ts: number) => void
 
   // Unread counts
   unread: Record<string, number>
@@ -159,6 +160,16 @@ export const useStore = create<AppStore>((set, get) => ({
       [chatId]: [...msgs, ...(s.messages[chatId] || [])],
     }
   })),
+  markMessagesRead: (msgIds, ts) => set(s => {
+    const updated = { ...s.messages }
+    for (const chatId of Object.keys(updated)) {
+      const msgs = updated[chatId]
+      if (msgs?.some(m => msgIds.includes(m.id))) {
+        updated[chatId] = msgs.map(m => msgIds.includes(m.id) ? { ...m, read_at: ts } : m)
+      }
+    }
+    return { messages: updated }
+  }),
 
   // Unread
   unread: {},

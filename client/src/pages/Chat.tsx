@@ -6,7 +6,7 @@ import { get, post, put, uploadFileWithProgress, normalizeFileUrl } from '../api
 import { sendWs, onWs } from '../api/socket'
 import { getKeys } from '../crypto/keystore'
 import { encryptHybrid, decryptHybrid } from '../crypto/ratchet'
-import { ChevronLeft, Lock, Settings, Timer, ImageIcon, Film, Plus, Mic, Download, Paperclip, AlertTriangle, Clock, Package as PackageIcon, FileText, File as FileIcon, Image as LucideImage, Music, Video, Check, Phone, VideoIcon, SendHorizonal, Smile, WifiOff } from 'lucide-react'
+import { ChevronLeft, Lock, Settings, Timer, ImageIcon, Film, Plus, Mic, Download, Paperclip, AlertTriangle, Clock, Package as PackageIcon, FileText, File as FileIcon, Image as LucideImage, Music, Video, Check, CheckCheck, Phone, VideoIcon, SendHorizonal, Smile, WifiOff } from 'lucide-react'
 
 // Auto-delete options (seconds)
 const AUTO_DELETE_OPTIONS = [
@@ -183,6 +183,16 @@ export default function Chat() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+
+    // Send read receipts for unread incoming private messages
+    if (!isGroup && id && user) {
+      const unreadIds = messages
+        .filter(m => m.from !== user.id && !m.read_at && m.id)
+        .map(m => m.id)
+      if (unreadIds.length > 0) {
+        sendWs({ type: 'msg_read', msg_ids: unreadIds })
+      }
+    }
   }, [messages.length])
 
   useEffect(() => {
@@ -224,6 +234,20 @@ export default function Chat() {
     try {
       if (msgType === 'text') setInput('')
 
+      // Prepare pending message metadata for ack handler (real-time display)
+      const pendingMsg: any = {
+        from: user.id,
+        msg_type: msgType,
+        decrypted: content,
+        ciphertext: content,
+      }
+      if (isGroup) {
+        pendingMsg.group_id = id
+      } else {
+        pendingMsg.to = id
+      }
+      ;(window as any).__pendingMsg = pendingMsg
+
       let sent = false
       if (isGroup) {
         sent = sendWs({ type: 'message', msg_type: msgType, group_id: id, ciphertext: content })
@@ -232,7 +256,6 @@ export default function Chat() {
         const recipientPub = friend?.ik_pub
         const recipientKem = friend?.kem_pub
         if (!recipientPub || !keys) {
-          // No encryption keys available — send unencrypted
           sent = sendWs({ type: 'message', msg_type: msgType, to: id, ciphertext: content })
         } else {
           try {
@@ -245,14 +268,13 @@ export default function Chat() {
             })
           } catch (encErr) {
             console.warn('[Chat] Encryption failed, sending unencrypted:', encErr)
-            // Fallback: send unencrypted so the message still goes through
             sent = sendWs({ type: 'message', msg_type: msgType, to: id, ciphertext: content })
           }
         }
       }
 
       if (!sent) {
-        // Restore input so user doesn't lose their message
+        ;(window as any).__pendingMsg = null
         if (msgType === 'text' && content) setInput(content)
         alert(t('chat.ws_disconnected') || 'Connection lost. Please check your network and try again.')
       }
@@ -631,7 +653,16 @@ export default function Chat() {
                 <div className="msg-bubble" style={isSticker ? { background: 'transparent', boxShadow: 'none', padding: 0 } : undefined}>
                   {renderBubble(msg, displayText, !!isEncFailed)}
                 </div>
-                <div className="msg-time">{formatTime(msg.ts)}</div>
+                <div className="msg-time">
+                  {formatTime(msg.ts)}
+                  {isMe && !isGroup && (
+                    <span style={{ marginLeft: 3, display: 'inline-flex', verticalAlign: 'middle' }}>
+                      {msg.read_at
+                        ? <CheckCheck size={13} style={{ color: '#3b82f6' }} />
+                        : <Check size={13} style={{ opacity: 0.5 }} />}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           )

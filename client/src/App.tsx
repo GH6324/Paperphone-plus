@@ -14,9 +14,37 @@ import GroupInfo from './pages/GroupInfo'
 import Moments from './pages/Moments'
 import Timeline from './pages/Timeline'
 import TabBar from './components/TabBar'
+import { subscribePush, isPushSubscribed } from './api/push'
+import { post } from './api/http'
 
 function ProtectedLayout() {
   useSocket()
+
+  // Auto-subscribe to push notifications when authenticated
+  useEffect(() => {
+    (async () => {
+      try {
+        // Web Push (VAPID)
+        const alreadySub = await isPushSubscribed()
+        if (!alreadySub) {
+          await subscribePush()
+        }
+        // OneSignal: check if running inside Median.co native wrapper
+        const w = window as any
+        if (w.median?.onesignal?.onesignalInfo) {
+          w.median.onesignal.onesignalInfo((info: any) => {
+            if (info?.oneSignalUserId) {
+              post('/api/push/onesignal', {
+                player_id: info.oneSignalUserId,
+                platform: info.platform || 'unknown',
+              }).catch(() => {})
+            }
+          })
+        }
+      } catch {}
+    })()
+  }, [])
+
   return (
     <>
       <Routes>
