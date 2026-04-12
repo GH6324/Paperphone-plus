@@ -97,7 +97,7 @@ export default function GroupInfo() {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           <div style={{
-            background: 'var(--surface)', borderRadius: 20, padding: '32px 48px',
+            background: 'var(--bg-card)', borderRadius: 20, padding: '32px 48px',
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
             boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
           }}>
@@ -113,7 +113,7 @@ export default function GroupInfo() {
                 fontWeight: 700, fontSize: 16, color: 'var(--accent)',
               }}>{uploadProgress}%</div>
             </div>
-            <div style={{ fontSize: 14, color: 'var(--text)', fontWeight: 500 }}>{t('group.uploading_avatar')}</div>
+            <div style={{ fontSize: 14, color: 'var(--text-primary)', fontWeight: 500 }}>{t('group.uploading_avatar')}</div>
           </div>
         </div>
       )}
@@ -127,7 +127,7 @@ export default function GroupInfo() {
           animation: 'fade-in .2s ease',
         }}>
           <div style={{
-            background: 'var(--surface)', borderRadius: 16, padding: 24,
+            background: 'var(--bg-card)', borderRadius: 16, padding: 24,
             width: 'min(360px, 90vw)', boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
           }}>
             <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>
@@ -141,8 +141,8 @@ export default function GroupInfo() {
                 maxLength={500}
                 style={{
                   width: '100%', padding: '10px 12px', borderRadius: 10,
-                  border: '1px solid var(--border)', background: 'var(--bg)',
-                  color: 'var(--text)', fontSize: 14, resize: 'vertical',
+                  border: '1px solid var(--border)', background: 'var(--bg-primary)',
+                  color: 'var(--text-primary)', fontSize: 14, resize: 'vertical',
                   fontFamily: 'inherit', boxSizing: 'border-box',
                 }}
                 autoFocus
@@ -155,8 +155,8 @@ export default function GroupInfo() {
                 maxLength={64}
                 style={{
                   width: '100%', padding: '10px 12px', borderRadius: 10,
-                  border: '1px solid var(--border)', background: 'var(--bg)',
-                  color: 'var(--text)', fontSize: 14,
+                  border: '1px solid var(--border)', background: 'var(--bg-primary)',
+                  color: 'var(--text-primary)', fontSize: 14,
                   fontFamily: 'inherit', boxSizing: 'border-box',
                 }}
                 autoFocus
@@ -167,7 +167,7 @@ export default function GroupInfo() {
               <button onClick={() => setEditing(null)}
                 style={{
                   padding: '8px 20px', borderRadius: 10, border: '1px solid var(--border)',
-                  background: 'var(--bg)', color: 'var(--text)', cursor: 'pointer', fontSize: 14,
+                  background: 'var(--bg-primary)', color: 'var(--text-primary)', cursor: 'pointer', fontSize: 14,
                 }}>{t('common.cancel')}</button>
               <button onClick={saveEdit}
                 style={{
@@ -190,7 +190,7 @@ export default function GroupInfo() {
         {/* ── Avatar + Name card ── */}
         <div style={{
           textAlign: 'center', padding: '28px 16px 20px',
-          background: 'linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%)',
+          background: 'linear-gradient(180deg, var(--bg-card) 0%, var(--bg-primary) 100%)',
         }}>
           <div
             className="avatar avatar-lg"
@@ -206,7 +206,7 @@ export default function GroupInfo() {
                 position: 'absolute', bottom: -2, right: -2,
                 width: 24, height: 24, borderRadius: 12,
                 background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                border: '2px solid var(--bg)', fontSize: 12,
+                border: '2px solid var(--bg-primary)', fontSize: 12,
               }}>📷</div>
             )}
           </div>
@@ -229,12 +229,12 @@ export default function GroupInfo() {
         {/* ── Notice ── */}
         <div style={{
           margin: '0 16px 12px', padding: 14, borderRadius: 12,
-          background: 'var(--surface)', display: 'flex', alignItems: 'flex-start', gap: 10,
+          background: 'var(--bg-card)', display: 'flex', alignItems: 'flex-start', gap: 10,
         }}>
           <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>📢</span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4 }}>{t('group.notice')}</div>
-            <div style={{ fontSize: 14, color: 'var(--text)', wordBreak: 'break-word' }}>
+            <div style={{ fontSize: 14, color: 'var(--text-primary)', wordBreak: 'break-word' }}>
               {group.notice || <span style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>{t('group.no_notice')}</span>}
             </div>
           </div>
@@ -308,7 +308,7 @@ export default function GroupInfo() {
           {showQR && inviteId && (
             <div style={{
               margin: '0 0 12px', padding: 20, borderRadius: 16,
-              background: 'var(--surface)', display: 'flex', flexDirection: 'column',
+              background: 'var(--bg-card)', display: 'flex', flexDirection: 'column',
               alignItems: 'center', gap: 14,
             }}>
               {/* Expiry picker */}
@@ -328,8 +328,8 @@ export default function GroupInfo() {
                     style={{
                       padding: '6px 14px', borderRadius: 10, border: 'none', fontSize: 12,
                       fontWeight: inviteExpiry === opt.days ? 700 : 400, cursor: 'pointer',
-                      background: inviteExpiry === opt.days ? 'var(--accent)' : 'var(--bg)',
-                      color: inviteExpiry === opt.days ? '#fff' : 'var(--text)',
+                      background: inviteExpiry === opt.days ? 'var(--accent)' : 'var(--bg-primary)',
+                      color: inviteExpiry === opt.days ? '#fff' : 'var(--text-primary)',
                       transition: 'all .15s ease',
                     }}
                   >

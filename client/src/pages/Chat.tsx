@@ -2,8 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useStore } from '../store'
 import { useI18n } from '../hooks/useI18n'
-import { get, post, put } from '../api/http'
-import { uploadFileWithProgress } from '../api/http'
+import { get, post, put, uploadFileWithProgress, normalizeFileUrl } from '../api/http'
 import { sendWs, onWs } from '../api/socket'
 import { getKeys } from '../crypto/keystore'
 import { encryptHybrid, decryptHybrid } from '../crypto/ratchet'
@@ -47,7 +46,7 @@ function UploadOverlay({ progress, label }: { progress: number; label: string })
       animation: 'fade-in .2s ease',
     }}>
       <div style={{
-        background: 'var(--surface)', borderRadius: 20, padding: '32px 48px',
+        background: 'var(--bg-card)', borderRadius: 20, padding: '32px 48px',
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
         minWidth: 220, boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
       }}>
@@ -68,7 +67,7 @@ function UploadOverlay({ progress, label }: { progress: number; label: string })
             {progress}%
           </div>
         </div>
-        <div style={{ fontSize: 14, color: 'var(--text)', fontWeight: 500, textAlign: 'center' }}>
+        <div style={{ fontSize: 14, color: 'var(--text-primary)', fontWeight: 500, textAlign: 'center' }}>
           {label}
         </div>
       </div>
@@ -416,30 +415,30 @@ export default function Chat() {
       return <span style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>🔒 {t('chat.decrypt_failed')}</span>
     }
     if (msg.msg_type === 'image') {
-      return <img className="msg-image" src={displayText} alt="" style={{ maxWidth: 240, borderRadius: 8, cursor: 'pointer' }} />
+      return <img className="msg-image" src={normalizeFileUrl(displayText)} alt="" style={{ maxWidth: 240, borderRadius: 8, cursor: 'pointer' }} />
     }
     if (msg.msg_type === 'sticker') {
-      return <img src={displayText} alt="sticker" style={{ maxWidth: 160, maxHeight: 160, display: 'block', background: 'transparent' }} loading="lazy" />
+      return <img src={normalizeFileUrl(displayText)} alt="sticker" style={{ maxWidth: 160, maxHeight: 160, display: 'block', background: 'transparent' }} loading="lazy" />
     }
     if (msg.msg_type === 'voice') {
       return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 20 }}>🎙️</span>
-          <audio src={displayText} controls style={{ height: 32, maxWidth: 200 }} />
+          <audio src={normalizeFileUrl(displayText)} controls style={{ height: 32, maxWidth: 200 }} />
         </div>
       )
     }
     if (msg.msg_type === 'video') {
       const meta = parseFileMeta(displayText)
       const videoUrl = meta?.url || displayText
-      return <video src={videoUrl} controls style={{ maxWidth: 260, borderRadius: 8 }} />
+      return <video src={normalizeFileUrl(videoUrl)} controls style={{ maxWidth: 260, borderRadius: 8 }} />
     }
     if (msg.msg_type === 'file') {
       const meta = parseFileMeta(displayText)
       if (meta) {
         const icon = getFileIcon(meta.fileType || '')
         return (
-          <a href={meta.url} target="_blank" rel="noopener noreferrer"
+          <a href={normalizeFileUrl(meta.url)} target="_blank" rel="noopener noreferrer"
             style={{
               display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: 'inherit',
               padding: 8, borderRadius: 8, background: 'rgba(0,0,0,0.05)', minWidth: 180,
@@ -455,7 +454,7 @@ export default function Chat() {
           </a>
         )
       }
-      return <a href={displayText} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)' }}>📎 {t('chat.file')}</a>
+      return <a href={normalizeFileUrl(displayText)} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)' }}>📎 {t('chat.file')}</a>
     }
     return displayText
   }
@@ -471,7 +470,7 @@ export default function Chat() {
         </div>
         <div className="page-body">
           {!isGroup && (
-            <div style={{ padding: 16, display: 'flex', alignItems: 'center', gap: 12, background: 'var(--surface)', margin: '8px 16px', borderRadius: 12 }}>
+            <div style={{ padding: 16, display: 'flex', alignItems: 'center', gap: 12, background: 'var(--bg-card)', margin: '8px 16px', borderRadius: 12 }}>
               <span style={{ fontSize: 24 }}>🔒</span>
               <div>
                 <div style={{ fontWeight: 600, fontSize: 14 }}>{t('chat.e2e_enabled')}</div>
@@ -491,7 +490,7 @@ export default function Chat() {
             return (
               <div key={opt.value} className="settings-item"
                 onClick={() => canEdit && handleAutoDelete(opt.value)}
-                style={{ cursor: canEdit ? 'pointer' : 'default', opacity: canEdit ? 1 : 0.5, background: selected ? 'var(--surface)' : undefined }}>
+                style={{ cursor: canEdit ? 'pointer' : 'default', opacity: canEdit ? 1 : 0.5, background: selected ? 'var(--bg-card)' : undefined }}>
                 <span className="label">{t(opt.key)}</span>
                 {selected && <span style={{ color: 'var(--accent)', fontWeight: 600 }}>✓</span>}
               </div>
@@ -516,7 +515,7 @@ export default function Chat() {
           animation: 'fade-in .2s ease',
         }}>
           <div style={{
-            background: 'var(--surface)', borderRadius: 20, padding: '32px 48px',
+            background: 'var(--bg-card)', borderRadius: 20, padding: '32px 48px',
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
             boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
           }}>
@@ -528,7 +527,7 @@ export default function Chat() {
             }}>
               <span style={{ fontSize: 28 }}>🎙️</span>
             </div>
-            <div style={{ fontSize: 22, fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: 'var(--text)' }}>
+            <div style={{ fontSize: 22, fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)' }}>
               {Math.floor(recordDuration / 60).toString().padStart(2, '0')}:{(recordDuration % 60).toString().padStart(2, '0')}
             </div>
             <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('chat.recording')}</div>
@@ -556,7 +555,7 @@ export default function Chat() {
       </div>
 
       {currentAutoDelete > 0 && (
-        <div style={{ textAlign: 'center', padding: '4px 12px', fontSize: 11, color: 'var(--text-muted)', background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ textAlign: 'center', padding: '4px 12px', fontSize: 11, color: 'var(--text-muted)', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}>
           ⏱️ {t('auto_delete.active_indicator')} {autoDeleteLabel(currentAutoDelete)}
         </div>
       )}
@@ -611,7 +610,7 @@ export default function Chat() {
       {showEmojiPanel && (
         <div style={{
           position: 'absolute', bottom: 56, left: 0, right: 0,
-          background: 'var(--bg)', borderTop: '1px solid var(--border)',
+          background: 'var(--bg-primary)', borderTop: '1px solid var(--border)',
           display: 'flex', flexDirection: 'column', height: 280, zIndex: 100,
           animation: 'slide-up .2s ease',
         }}>
@@ -647,8 +646,8 @@ export default function Chat() {
                   {stickerPacks.map((pack, i) => (
                     <button key={pack.name} onClick={() => setCurrentPack(i)} style={{
                       padding: '4px 10px', border: 'none', borderRadius: 12,
-                      background: currentPack === i ? 'var(--accent)' : 'var(--surface)',
-                      color: currentPack === i ? '#fff' : 'var(--text)',
+                      background: currentPack === i ? 'var(--accent)' : 'var(--bg-card)',
+                      color: currentPack === i ? '#fff' : 'var(--text-primary)',
                       cursor: 'pointer', fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0,
                       fontWeight: currentPack === i ? 600 : 400,
                     }}>{pack.label}</button>
@@ -667,7 +666,7 @@ export default function Chat() {
                     return staticStickers.map((sticker: any, i: number) => (
                       <div key={sticker.file_id || i} onClick={() => sendSticker(sticker.url)} title={sticker.emoji || 'sticker'}
                         style={{ width: 72, height: 72, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, transition: 'background .15s' }}
-                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface)')}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-card)')}
                         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
                         <img src={sticker.url} alt={sticker.emoji || ''} loading="lazy"
                           style={{ maxWidth: 64, maxHeight: 64, objectFit: 'contain' }}
@@ -679,19 +678,19 @@ export default function Chat() {
               </>
             )}
           </div>
-          <div style={{ display: 'flex', borderTop: '1px solid var(--border)', background: 'var(--surface)' }}>
+          <div style={{ display: 'flex', borderTop: '1px solid var(--border)', background: 'var(--bg-card)' }}>
             <button onClick={() => setEmojiTab('emoji')} style={{
               flex: 1, padding: '10px 0', border: 'none',
-              background: emojiTab === 'emoji' ? 'var(--bg)' : 'transparent',
+              background: emojiTab === 'emoji' ? 'var(--bg-primary)' : 'transparent',
               cursor: 'pointer', fontSize: 13, fontWeight: emojiTab === 'emoji' ? 600 : 400,
-              color: emojiTab === 'emoji' ? 'var(--accent)' : 'var(--text)',
+              color: emojiTab === 'emoji' ? 'var(--accent)' : 'var(--text-primary)',
               borderBottom: emojiTab === 'emoji' ? '2px solid var(--accent)' : '2px solid transparent',
             }}>😊 Emoji</button>
             <button onClick={() => setEmojiTab('sticker')} style={{
               flex: 1, padding: '10px 0', border: 'none',
-              background: emojiTab === 'sticker' ? 'var(--bg)' : 'transparent',
+              background: emojiTab === 'sticker' ? 'var(--bg-primary)' : 'transparent',
               cursor: 'pointer', fontSize: 13, fontWeight: emojiTab === 'sticker' ? 600 : 400,
-              color: emojiTab === 'sticker' ? 'var(--accent)' : 'var(--text)',
+              color: emojiTab === 'sticker' ? 'var(--accent)' : 'var(--text-primary)',
               borderBottom: emojiTab === 'sticker' ? '2px solid var(--accent)' : '2px solid transparent',
             }}>🎨 Stickers</button>
           </div>
@@ -704,7 +703,7 @@ export default function Chat() {
           <div style={{ position: 'fixed', inset: 0, zIndex: 90 }} onClick={() => setShowAttachPanel(false)} />
           <div style={{
             position: 'absolute', bottom: 56, left: 0, right: 0,
-            background: 'var(--bg)', borderTop: '1px solid var(--border)',
+            background: 'var(--bg-primary)', borderTop: '1px solid var(--border)',
             padding: 16, zIndex: 100, animation: 'slide-up .2s ease',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-around', gap: 12 }}>
@@ -714,7 +713,7 @@ export default function Chat() {
                 <div style={{ width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(135deg, #667eea, #764ba2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <span style={{ fontSize: 24 }}>🎬</span>
                 </div>
-                <span style={{ fontSize: 12, color: 'var(--text)' }}>{t('chat.attach_video')}</span>
+                <span style={{ fontSize: 12, color: 'var(--text-primary)' }}>{t('chat.attach_video')}</span>
               </button>
               {/* File */}
               <button onClick={() => { setShowAttachPanel(false); fileInputRef.current?.click() }}
@@ -722,7 +721,7 @@ export default function Chat() {
                 <div style={{ width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(135deg, #11998e, #38ef7d)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <span style={{ fontSize: 24 }}>📄</span>
                 </div>
-                <span style={{ fontSize: 12, color: 'var(--text)' }}>{t('chat.attach_file')}</span>
+                <span style={{ fontSize: 12, color: 'var(--text-primary)' }}>{t('chat.attach_file')}</span>
               </button>
               {/* Voice */}
               <button onClick={() => { setShowAttachPanel(false); startVoice() }}
@@ -730,12 +729,12 @@ export default function Chat() {
                 <div style={{ width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(135deg, #fc5c7d, #6a82fb)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <span style={{ fontSize: 24 }}>🎙️</span>
                 </div>
-                <span style={{ fontSize: 12, color: 'var(--text)' }}>{t('chat.attach_voice')}</span>
+                <span style={{ fontSize: 12, color: 'var(--text-primary)' }}>{t('chat.attach_voice')}</span>
               </button>
             </div>
             <button onClick={() => setShowAttachPanel(false)} style={{
               display: 'block', width: '100%', marginTop: 12, padding: '10px 0',
-              border: 'none', borderRadius: 10, background: 'var(--surface)',
+              border: 'none', borderRadius: 10, background: 'var(--bg-card)',
               color: 'var(--text-muted)', fontSize: 14, cursor: 'pointer',
             }}>{t('common.cancel')}</button>
           </div>

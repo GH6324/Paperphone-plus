@@ -1,84 +1,108 @@
 /* ═══════════════════════════════════════════════════════════════
-   PaperPhone — Premium Design System
-   Dark/Light theme · Glassmorphism · Inter font · Micro-animations
+   PaperPhone — iOS 26 Liquid Glass Design System
+   Translucent glass materials · Depth & refraction · Fluid motion
    ═══════════════════════════════════════════════════════════════ */
 
-:root {
-  /* ── Color System (Light — Primary) ─────────────────────────── */
-  --bg-primary: #f8f6f1;
-  --bg-secondary: #ffffff;
-  --bg-tertiary: #f0ede6;
-  --bg-card: rgba(255, 255, 255, 0.92);
-  --bg-input: rgba(0, 0, 0, 0.04);
-  --bg-hover: rgba(212, 160, 23, 0.08);
-  --bg-active: rgba(212, 160, 23, 0.14);
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-  --text-primary: #1e1e1e;
-  --text-secondary: #5a5a5a;
-  --text-muted: #9a9a9a;
+:root {
+  /* ── Color System (Light) ────────────────────────────────── */
+  --bg-primary: #f2f2f7;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e5e5ea;
+  --bg-card: rgba(255, 255, 255, 0.65);
+  --bg-input: rgba(120, 120, 128, 0.08);
+  --bg-hover: rgba(120, 120, 128, 0.08);
+  --bg-active: rgba(120, 120, 128, 0.14);
+
+  --text-primary: #1c1c1e;
+  --text-secondary: #636366;
+  --text-muted: #aeaeb2;
   --text-inverse: #ffffff;
 
   --accent: #d4a017;
-  --accent-light: #e8b84a;
+  --accent-light: #e8c44a;
   --accent-dark: #b8860b;
-  --accent-bg: rgba(212, 160, 23, 0.12);
+  --accent-bg: rgba(212, 160, 23, 0.10);
+  --accent-glow: rgba(212, 160, 23, 0.25);
 
-  --success: #34c759;
-  --warning: #ff9500;
-  --danger: #ff3b30;
-  --info: #007aff;
+  --success: #30d158;
+  --warning: #ff9f0a;
+  --danger: #ff453a;
+  --info: #0a84ff;
 
-  --border: rgba(0, 0, 0, 0.08);
-  --border-active: rgba(212, 160, 23, 0.35);
-  --shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 4px 24px rgba(0, 0, 0, 0.1);
+  --border: rgba(0, 0, 0, 0.06);
+  --border-active: rgba(212, 160, 23, 0.4);
+  --shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.08);
 
-  /* ── Glass ─────────────────────────────────────────────────── */
-  --glass-bg: rgba(255, 255, 255, 0.8);
-  --glass-border: rgba(0, 0, 0, 0.06);
-  --glass-blur: 20px;
+  /* ── Liquid Glass ────────────────────────────────────────── */
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-bg-thick: rgba(255, 255, 255, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-border-bottom: rgba(0, 0, 0, 0.06);
+  --glass-highlight: linear-gradient(180deg,
+    rgba(255,255,255,0.9) 0%,
+    rgba(255,255,255,0.3) 50%,
+    rgba(255,255,255,0.05) 100%);
+  --glass-blur: 40px;
+  --glass-saturate: 200%;
+  --glass-shadow: 0 2px 20px rgba(0, 0, 0, 0.06),
+                   0 0 0 0.5px rgba(0, 0, 0, 0.04);
 
-  /* ── Sizing ────────────────────────────────────────────────── */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  /* ── Sizing ─────────────────────────────────────────────── */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
   --radius-full: 9999px;
 
   --header-h: 56px;
-  --tabbar-h: 60px;
+  --tabbar-h: 52px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 
-  /* ── Transitions ───────────────────────────────────────────── */
-  --ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --duration: 200ms;
-  --duration-slow: 350ms;
+  /* ── Motion (iOS spring curves) ─────────────────────────── */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0, 1);
+  --duration: 250ms;
+  --duration-slow: 400ms;
 
   color-scheme: light;
 }
 
-/* ── Dark Theme ─────────────────────────────────────────────── */
+/* ── Dark Theme ────────────────────────────────────────────── */
 [data-theme="dark"] {
-  --bg-primary: #0f0f1a;
-  --bg-secondary: #1a1a2e;
-  --bg-tertiary: #16213e;
-  --bg-card: rgba(26, 26, 46, 0.85);
-  --bg-input: rgba(22, 33, 62, 0.6);
-  --bg-hover: rgba(212, 160, 23, 0.12);
-  --bg-active: rgba(212, 160, 23, 0.2);
+  --bg-primary: #000000;
+  --bg-secondary: #1c1c1e;
+  --bg-tertiary: #2c2c2e;
+  --bg-card: rgba(44, 44, 46, 0.55);
+  --bg-input: rgba(120, 120, 128, 0.20);
+  --bg-hover: rgba(120, 120, 128, 0.15);
+  --bg-active: rgba(120, 120, 128, 0.25);
 
-  --text-primary: #e8e8f0;
-  --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
-  --text-inverse: #0f0f1a;
+  --text-primary: #f5f5f7;
+  --text-secondary: #a1a1a6;
+  --text-muted: #636366;
+  --text-inverse: #000000;
 
-  --border: rgba(255, 255, 255, 0.08);
-  --border-active: rgba(212, 160, 23, 0.4);
-  --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.4);
+  --accent-glow: rgba(212, 160, 23, 0.35);
 
-  --glass-bg: rgba(26, 26, 46, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 255, 255, 0.06);
+  --border-active: rgba(212, 160, 23, 0.5);
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 48px rgba(0, 0, 0, 0.5);
+
+  --glass-bg: rgba(44, 44, 46, 0.45);
+  --glass-bg-thick: rgba(44, 44, 46, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-bottom: rgba(255, 255, 255, 0.04);
+  --glass-highlight: linear-gradient(180deg,
+    rgba(255,255,255,0.12) 0%,
+    rgba(255,255,255,0.04) 50%,
+    rgba(255,255,255,0) 100%);
+  --glass-shadow: 0 2px 24px rgba(0, 0, 0, 0.3),
+                   0 0 0 0.5px rgba(255, 255, 255, 0.06);
 
   color-scheme: dark;
 }
@@ -92,7 +116,7 @@
 
 html, body, #root {
   height: 100%;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
   font-size: 15px;
   line-height: 1.5;
   color: var(--text-primary);
@@ -120,18 +144,54 @@ body {
 
 @media (min-width: 481px) {
   #root {
-    border-left: 1px solid var(--border);
-    border-right: 1px solid var(--border);
+    border-left: 0.5px solid var(--glass-border);
+    border-right: 0.5px solid var(--glass-border);
     box-shadow: var(--shadow-lg);
   }
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   Scrollbar
+   Scrollbar (subtle, iOS-like)
    ═══════════════════════════════════════════════════════════════ */
-::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar { width: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 2px; }
+::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.15);
+  border-radius: 3px;
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.12);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Shared Liquid Glass Material
+   ═══════════════════════════════════════════════════════════════ */
+.glass,
+.page-header,
+.tabbar,
+.chat-input-bar,
+.login-card,
+.modal {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 0.5px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  will-change: backdrop-filter;
+}
+
+/* Specular highlight strip (top edge light refraction) */
+.page-header::before,
+.tabbar::before,
+.modal::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 12px; right: 12px;
+  height: 1px;
+  background: var(--glass-highlight);
+  border-radius: 1px;
+  pointer-events: none;
+}
 
 /* ═══════════════════════════════════════════════════════════════
    Page Layout
@@ -149,27 +209,31 @@ body {
   display: flex;
   align-items: center;
   padding: 0 16px;
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 0.5px solid var(--glass-border-bottom);
   z-index: 10;
+  position: relative;
 }
 
 .page-header h1 {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
   flex: 1;
+  letter-spacing: -0.2px;
 }
 
 .page-header .back-btn {
-  background: none; border: none; color: var(--text-primary);
-  font-size: 20px; cursor: pointer; padding: 8px;
+  background: none; border: none; color: var(--accent);
+  font-size: 18px; cursor: pointer; padding: 8px;
   margin-left: -8px; margin-right: 4px;
   border-radius: var(--radius-sm);
-  transition: background var(--duration) var(--ease);
+  transition: all var(--duration) var(--ease);
 }
-.page-header .back-btn:hover { background: var(--bg-hover); }
+.page-header .back-btn:hover {
+  background: var(--accent-bg);
+}
+.page-header .back-btn:active {
+  transform: scale(0.92);
+}
 
 .page-body {
   flex: 1;
@@ -179,17 +243,21 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   Tab Bar
+   Tab Bar — Floating Liquid Glass Pill
    ═══════════════════════════════════════════════════════════════ */
 .tabbar {
   display: flex;
   height: var(--tabbar-h);
   padding-bottom: var(--safe-bottom);
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border-top: 1px solid var(--glass-border);
   z-index: 10;
+  position: relative;
+  border-top: none;
+  border-bottom: none;
+  border-left: none;
+  border-right: none;
+  margin: 0 12px 8px;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
 }
 
 .tabbar-item {
@@ -198,12 +266,13 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 1px;
   color: var(--text-muted);
   text-decoration: none;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
-  transition: color var(--duration) var(--ease);
+  letter-spacing: 0.2px;
+  transition: all var(--duration) var(--ease);
   cursor: pointer;
   border: none;
   background: none;
@@ -214,50 +283,75 @@ body {
   color: var(--accent);
 }
 
+/* Active indicator — glowing pill behind icon */
+.tabbar-item.active::before {
+  content: '';
+  position: absolute;
+  top: 6px; bottom: 6px;
+  left: 8px; right: 8px;
+  background: var(--accent-bg);
+  border-radius: var(--radius-lg);
+  z-index: -1;
+  animation: tabGlow 0.4s var(--ease-spring);
+}
+
+@keyframes tabGlow {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
 .tabbar-item .tab-icon {
-  font-size: 22px;
-  transition: transform var(--duration) var(--ease);
+  font-size: 21px;
+  transition: transform var(--duration) var(--ease-spring);
 }
 
 .tabbar-item:active .tab-icon {
-  transform: scale(0.9);
+  transform: scale(0.85);
 }
 
 .tabbar-item .badge {
   position: absolute;
-  top: 4px;
+  top: 2px;
   right: calc(50% - 18px);
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 5px;
   font-size: 10px;
   font-weight: 700;
-  line-height: 16px;
+  line-height: 17px;
   text-align: center;
   color: white;
   background: var(--danger);
   border-radius: var(--radius-full);
+  box-shadow: 0 1px 4px rgba(255, 69, 58, 0.4);
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   Cards & Lists
+   Cards & Lists — Floating Glass Cards
    ═══════════════════════════════════════════════════════════════ */
 .list-item {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  transition: background var(--duration) var(--ease);
+  transition: all var(--duration) var(--ease);
   cursor: pointer;
+  border-radius: var(--radius-md);
+  margin: 0 8px;
 }
-.list-item:hover { background: var(--bg-hover); }
-.list-item:active { background: var(--bg-active); }
+.list-item:hover {
+  background: var(--bg-hover);
+}
+.list-item:active {
+  background: var(--bg-active);
+  transform: scale(0.98);
+}
 
 .avatar {
   width: 44px;
   height: 44px;
   border-radius: var(--radius-full);
-  background: linear-gradient(135deg, var(--accent), var(--accent-light));
+  background: linear-gradient(145deg, var(--accent), var(--accent-light));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -266,6 +360,7 @@ body {
   color: white;
   flex-shrink: 0;
   overflow: hidden;
+  box-shadow: 0 2px 8px var(--accent-glow);
 }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
 
@@ -273,13 +368,18 @@ body {
 .avatar-lg { width: 64px; height: 64px; font-size: 26px; }
 
 .list-content { flex: 1; min-width: 0; }
-.list-content .name { font-weight: 500; font-size: 15px; }
+.list-content .name {
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: -0.1px;
+}
 .list-content .preview {
   font-size: 13px;
   color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-top: 1px;
 }
 .list-meta {
   display: flex;
@@ -291,48 +391,99 @@ body {
 .list-meta .time { font-size: 12px; color: var(--text-muted); }
 
 /* ═══════════════════════════════════════════════════════════════
-   Buttons
+   Buttons — Liquid Glass Capsules
    ═══════════════════════════════════════════════════════════════ */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 10px 20px;
+  padding: 10px 22px;
   font-size: 14px;
   font-weight: 600;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);
   cursor: pointer;
   transition: all var(--duration) var(--ease);
   white-space: nowrap;
+  letter-spacing: -0.1px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Shimmer highlight */
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50%;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.25) 0%,
+    rgba(255,255,255,0) 100%);
+  border-radius: var(--radius-full) var(--radius-full) 0 0;
+  pointer-events: none;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent), var(--accent-light));
+  background: linear-gradient(145deg, var(--accent), var(--accent-dark));
   color: white;
-  box-shadow: 0 2px 12px rgba(75, 123, 236, 0.3);
+  box-shadow: 0 2px 12px var(--accent-glow),
+              inset 0 1px 0 rgba(255,255,255,0.2);
 }
-.btn-primary:hover { box-shadow: 0 4px 20px rgba(75, 123, 236, 0.4); transform: translateY(-1px); }
-.btn-primary:active { transform: translateY(0); }
+.btn-primary:hover {
+  box-shadow: 0 4px 24px var(--accent-glow),
+              inset 0 1px 0 rgba(255,255,255,0.2);
+  transform: translateY(-1px);
+}
+.btn-primary:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 1px 6px var(--accent-glow);
+}
 
 .btn-secondary {
-  background: var(--bg-input);
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   color: var(--text-primary);
-  border: 1px solid var(--border);
+  border: 0.5px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
 }
+.btn-secondary::before { display: none; }
 .btn-secondary:hover { background: var(--bg-hover); }
+.btn-secondary:active { transform: scale(0.97); }
 
 .btn-danger {
-  background: var(--danger);
+  background: linear-gradient(145deg, var(--danger), #cc362e);
   color: white;
+  box-shadow: 0 2px 12px rgba(255, 69, 58, 0.3);
 }
 
 .btn-full { width: 100%; }
-.btn-sm { padding: 6px 12px; font-size: 13px; }
+.btn-sm { padding: 6px 14px; font-size: 13px; }
+
+/* Icon-only button (glass circle) */
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--duration) var(--ease);
+}
+.icon-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+.icon-btn:active { transform: scale(0.9); }
 
 /* ═══════════════════════════════════════════════════════════════
-   Inputs
+   Inputs — Frosted Glass Fields
    ═══════════════════════════════════════════════════════════════ */
 .input-group {
   display: flex;
@@ -344,6 +495,7 @@ body {
   font-size: 13px;
   font-weight: 500;
   color: var(--text-secondary);
+  padding-left: 4px;
 }
 
 .input {
@@ -352,16 +504,17 @@ body {
   font-size: 15px;
   color: var(--text-primary);
   background: var(--bg-input);
-  border: 1px solid var(--border);
+  border: 0.5px solid transparent;
   border-radius: var(--radius-md);
   outline: none;
-  transition: border-color var(--duration) var(--ease), box-shadow var(--duration) var(--ease);
+  transition: all var(--duration) var(--ease);
   font-family: inherit;
 }
 
 .input:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-bg);
+  background: var(--bg-secondary);
 }
 
 .input::placeholder { color: var(--text-muted); }
@@ -372,7 +525,7 @@ textarea.input {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   Chat Bubbles
+   Chat Bubbles — Glass Message Capsules
    ═══════════════════════════════════════════════════════════════ */
 .chat-messages {
   flex: 1;
@@ -387,7 +540,7 @@ textarea.input {
   display: flex;
   gap: 8px;
   max-width: 80%;
-  animation: msg-in 0.3s var(--ease);
+  animation: msg-in 0.35s var(--ease-spring);
 }
 
 .msg-row.outgoing {
@@ -405,14 +558,32 @@ textarea.input {
 }
 
 .msg-row:not(.outgoing) .msg-bubble {
-  background: var(--bg-card);
-  border-bottom-left-radius: 4px;
+  background: var(--glass-bg-thick);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 0.5px solid var(--glass-border);
+  border-bottom-left-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
 
 .msg-row.outgoing .msg-bubble {
-  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  background: linear-gradient(145deg, var(--accent), var(--accent-dark));
   color: white;
-  border-bottom-right-radius: 4px;
+  border-bottom-right-radius: 6px;
+  box-shadow: 0 2px 12px var(--accent-glow);
+}
+
+/* Outgoing bubble specular highlight */
+.msg-row.outgoing .msg-bubble::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50%;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.15) 0%,
+    rgba(255,255,255,0) 100%);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  pointer-events: none;
 }
 
 .msg-time {
@@ -421,7 +592,7 @@ textarea.input {
   margin-top: 2px;
 }
 
-.msg-row.outgoing .msg-time { color: rgba(255,255,255,0.65); }
+.msg-row.outgoing .msg-time { color: rgba(255,255,255,0.6); }
 
 .msg-image {
   max-width: 240px;
@@ -430,12 +601,12 @@ textarea.input {
 }
 
 @keyframes msg-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(12px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   Chat Input
+   Chat Input — Glass Input Bar
    ═══════════════════════════════════════════════════════════════ */
 .chat-input-bar {
   display: flex;
@@ -443,36 +614,38 @@ textarea.input {
   gap: 8px;
   padding: 8px 12px;
   padding-bottom: calc(8px + var(--safe-bottom));
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border-top: 1px solid var(--glass-border);
+  position: relative;
+  border-top: 0.5px solid var(--glass-border-bottom);
 }
 
 .chat-input-bar textarea {
   flex: 1;
   min-height: 36px;
   max-height: 120px;
-  padding: 8px 14px;
+  padding: 8px 16px;
   font-size: 15px;
   color: var(--text-primary);
   background: var(--bg-input);
-  border: 1px solid var(--border);
+  border: 0.5px solid transparent;
   border-radius: 20px;
   outline: none;
   resize: none;
   font-family: inherit;
   line-height: 1.4;
-  transition: border-color var(--duration) var(--ease);
+  transition: all var(--duration) var(--ease);
 }
 
-.chat-input-bar textarea:focus { border-color: var(--accent); }
+.chat-input-bar textarea:focus {
+  border-color: var(--accent);
+  background: var(--bg-secondary);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
 
 .chat-input-bar .send-btn {
   width: 36px;
   height: 36px;
   border-radius: var(--radius-full);
-  background: var(--accent);
+  background: linear-gradient(145deg, var(--accent), var(--accent-dark));
   border: none;
   color: white;
   font-size: 16px;
@@ -480,11 +653,14 @@ textarea.input {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background var(--duration) var(--ease), transform 0.1s;
+  transition: all var(--duration) var(--ease);
   flex-shrink: 0;
+  box-shadow: 0 2px 8px var(--accent-glow);
 }
 
-.chat-input-bar .send-btn:active { transform: scale(0.92); }
+.chat-input-bar .send-btn:active {
+  transform: scale(0.88);
+}
 
 .chat-input-bar .icon-btn {
   background: none;
@@ -493,13 +669,14 @@ textarea.input {
   font-size: 22px;
   cursor: pointer;
   padding: 6px;
-  transition: color var(--duration) var(--ease);
+  transition: all var(--duration) var(--ease);
+  border-radius: var(--radius-sm);
 }
 
 .chat-input-bar .icon-btn:hover { color: var(--text-primary); }
 
 /* ═══════════════════════════════════════════════════════════════
-   Login Page
+   Login Page — Translucent Glass Card
    ═══════════════════════════════════════════════════════════════ */
 .login-page {
   height: 100%;
@@ -508,23 +685,63 @@ textarea.input {
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: linear-gradient(160deg, #fdf8ef 0%, #f5efe0 40%, #ede4d0 100%);
+  background: linear-gradient(160deg,
+    #f5f0e8 0%,
+    #ede4d4 30%,
+    #d4c5a9 70%,
+    #c7b898 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Ambient light orbs */
+.login-page::before {
+  content: '';
+  position: absolute;
+  top: -120px; right: -80px;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(212, 160, 23, 0.25) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: float-orb 6s ease-in-out infinite;
+}
+
+.login-page::after {
+  content: '';
+  position: absolute;
+  bottom: -100px; left: -60px;
+  width: 250px; height: 250px;
+  background: radial-gradient(circle, rgba(212, 160, 23, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: float-orb 8s ease-in-out infinite reverse;
+}
+
+@keyframes float-orb {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(20px, -30px) scale(1.1); }
 }
 
 [data-theme="dark"] .login-page {
-  background: linear-gradient(160deg, #1a1a2e 0%, #16213e 100%);
+  background: linear-gradient(160deg,
+    #0a0a14 0%,
+    #141428 50%,
+    #1e1e3c 100%);
+}
+
+[data-theme="dark"] .login-page::before {
+  background: radial-gradient(circle, rgba(212, 160, 23, 0.12) 0%, transparent 70%);
+}
+
+[data-theme="dark"] .login-page::after {
+  background: radial-gradient(circle, rgba(212, 160, 23, 0.08) 0%, transparent 70%);
 }
 
 .login-card {
   width: 100%;
   max-width: 380px;
   padding: 36px 28px;
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
+  position: relative;
+  z-index: 1;
 }
 
 .login-logo {
@@ -536,7 +753,7 @@ textarea.input {
   width: 72px;
   height: 72px;
   border-radius: var(--radius-lg);
-  filter: drop-shadow(0 4px 12px rgba(212, 160, 23, 0.25));
+  filter: drop-shadow(0 4px 16px rgba(212, 160, 23, 0.3));
 }
 
 .login-title {
@@ -544,6 +761,7 @@ textarea.input {
   font-weight: 700;
   text-align: center;
   margin-bottom: 4px;
+  letter-spacing: -0.5px;
   background: linear-gradient(135deg, var(--accent-dark), var(--accent), var(--accent-light));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -557,7 +775,7 @@ textarea.input {
   margin-bottom: 16px;
 }
 
-/* ── Security Badges ─────────────────────────────────────────── */
+/* ── Security Badges — Glass Chips ───────────────────────── */
 .security-badges {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -571,20 +789,17 @@ textarea.input {
   gap: 6px;
   padding: 8px 10px;
   background: var(--accent-bg);
-  border: 1px solid rgba(212, 160, 23, 0.15);
+  border: 0.5px solid rgba(212, 160, 23, 0.15);
   border-radius: var(--radius-md);
-  transition: transform var(--duration) var(--ease), box-shadow var(--duration) var(--ease);
+  transition: all var(--duration) var(--ease);
 }
 
 .security-badge:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(212, 160, 23, 0.15);
+  box-shadow: 0 4px 12px rgba(212, 160, 23, 0.12);
 }
 
-.security-icon {
-  font-size: 16px;
-  flex-shrink: 0;
-}
+.security-icon { font-size: 16px; flex-shrink: 0; }
 
 .security-text {
   font-size: 11px;
@@ -593,9 +808,7 @@ textarea.input {
   line-height: 1.3;
 }
 
-[data-theme="dark"] .security-text {
-  color: var(--accent-light);
-}
+[data-theme="dark"] .security-text { color: var(--accent-light); }
 
 .login-form {
   display: flex;
@@ -614,36 +827,40 @@ textarea.input {
   color: var(--accent);
   cursor: pointer;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .login-lang {
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: 8px;
   margin-top: 20px;
   flex-wrap: wrap;
 }
 
 .login-lang button {
-  padding: 4px 10px;
+  padding: 4px 12px;
   font-size: 12px;
-  background: var(--bg-input);
-  border: 1px solid var(--border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 0.5px solid var(--glass-border);
   border-radius: var(--radius-full);
   color: var(--text-secondary);
   cursor: pointer;
   transition: all var(--duration) var(--ease);
+  font-weight: 500;
 }
 
 .login-lang button.active {
   background: var(--accent-bg);
   color: var(--accent);
-  border-color: var(--accent);
+  border-color: rgba(212, 160, 23, 0.3);
+  box-shadow: 0 0 8px var(--accent-glow);
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   Search
+   Search — Rounded Glass Pill
    ═══════════════════════════════════════════════════════════════ */
 .search-bar {
   padding: 8px 16px;
@@ -653,25 +870,29 @@ textarea.input {
   width: 100%;
   padding: 10px 16px 10px 40px;
   background: var(--bg-input);
-  border: 1px solid var(--border);
+  border: 0.5px solid transparent;
   border-radius: var(--radius-full);
   color: var(--text-primary);
   font-size: 14px;
   outline: none;
-  transition: border-color var(--duration) var(--ease);
+  transition: all var(--duration) var(--ease);
 }
 
-.search-bar input:focus { border-color: var(--accent); }
+.search-bar input:focus {
+  border-color: var(--accent);
+  background: var(--bg-secondary);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
 
 /* ═══════════════════════════════════════════════════════════════
-   Online dot
+   Online Dot — Glowing Indicator
    ═══════════════════════════════════════════════════════════════ */
 .online-dot {
   width: 10px;
   height: 10px;
   border-radius: var(--radius-full);
   background: var(--success);
-  box-shadow: 0 0 6px rgba(46, 213, 115, 0.5);
+  box-shadow: 0 0 8px rgba(48, 209, 88, 0.5);
   position: absolute;
   bottom: 0;
   right: 0;
@@ -682,22 +903,22 @@ textarea.input {
    Sections
    ═══════════════════════════════════════════════════════════════ */
 .section-title {
-  padding: 16px 16px 8px;
+  padding: 20px 16px 8px;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
 }
 
 .divider {
-  height: 1px;
+  height: 0.5px;
   background: var(--border);
   margin: 0 16px;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   Settings items
+   Settings Items — Glass Hover Cards
    ═══════════════════════════════════════════════════════════════ */
 .settings-item {
   display: flex;
@@ -705,9 +926,12 @@ textarea.input {
   justify-content: space-between;
   padding: 14px 16px;
   cursor: pointer;
-  transition: background var(--duration) var(--ease);
+  transition: all var(--duration) var(--ease);
+  border-radius: var(--radius-md);
+  margin: 0 8px;
 }
 .settings-item:hover { background: var(--bg-hover); }
+.settings-item:active { transform: scale(0.98); }
 .settings-item .label { font-size: 15px; }
 .settings-item .value { font-size: 14px; color: var(--text-muted); }
 .settings-item .arrow { color: var(--text-muted); font-size: 14px; }
@@ -717,7 +941,14 @@ textarea.input {
    ═══════════════════════════════════════════════════════════════ */
 .moment-card {
   padding: 16px;
-  border-bottom: 1px solid var(--border);
+  margin: 4px 8px;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 0.5px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  margin-bottom: 8px;
 }
 
 .moment-header {
@@ -781,14 +1012,16 @@ textarea.input {
   align-items: center;
   gap: 4px;
   font-size: inherit;
-  transition: color var(--duration) var(--ease);
+  transition: all var(--duration) var(--ease);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
 }
 
-.moment-actions button:hover { color: var(--accent); }
+.moment-actions button:hover { color: var(--accent); background: var(--accent-bg); }
 .moment-actions button.liked { color: var(--danger); }
 
 /* ═══════════════════════════════════════════════════════════════
-   Timeline masonry
+   Timeline Masonry — Frosted Glass Cards
    ═══════════════════════════════════════════════════════════════ */
 .timeline-grid {
   columns: 2;
@@ -799,15 +1032,19 @@ textarea.input {
 .timeline-card {
   break-inside: avoid;
   margin-bottom: 8px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 0.5px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
   cursor: pointer;
-  transition: transform var(--duration) var(--ease);
+  transition: all var(--duration) var(--ease);
 }
 
-.timeline-card:hover { transform: translateY(-2px); }
+.timeline-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.timeline-card:active { transform: scale(0.98); }
 
 .timeline-card img {
   width: 100%;
@@ -837,7 +1074,7 @@ textarea.input {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   Call UI
+   Call UI — Depth Blur Background
    ═══════════════════════════════════════════════════════════════ */
 .call-page {
   height: 100%;
@@ -845,14 +1082,26 @@ textarea.input {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+  background: linear-gradient(180deg, #0a0a14 0%, #000000 100%);
+  position: relative;
+}
+
+/* Ambient glow */
+.call-page::before {
+  content: '';
+  position: absolute;
+  top: 15%;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(40px);
 }
 
 .call-avatar {
   width: 120px;
   height: 120px;
   border-radius: var(--radius-full);
-  background: linear-gradient(135deg, var(--accent), var(--accent-light));
+  background: linear-gradient(145deg, var(--accent), var(--accent-light));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -860,29 +1109,39 @@ textarea.input {
   color: white;
   margin-bottom: 24px;
   animation: pulse-ring 2s var(--ease) infinite;
+  box-shadow: 0 0 40px var(--accent-glow);
+  position: relative;
+  z-index: 1;
 }
 
 @keyframes pulse-ring {
-  0% { box-shadow: 0 0 0 0 rgba(75, 123, 236, 0.4); }
-  70% { box-shadow: 0 0 0 20px rgba(75, 123, 236, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(75, 123, 236, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(212, 160, 23, 0.4), 0 0 40px var(--accent-glow); }
+  70% { box-shadow: 0 0 0 20px rgba(212, 160, 23, 0), 0 0 40px var(--accent-glow); }
+  100% { box-shadow: 0 0 0 0 rgba(212, 160, 23, 0), 0 0 40px var(--accent-glow); }
 }
 
 .call-name {
   font-size: 24px;
   font-weight: 600;
   margin-bottom: 8px;
+  color: #f5f5f7;
+  position: relative;
+  z-index: 1;
 }
 
 .call-status {
   font-size: 14px;
-  color: var(--text-secondary);
+  color: rgba(255,255,255,0.6);
   margin-bottom: 48px;
+  position: relative;
+  z-index: 1;
 }
 
 .call-controls {
   display: flex;
   gap: 24px;
+  position: relative;
+  z-index: 1;
 }
 
 .call-btn {
@@ -895,17 +1154,43 @@ textarea.input {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.15s var(--ease);
+  transition: all 0.15s var(--ease);
   color: white;
+  position: relative;
+  overflow: hidden;
 }
 
-.call-btn:active { transform: scale(0.92); }
-.call-btn.accept { background: var(--success); }
-.call-btn.reject { background: var(--danger); }
-.call-btn.mute { background: var(--bg-input); color: var(--text-primary); }
+/* Glass shine on call buttons */
+.call-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50%;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.2) 0%,
+    rgba(255,255,255,0) 100%);
+  border-radius: var(--radius-full) var(--radius-full) 0 0;
+  pointer-events: none;
+}
+
+.call-btn:active { transform: scale(0.88); }
+.call-btn.accept {
+  background: linear-gradient(145deg, var(--success), #26a94d);
+  box-shadow: 0 0 20px rgba(48, 209, 88, 0.3);
+}
+.call-btn.reject {
+  background: linear-gradient(145deg, var(--danger), #cc362e);
+  box-shadow: 0 0 20px rgba(255, 69, 58, 0.3);
+}
+.call-btn.mute {
+  background: rgba(120, 120, 128, 0.3);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: #f5f5f7;
+}
 
 /* ═══════════════════════════════════════════════════════════════
-   Misc utilities
+   Misc Utilities
    ═══════════════════════════════════════════════════════════════ */
 .empty-state {
   display: flex;
@@ -918,15 +1203,15 @@ textarea.input {
   text-align: center;
 }
 
-.empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+.empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.4; }
 
 .loading-spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid var(--border);
+  width: 28px;
+  height: 28px;
+  border: 2.5px solid var(--border);
   border-top-color: var(--accent);
   border-radius: var(--radius-full);
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.7s linear infinite;
   margin: 24px auto;
 }
 
@@ -934,57 +1219,114 @@ textarea.input {
   to { transform: rotate(360deg); }
 }
 
+/* Modal — Floating Glass Panel */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px) saturate(150%);
+  -webkit-backdrop-filter: blur(8px) saturate(150%);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  animation: fade-in 0.2s var(--ease);
+  animation: fade-in 0.25s var(--ease);
 }
 
 .modal {
   width: 90%;
   max-width: 360px;
-  background: var(--bg-secondary);
   border-radius: var(--radius-xl);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-lg);
   padding: 24px;
-  animation: slide-up 0.3s var(--ease);
+  animation: modal-spring 0.4s var(--ease-spring);
+  position: relative;
+  overflow: hidden;
 }
 
 @keyframes fade-in {
   from { opacity: 0; } to { opacity: 1; }
 }
 
-@keyframes slide-up {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes modal-spring {
+  from { opacity: 0; transform: translateY(30px) scale(0.92); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Toggle switch */
+/* Toggle Switch — iOS Liquid Glass Style */
 .toggle {
   position: relative;
-  width: 44px;
-  height: 24px;
+  width: 51px;
+  height: 31px;
   background: var(--bg-input);
-  border-radius: 12px;
-  border: 1px solid var(--border);
+  border-radius: 16px;
+  border: 0.5px solid var(--border);
   cursor: pointer;
-  transition: background var(--duration) var(--ease);
+  transition: all var(--duration) var(--ease);
 }
-.toggle.active { background: var(--accent); border-color: var(--accent); }
+.toggle.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
 .toggle::after {
   content: '';
   position: absolute;
   top: 2px; left: 2px;
-  width: 18px; height: 18px;
+  width: 27px; height: 27px;
   border-radius: 50%;
   background: white;
-  transition: transform var(--duration) var(--ease);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15), 0 0 1px rgba(0,0,0,0.1);
+  transition: transform var(--duration) var(--ease-spring);
 }
 .toggle.active::after { transform: translateX(20px); }
+
+/* ═══════════════════════════════════════════════════════════════
+   Progress Bars — Glass Fill
+   ═══════════════════════════════════════════════════════════════ */
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--bg-input);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-light));
+  border-radius: 3px;
+  transition: width var(--duration-slow) var(--ease-smooth);
+  box-shadow: 0 0 6px var(--accent-glow);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Global Animations
+   ═══════════════════════════════════════════════════════════════ */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Ensure smooth transitions for page navigations */
+.page {
+  animation: page-enter 0.35s var(--ease);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Selection & Focus Ring
+   ═══════════════════════════════════════════════════════════════ */
+::selection {
+  background: var(--accent-bg);
+  color: var(--text-primary);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}

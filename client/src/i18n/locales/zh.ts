@@ -78,6 +78,7 @@ export const zh: Record<string, string> = {
   'contacts.accept': '接受',
   'contacts.reject': '拒绝',
   'contacts.send_request': '发送请求',
+  'contacts.request_sent': '好友请求已发送',
   'contacts.request_message': '好友请求留言',
   'contacts.empty': '暂无联系人',
   'contacts.scan_qr': '扫一扫',

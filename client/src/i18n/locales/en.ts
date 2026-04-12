@@ -73,6 +73,7 @@ export const en: Record<string, string> = {
   'contacts.accept': 'Accept',
   'contacts.reject': 'Reject',
   'contacts.send_request': 'Send Request',
+  'contacts.request_sent': 'Friend request sent!',
   'contacts.request_message': 'Message',
   'contacts.empty': 'No contacts yet',
   'contacts.scan_qr': 'Scan QR',

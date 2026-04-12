@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { get, post, del, uploadFile as httpUploadFile } from '../api/http'
+import { get, post, del, uploadFile as httpUploadFile, normalizeFileUrl } from '../api/http'
 import { useStore, Friend } from '../store'
 import { useI18n } from '../hooks/useI18n'
 
@@ -124,7 +124,7 @@ export default function Moments() {
               {imgCount > 0 && (
                 <div className={`moment-images grid-${Math.min(imgCount, 9)}`}>
                   {m.images.slice(0, 9).map((url: string, i: number) => (
-                    <img key={i} src={url} alt="" loading="lazy" />
+                    <img key={i} src={normalizeFileUrl(url)} alt="" loading="lazy" />
                   ))}
                 </div>
               )}
@@ -132,8 +132,8 @@ export default function Moments() {
               {/* Video */}
               {m.videos?.length > 0 && (
                 <video
-                  src={m.videos[0].url}
-                  poster={m.videos[0].thumbnail || undefined}
+                  src={normalizeFileUrl(m.videos[0].url)}
+                  poster={m.videos[0].thumbnail ? normalizeFileUrl(m.videos[0].thumbnail) : undefined}
                   controls
                   preload="metadata"
                   style={{ width: '100%', borderRadius: 8, marginBottom: 10, maxHeight: 400 }}
@@ -167,7 +167,7 @@ export default function Moments() {
                   {m.likes.map((l: any) => (
                     <div key={l.id} title={l.nickname} style={{
                       width: 24, height: 24, borderRadius: 12, overflow: 'hidden',
-                      background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: 'var(--bg-card)', display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', flexShrink: 0,
                       border: '1.5px solid var(--border)',
                     }}>

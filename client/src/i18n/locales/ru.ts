@@ -27,7 +27,7 @@ export const ru: Record<string, string> = {
   'contacts.requests': 'Заявки в друзья', 'contacts.add': 'Добавить друга',
   'contacts.search_user': 'Поиск пользователей...', 'contacts.add_friend': 'Добавить', 'contacts.request_message_hint': 'Написать сообщение (до 512 символов)',
   'contacts.pending': 'Ожидание', 'contacts.accept': 'Принять', 'contacts.reject': 'Отклонить',
-  'contacts.send_request': 'Отправить', 'contacts.request_message': 'Сообщение',
+  'contacts.send_request': 'Отправить', 'contacts.request_sent': 'Запрос отправлен', 'contacts.request_message': 'Сообщение',
   'contacts.empty': 'Нет контактов', 'contacts.scan_qr': 'Сканировать QR',
 
   'group.create': 'Создать группу', 'group.name': 'Название группы', 'group.members': 'Участники',

@@ -105,8 +105,10 @@ export function uploadFileWithProgress(
  * If the server returns a relative file URL (starts with /), prepend
  * the API base URL so it resolves to the correct server in cross-domain
  * deployments (e.g. client on Vercel, server on Zeabur).
+ * Exported so rendering code can also normalize URLs from the DB.
  */
-function normalizeFileUrl(url: string): string {
+export function normalizeFileUrl(url: string | null | undefined): string {
+  if (!url) return ''
   if (BASE && url.startsWith('/')) {
     return `${BASE}${url}`
   }

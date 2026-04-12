@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { get, post, del } from '../api/http'
 import { useStore, Friend } from '../store'
+import { onWs } from '../api/socket'
 import { useI18n } from '../hooks/useI18n'
 
 type Tab = 'friends' | 'groups' | 'requests' | 'tags'
@@ -30,6 +31,7 @@ export default function Contacts() {
   const [searchResults, setSearchResults] = useState<any[]>([])
 
   const [requestMsg, setRequestMsg] = useState('')
+  const [sentIds, setSentIds] = useState<Set<string>>(new Set())
 
   // Tags state
   const [tags, setTags] = useState<Tag[]>([])
@@ -58,6 +60,19 @@ export default function Contacts() {
     const onFocus = () => loadContacts()
     window.addEventListener('focus', onFocus)
     return () => window.removeEventListener('focus', onFocus)
+  }, [])
+
+  // Listen for real-time friend events via WebSocket
+  useEffect(() => {
+    const unsub1 = onWs('friend_accepted', () => {
+      // Someone accepted our request — refresh friends list
+      get<Friend[]>('/api/friends').then(setFriends).catch(() => {})
+    })
+    const unsub2 = onWs('friend_request', () => {
+      // Someone sent us a request — refresh requests
+      get('/api/friends/requests').then(setRequests).catch(() => {})
+    })
+    return () => { unsub1(); unsub2() }
   }, [])
 
   const loadTagData = useCallback(async () => {
@@ -96,16 +111,26 @@ export default function Contacts() {
     try {
       await post('/api/friends/request', { friend_id: friendId, message: requestMsg || null })
       setRequestMsg('')
-      searchUsers()
-    } catch {}
+      setSentIds(prev => new Set(prev).add(friendId))
+      setSearchResults([])
+      setSearchQ('')
+      setShowAdd(false)
+      alert(t('contacts.request_sent'))
+    } catch (err: any) {
+      alert(err.message || t('common.error'))
+    }
   }
 
   const acceptRequest = async (friendId: string) => {
     try {
       await post('/api/friends/accept', { friend_id: friendId })
       setRequests(prev => prev.filter(r => r.id !== friendId))
-      get<Friend[]>('/api/friends').then(setFriends).catch(() => {})
-    } catch {}
+      // Refresh friends list to show the newly added friend
+      const updated = await get<Friend[]>('/api/friends')
+      setFriends(updated)
+    } catch (err: any) {
+      alert(err.message || t('common.error'))
+    }
   }
 
   const createTag = async () => {
@@ -489,7 +514,7 @@ export default function Contacts() {
                         onClick={() => setNewTagColor(c)}
                         style={{
                           width: 28, height: 28, borderRadius: 14, background: c, cursor: 'pointer',
-                          border: c === newTagColor ? '3px solid var(--text)' : '3px solid transparent',
+                          border: c === newTagColor ? '3px solid var(--text-primary)' : '3px solid transparent',
                         }}
                       />
                     ))}

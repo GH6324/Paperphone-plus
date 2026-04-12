@@ -25,7 +25,7 @@ struct MediaItem {
     url: String,
     media_type: Option<String>,
     thumbnail: Option<String>,
-    duration: Option<i16>,
+    duration: Option<u16>,
 }
 
 async fn create_post(
@@ -105,7 +105,7 @@ async fn list_posts(
 
     let mut result = Vec::new();
     for (id, user_id, text, is_anon, created_at, nickname, avatar) in &posts {
-        let media: Vec<(String, String, Option<String>, i16)> = sqlx::query_as(
+        let media: Vec<(String, String, Option<String>, u16)> = sqlx::query_as(
             "SELECT url, media_type, thumbnail, duration FROM timeline_media WHERE post_id = ? ORDER BY sort_order"
         ).bind(id).fetch_all(&state.db).await.unwrap_or_default();
 
@@ -144,7 +144,7 @@ async fn get_post(
     let (pid, user_id, text, is_anon, created_at, nickname, avatar) = post
         .ok_or_else(|| (axum::http::StatusCode::NOT_FOUND, Json(serde_json::json!({ "error": "Post not found" }))))?;
 
-    let media: Vec<(String, String, Option<String>, i16)> = sqlx::query_as(
+    let media: Vec<(String, String, Option<String>, u16)> = sqlx::query_as(
         "SELECT url, media_type, thumbnail, duration FROM timeline_media WHERE post_id = ? ORDER BY sort_order"
     ).bind(pid).fetch_all(&state.db).await.unwrap_or_default();
 

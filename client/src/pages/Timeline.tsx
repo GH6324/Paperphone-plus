@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { get, post, del, uploadFile as httpUploadFile } from '../api/http'
+import { get, post, del, uploadFile as httpUploadFile, normalizeFileUrl } from '../api/http'
 import { useStore } from '../store'
 import { useI18n } from '../hooks/useI18n'
 
@@ -68,7 +68,7 @@ export default function Timeline() {
                   marginBottom: 4,
                   borderRadius: 10,
                   overflow: 'hidden',
-                  background: 'var(--surface)',
+                  background: 'var(--bg-card)',
                   cursor: 'pointer',
                   boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
                 }}
@@ -77,7 +77,7 @@ export default function Timeline() {
                 {cover && (
                   <div style={{ position: 'relative' }}>
                     <img
-                      src={isVideo ? (cover.thumbnail || cover.url) : cover.url}
+                      src={normalizeFileUrl(isVideo ? (cover.thumbnail || cover.url) : cover.url)}
                       alt=""
                       loading="lazy"
                       style={{ width: '100%', display: 'block' }}
@@ -193,7 +193,7 @@ function PostDetail({ t, postId, user, onBack }: {
           <div>
             <div style={{ position: 'relative', background: '#000', minHeight: 200 }}>
               <img
-                src={images[imgIdx]?.url}
+                src={normalizeFileUrl(images[imgIdx]?.url)}
                 alt=""
                 style={{ width: '100%', maxHeight: '60vh', objectFit: 'contain', display: 'block' }}
               />
@@ -225,12 +225,12 @@ function PostDetail({ t, postId, user, onBack }: {
             {images.length > 1 && (
               <div style={{
                 display: 'flex', gap: 2, overflowX: 'auto', padding: '4px 8px',
-                background: 'var(--surface)',
+                background: 'var(--bg-card)',
               }}>
                 {images.map((img: any, i: number) => (
                   <img
                     key={i}
-                    src={img.url}
+                    src={normalizeFileUrl(img.url)}
                     alt=""
                     onClick={() => setImgIdx(i)}
                     style={{
@@ -247,8 +247,8 @@ function PostDetail({ t, postId, user, onBack }: {
 
         {video && (
           <video
-            src={video.url}
-            poster={video.thumbnail || undefined}
+            src={normalizeFileUrl(video.url)}
+            poster={video.thumbnail ? normalizeFileUrl(video.thumbnail) : undefined}
             controls
             style={{ width: '100%', maxHeight: '60vh', background: '#000' }}
           />
@@ -301,7 +301,7 @@ function PostDetail({ t, postId, user, onBack }: {
             {p.likes.map((l: any) => (
               <div key={l.id} title={l.nickname} style={{
                 width: 22, height: 22, borderRadius: 11, overflow: 'hidden',
-                background: 'var(--surface)', border: '1px solid var(--border)',
+                background: 'var(--bg-card)', border: '1px solid var(--border)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
               }}>
@@ -342,14 +342,14 @@ function PostDetail({ t, postId, user, onBack }: {
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
         display: 'flex', gap: 8, padding: '10px 12px',
-        background: 'var(--bg)', borderTop: '1px solid var(--border)',
+        background: 'var(--bg-primary)', borderTop: '1px solid var(--border)',
         alignItems: 'center',
       }}>
         <button
           onClick={() => setIsAnon(!isAnon)}
           style={{
             width: 32, height: 32, borderRadius: 16, border: 'none',
-            background: isAnon ? 'var(--accent)' : 'var(--surface)',
+            background: isAnon ? 'var(--accent)' : 'var(--bg-card)',
             fontSize: 16, cursor: 'pointer', flexShrink: 0,
           }}
           title={t('timeline.anonymous')}
@@ -489,7 +489,7 @@ function PostComposer({ t, onBack, onPublished }: {
         {/* Anonymous toggle */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12,
-          padding: '8px 12px', borderRadius: 10, background: isAnon ? 'rgba(255,152,0,0.1)' : 'var(--surface)',
+          padding: '8px 12px', borderRadius: 10, background: isAnon ? 'rgba(255,152,0,0.1)' : 'var(--bg-card)',
         }}>
           <button
             onClick={() => setIsAnon(!isAnon)}

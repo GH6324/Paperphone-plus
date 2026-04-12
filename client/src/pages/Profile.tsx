@@ -375,7 +375,7 @@ function TwoFactorAuth({ onBack, t }: { onBack: () => void; t: (k: string) => st
               </div>
             )}
             <div style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>{t('totp.or_enter_secret')}</div>
-            <div style={{ fontSize: 13, color: 'var(--text-muted)', wordBreak: 'break-all', background: 'var(--surface)', padding: 12, borderRadius: 8, width: '100%', textAlign: 'center', fontFamily: 'monospace' }}>
+            <div style={{ fontSize: 13, color: 'var(--text-muted)', wordBreak: 'break-all', background: 'var(--bg-card)', padding: 12, borderRadius: 8, width: '100%', textAlign: 'center', fontFamily: 'monospace' }}>
               {secret}
             </div>
             <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('totp.enter_code')}</div>
@@ -388,7 +388,7 @@ function TwoFactorAuth({ onBack, t }: { onBack: () => void; t: (k: string) => st
             {recoveryCodes.length > 0 && (
               <div style={{ marginTop: 8 }}>
                 <div style={{ fontWeight: 600, marginBottom: 8 }}>{t('totp.recovery_codes')}</div>
-                <div style={{ background: 'var(--surface)', padding: 12, borderRadius: 8, fontFamily: 'monospace', fontSize: 14 }}>
+                <div style={{ background: 'var(--bg-card)', padding: 12, borderRadius: 8, fontFamily: 'monospace', fontSize: 14 }}>
                   {recoveryCodes.map((c, i) => <div key={i}>{c}</div>)}
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{t('totp.save_codes')}</div>
@@ -467,7 +467,7 @@ function Sessions({ onBack, t }: { onBack: () => void; t: (k: string) => string 
         {sessions.filter(s => s.is_current).map(s => (
           <div key={s.id} style={{ padding: 16, borderBottom: '1px solid var(--border)' }}>
             <div className="section-title">{t('sessions.current')}</div>
-            <div className="list-item" style={{ background: 'var(--surface)', borderRadius: 12, padding: 12 }}>
+            <div className="list-item" style={{ background: 'var(--bg-card)', borderRadius: 12, padding: 12 }}>
               <div style={{ fontSize: 28, marginRight: 12 }}>
                 {s.device_type === 'mobile' ? '📱' : '💻'}
               </div>
@@ -551,7 +551,7 @@ function LanguagePicker({ onBack, t, lang, setLang }: { onBack: () => void; t: (
               className="settings-item"
               onClick={() => handleSelect(l)}
               style={{
-                background: isSelected ? 'var(--surface)' : undefined,
+                background: isSelected ? 'var(--bg-card)' : undefined,
                 transition: 'background 0.2s ease',
                 cursor: 'pointer',
               }}
@@ -652,7 +652,7 @@ function KeyFingerprint({ onBack, t, user }: { onBack: () => void; t: (k: string
 
         {/* Fingerprint display */}
         <div style={{
-          background: 'var(--surface)',
+          background: 'var(--bg-card)',
           borderRadius: 16,
           padding: '20px 16px',
           margin: '0 auto',
@@ -664,7 +664,7 @@ function KeyFingerprint({ onBack, t, user }: { onBack: () => void; t: (k: string
             lineHeight: 2,
             textAlign: 'center',
             letterSpacing: 1,
-            color: 'var(--text)',
+            color: 'var(--text-primary)',
           }}>
             {rows.map((row, i) => (
               <div key={i}>{row.join('  ')}</div>
@@ -688,13 +688,13 @@ function KeyFingerprint({ onBack, t, user }: { onBack: () => void; t: (k: string
         <div style={{
           marginTop: 32,
           padding: 16,
-          background: 'var(--surface)',
+          background: 'var(--bg-card)',
           borderRadius: 12,
           fontSize: 13,
           color: 'var(--text-muted)',
           lineHeight: 1.6,
         }}>
-          <div style={{ fontWeight: 600, marginBottom: 8, color: 'var(--text)' }}>
+          <div style={{ fontWeight: 600, marginBottom: 8, color: 'var(--text-primary)' }}>
             {t('fingerprint.how_to_verify')}
           </div>
           {t('fingerprint.verify_steps')}

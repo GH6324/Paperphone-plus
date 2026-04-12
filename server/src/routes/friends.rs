@@ -122,18 +122,29 @@ async fn accept_request(
     auth: AuthUser,
     Json(body): Json<AcceptReq>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    // Update existing request
-    sqlx::query("UPDATE friends SET status = 'accepted' WHERE user_id = ? AND friend_id = ? AND status = 'pending'")
+    // Update existing request (requester → accepter)
+    let result = sqlx::query("UPDATE friends SET status = 'accepted' WHERE user_id = ? AND friend_id = ? AND status = 'pending'")
         .bind(&body.friend_id).bind(&auth.0.id)
         .execute(&state.db).await
-        .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
+        .map_err(|e| {
+            tracing::error!("accept_request UPDATE failed: {}", e);
+            (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() })))
+        })?;
 
-    // Create reverse friendship
+    if result.rows_affected() == 0 {
+        return Err((axum::http::StatusCode::NOT_FOUND, Json(serde_json::json!({ "error": "Friend request not found or already processed" }))));
+    }
+
+    // Create reverse friendship (accepter → requester)
     sqlx::query("INSERT INTO friends (user_id, friend_id, status) VALUES (?, ?, 'accepted') ON DUPLICATE KEY UPDATE status = 'accepted'")
         .bind(&auth.0.id).bind(&body.friend_id)
-        .execute(&state.db).await.ok();
+        .execute(&state.db).await
+        .map_err(|e| {
+            tracing::error!("accept_request reverse INSERT failed: {}", e);
+            (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() })))
+        })?;
 
-    // Notify
+    // Notify the original requester via WebSocket
     let accepter: Option<(String, String, Option<String>)> = sqlx::query_as(
         "SELECT username, nickname, avatar FROM users WHERE id = ?"
     ).bind(&auth.0.id).fetch_optional(&state.db).await.ok().flatten();
@@ -148,6 +159,7 @@ async fn accept_request(
         }));
     }
 
+    tracing::info!("✅ Friend accepted: {} ↔ {}", auth.0.id, body.friend_id);
     Ok(Json(serde_json::json!({ "ok": true })))
 }
 

@@ -25,7 +25,7 @@ export const ja: Record<string, string> = {
   'contacts.title': '連絡先', 'contacts.friends': '友達', 'contacts.groups': 'グループ',
   'contacts.requests': '友達リクエスト', 'contacts.add': '友達を追加', 'contacts.search_user': 'ユーザーを検索...',
   'contacts.add_friend': '追加', 'contacts.request_message_hint': 'メッセージを書く（最大512文字）', 'contacts.pending': '保留中', 'contacts.accept': '承認',
-  'contacts.reject': '拒否', 'contacts.send_request': 'リクエスト送信', 'contacts.request_message': 'メッセージ',
+  'contacts.reject': '拒否', 'contacts.send_request': 'リクエスト送信', 'contacts.request_sent': 'リクエスト送信済み', 'contacts.request_message': 'メッセージ',
   'contacts.empty': '連絡先がありません', 'contacts.scan_qr': 'QRスキャン',
 
   'group.create': 'グループ作成', 'group.name': 'グループ名', 'group.members': 'メンバー',

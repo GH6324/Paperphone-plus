@@ -76,7 +76,7 @@ export default function Discover() {
         {scanResult && (
           <div style={{
             margin: '16px', padding: 12, borderRadius: 10,
-            background: 'var(--surface)', fontSize: 13, color: 'var(--text-muted)',
+            background: 'var(--bg-card)', fontSize: 13, color: 'var(--text-muted)',
             wordBreak: 'break-all',
           }}>
             {t('discover.scan_result')}: {scanResult}

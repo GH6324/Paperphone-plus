@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { get, post, put } from '../api/http'
+import { get, post, put, normalizeFileUrl } from '../api/http'
 import { useStore } from '../store'
 import { useI18n } from '../hooks/useI18n'
 
@@ -103,7 +103,7 @@ export default function UserProfile() {
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center',
           padding: '28px 16px 20px',
-          background: 'var(--surface)',
+          background: 'var(--bg-card)',
           borderRadius: 16, margin: '8px 12px',
         }}>
           <div className="avatar avatar-lg" style={{ marginBottom: 12 }}>
@@ -158,7 +158,7 @@ export default function UserProfile() {
             onClick={() => { setRemarkInput(remark); setEditingRemark(true) }}
             style={{ cursor: 'pointer' }}
           >
-            <span className="label" style={{ color: remark ? 'var(--text)' : 'var(--text-muted)' }}>
+            <span className="label" style={{ color: remark ? 'var(--text-primary)' : 'var(--text-muted)' }}>
               {remark || t('friend.no_remark')}
             </span>
             <span className="arrow">›</span>
@@ -226,14 +226,14 @@ export default function UserProfile() {
               {m.images?.length > 0 && (
                 <div style={{ display: 'flex', gap: 4, marginBottom: 6 }}>
                   {m.images.slice(0, 3).map((url: string, i: number) => (
-                    <img key={i} src={url} alt="" style={{
+                    <img key={i} src={normalizeFileUrl(url)} alt="" style={{
                       width: 64, height: 64, objectFit: 'cover', borderRadius: 6,
                     }} loading="lazy" />
                   ))}
                   {m.images.length > 3 && (
                     <div style={{
                       width: 64, height: 64, borderRadius: 6,
-                      background: 'var(--surface)', display: 'flex',
+                      background: 'var(--bg-card)', display: 'flex',
                       alignItems: 'center', justifyContent: 'center',
                       fontSize: 13, color: 'var(--text-muted)',
                     }}>+{m.images.length - 3}</div>

@@ -27,7 +27,7 @@ export const fr: Record<string, string> = {
   'contacts.requests': 'Demandes d\'amis', 'contacts.add': 'Ajouter un ami',
   'contacts.search_user': 'Rechercher des utilisateurs...', 'contacts.add_friend': 'Ajouter', 'contacts.request_message_hint': 'Écrire un message (max 512 car.)',
   'contacts.pending': 'En attente', 'contacts.accept': 'Accepter', 'contacts.reject': 'Refuser',
-  'contacts.send_request': 'Envoyer', 'contacts.request_message': 'Message',
+  'contacts.send_request': 'Envoyer', 'contacts.request_sent': 'Demande envoyée', 'contacts.request_message': 'Message',
   'contacts.empty': 'Aucun contact', 'contacts.scan_qr': 'Scanner QR',
 
   'group.create': 'Créer un groupe', 'group.name': 'Nom du groupe', 'group.members': 'Membres',

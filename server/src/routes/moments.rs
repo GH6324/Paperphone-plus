@@ -175,7 +175,7 @@ async fn list_moments(
         ).bind(id).fetch_all(&state.db).await.unwrap_or_default();
 
         // Get videos
-        let videos: Vec<(String, Option<String>, i16)> = sqlx::query_as(
+        let videos: Vec<(String, Option<String>, u16)> = sqlx::query_as(
             "SELECT url, thumbnail, duration FROM moment_videos WHERE moment_id = ?"
         ).bind(id).fetch_all(&state.db).await.unwrap_or_default();
 
@@ -224,7 +224,7 @@ async fn get_user_moments(
     for (id, text, _vis, created_at) in &moments {
         let images: Vec<(String,)> = sqlx::query_as("SELECT url FROM moment_images WHERE moment_id = ? ORDER BY sort_order")
             .bind(id).fetch_all(&state.db).await.unwrap_or_default();
-        let videos: Vec<(String, Option<String>, i16)> = sqlx::query_as("SELECT url, thumbnail, duration FROM moment_videos WHERE moment_id = ?")
+        let videos: Vec<(String, Option<String>, u16)> = sqlx::query_as("SELECT url, thumbnail, duration FROM moment_videos WHERE moment_id = ?")
             .bind(id).fetch_all(&state.db).await.unwrap_or_default();
 
         result.push(serde_json::json!({
