@@ -9,9 +9,10 @@
  * For group messages: plaintext is sent (no E2E — groups use server-side storage).
  */
 
-let _sodium: typeof import('libsodium-wrappers-sumo') | null = null
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _sodium: any = null
 
-export async function initSodium() {
+export async function initSodium(): Promise<any> {
   if (_sodium) return _sodium
   const mod = await import('libsodium-wrappers-sumo')
   // Handle both ESM default export and CJS module shape
