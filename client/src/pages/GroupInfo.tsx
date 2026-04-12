@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { get, post, put } from '../api/http'
-import { uploadFileWithProgress } from '../api/http'
+import { get, post, put, del, uploadFileWithProgress } from '../api/http'
 import { useI18n } from '../hooks/useI18n'
 import { useStore } from '../store'
 import { QRCodeCanvas } from '../components/QRCode'
@@ -388,7 +387,6 @@ export default function GroupInfo() {
             <button onClick={async () => {
               if (!window.confirm(t('group.disband_confirm'))) return
               try {
-                const { del } = await import('../api/http')
                 await del(`/api/groups/${id}`)
                 const g = await get('/api/groups')
                 useStore.getState().setGroups(g)

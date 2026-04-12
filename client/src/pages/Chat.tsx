@@ -76,6 +76,8 @@ function UploadOverlay({ progress, label }: { progress: number; label: string })
   )
 }
 
+const EMPTY_MSGS: any[] = []
+
 export default function Chat() {
   const { id } = useParams<{ id: string }>()
   const [searchParams] = useSearchParams()
@@ -83,7 +85,7 @@ export default function Chat() {
   const { t } = useI18n()
   const navigate = useNavigate()
   const user = useStore(s => s.user)
-  const messages = useStore(s => s.messages[id!] || [])
+  const messages = useStore(s => s.messages[id!] ?? EMPTY_MSGS)
   const setMessages = useStore(s => s.setMessages)
   const addMessage = useStore(s => s.addMessage)
   const friends = useStore(s => s.friends)
