@@ -11,15 +11,23 @@ WeChat 스타일의 종단간 암호화 메신저. 무상태 ECDH + XSalsa20-Pol
 <details>
 <summary>📸 스크린샷 (클릭하여 확장)</summary>
 
-<img width=30% height=30% src="https://raw.githubusercontent.com/619dev/PaperPhone/main/screenshot/ui1.jpg" alt="ui1">
-<img width=30% height=30% src="https://raw.githubusercontent.com/619dev/PaperPhone/main/screenshot/ui2.jpg" alt="ui2">
-<img width=30% height=30% src="https://raw.githubusercontent.com/619dev/PaperPhone/main/screenshot/ui3.jpg" alt="ui3">
-<img width=30% height=30% src="https://raw.githubusercontent.com/619dev/PaperPhone/main/screenshot/ui4.jpg" alt="ui4">
-<img width=30% height=30% src="https://raw.githubusercontent.com/619dev/PaperPhone/main/screenshot/ui5.jpg" alt="ui5">
-<img width=30% height=30% src="https://raw.githubusercontent.com/619dev/PaperPhone/main/screenshot/ui6.jpg" alt="ui6">
-<img width=30% height=30% src="https://raw.githubusercontent.com/619dev/PaperPhone/main/screenshot/ui7.jpg" alt="ui7">
-<img width=30% height=30% src="https://raw.githubusercontent.com/619dev/PaperPhone/main/screenshot/ui8.jpg" alt="ui8">
-<img width=30% height=30% src="https://raw.githubusercontent.com/619dev/PaperPhone/main/screenshot/ui9.jpg" alt="ui9">
+
+<img width=30% height=30% src="screenshot/ui1.jpg" alt="ui1">
+<img width=30% height=30% src="screenshot/ui2.jpg" alt="ui2">
+<img width=30% height=30% src="screenshot/ui3.jpg" alt="ui3">
+<img width=30% height=30% src="screenshot/ui4.jpg" alt="ui4">
+<img width=30% height=30% src="screenshot/ui5.jpg" alt="ui5">
+<img width=30% height=30% src="screenshot/ui6.jpg" alt="ui6">
+<img width=30% height=30% src="screenshot/ui7.jpg" alt="ui7">
+<img width=30% height=30% src="screenshot/ui8.jpg" alt="ui8">
+<img width=30% height=30% src="screenshot/ui9.jpg" alt="ui9">
+<img width=30% height=30% src="screenshot/ui10.jpg" alt="ui10">
+<img width=30% height=30% src="screenshot/ui11.jpg" alt="ui11">
+<img width=30% height=30% src="screenshot/ui12.jpg" alt="ui12">
+<img width=30% height=30% src="screenshot/ui13.jpg" alt="ui13">
+<img width=30% height=30% src="screenshot/ui14.jpg" alt="ui14">
+<img width=30% height=30% src="screenshot/ui15.jpg" alt="ui15">
+<img width=30% height=30% src="screenshot/ui16.jpg" alt="ui16">
 
 </details>
 

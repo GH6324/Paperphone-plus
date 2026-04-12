@@ -11,20 +11,23 @@
 <details>
 <summary>📸 截图预览（点击展开）</summary>
 
-<img width=30% height=30% src="https://raw.githubusercontent.com/619dev/PaperPhone/main/screenshot/ui1.jpg" alt="ui1">
-<img width=30% height=30% src="https://raw.githubusercontent.com/619dev/PaperPhone/main/screenshot/ui2.jpg" alt="ui2">
-<img width=30% height=30% src="https://raw.githubusercontent.com/619dev/PaperPhone/main/screenshot/ui3.jpg" alt="ui3">
-<img width=30% height=30% src="https://raw.githubusercontent.com/619dev/PaperPhone/main/screenshot/ui4.jpg" alt="ui4">
-<img width=30% height=30% src="https://raw.githubusercontent.com/619dev/PaperPhone/main/screenshot/ui5.jpg" alt="ui5">
-<img width=30% height=30% src="https://raw.githubusercontent.com/619dev/PaperPhone/main/screenshot/ui6.jpg" alt="ui6">
-<img width=30% height=30% src="https://raw.githubusercontent.com/619dev/PaperPhone/main/screenshot/ui7.jpg" alt="ui7">
-<img width=30% height=30% src="https://raw.githubusercontent.com/619dev/PaperPhone/main/screenshot/ui8.jpg" alt="ui8">
-<img width=30% height=30% src="https://raw.githubusercontent.com/619dev/PaperPhone/main/screenshot/ui9.jpg" alt="ui9">
-<img width=30% height=30% src="https://raw.githubusercontent.com/619dev/PaperPhone/main/screenshot/ui10.jpg" alt="ui10">
-<img width=30% height=30% src="https://raw.githubusercontent.com/619dev/PaperPhone/main/screenshot/ui11.jpg" alt="ui11">
-<img width=30% height=30% src="https://raw.githubusercontent.com/619dev/PaperPhone/main/screenshot/ui12.jpg" alt="ui12">
-<img width=30% height=30% src="https://raw.githubusercontent.com/619dev/PaperPhone/main/screenshot/ui13.jpg" alt="ui13">
-<img width=30% height=30% src="https://raw.githubusercontent.com/619dev/PaperPhone/main/screenshot/ui14.jpg" alt="ui14">
+
+<img width=30% height=30% src="screenshot/ui1.jpg" alt="ui1">
+<img width=30% height=30% src="screenshot/ui2.jpg" alt="ui2">
+<img width=30% height=30% src="screenshot/ui3.jpg" alt="ui3">
+<img width=30% height=30% src="screenshot/ui4.jpg" alt="ui4">
+<img width=30% height=30% src="screenshot/ui5.jpg" alt="ui5">
+<img width=30% height=30% src="screenshot/ui6.jpg" alt="ui6">
+<img width=30% height=30% src="screenshot/ui7.jpg" alt="ui7">
+<img width=30% height=30% src="screenshot/ui8.jpg" alt="ui8">
+<img width=30% height=30% src="screenshot/ui9.jpg" alt="ui9">
+<img width=30% height=30% src="screenshot/ui10.jpg" alt="ui10">
+<img width=30% height=30% src="screenshot/ui11.jpg" alt="ui11">
+<img width=30% height=30% src="screenshot/ui12.jpg" alt="ui12">
+<img width=30% height=30% src="screenshot/ui13.jpg" alt="ui13">
+<img width=30% height=30% src="screenshot/ui14.jpg" alt="ui14">
+<img width=30% height=30% src="screenshot/ui15.jpg" alt="ui15">
+<img width=30% height=30% src="screenshot/ui16.jpg" alt="ui16">
 
 </details>
 
@@ -415,4 +418,4 @@ paperphone-plus/
 | `STICKER_PACKS` | 自定义贴纸包列表（可选，逗号分隔 `包名:显示名`） | 内置 8 个默认包 |
 ---
 如果这个项目对你有用的话，请我喝罐可乐吧。
-<img width=30% height=30% src="https://raw.githubusercontent.com/619dev/PaperPhone/main/%E8%AF%B7%E6%88%91%E5%96%9D%E5%8F%AF%E4%B9%90.jpg" alt="qrcode">
+<img width=30% height=30% src="请我喝可乐.jpg" alt="qrcode">
