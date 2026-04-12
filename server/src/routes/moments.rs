@@ -112,22 +112,25 @@ async fn list_moments(
     let limit = params.limit.unwrap_or(20).min(50);
     let viewer_id = &auth.0.id;
 
+    // Moments are filtered to friends + self via SQL subquery
+
     let moments: Vec<(u64, String, String, String, chrono::NaiveDateTime, String, String, Option<String>)> = if let Some(before) = params.before {
         sqlx::query_as(
             "SELECT m.id, m.user_id, m.text_content, m.visibility, m.created_at, u.nickname, u.username, u.avatar
              FROM moments m JOIN users u ON u.id = m.user_id
-             WHERE m.id < ?
+             WHERE m.id < ? AND m.user_id IN (SELECT ? UNION ALL SELECT CASE WHEN user_id = ? THEN friend_id ELSE user_id END FROM friends WHERE (user_id = ? OR friend_id = ?) AND status = 'accepted')
              ORDER BY m.id DESC LIMIT ?"
         )
-        .bind(before).bind(limit)
+        .bind(before).bind(viewer_id).bind(viewer_id).bind(viewer_id).bind(viewer_id).bind(limit)
         .fetch_all(&state.db).await.unwrap_or_default()
     } else {
         sqlx::query_as(
             "SELECT m.id, m.user_id, m.text_content, m.visibility, m.created_at, u.nickname, u.username, u.avatar
              FROM moments m JOIN users u ON u.id = m.user_id
+             WHERE m.user_id IN (SELECT ? UNION ALL SELECT CASE WHEN user_id = ? THEN friend_id ELSE user_id END FROM friends WHERE (user_id = ? OR friend_id = ?) AND status = 'accepted')
              ORDER BY m.id DESC LIMIT ?"
         )
-        .bind(limit)
+        .bind(viewer_id).bind(viewer_id).bind(viewer_id).bind(viewer_id).bind(limit)
         .fetch_all(&state.db).await.unwrap_or_default()
     };
 
@@ -208,11 +211,26 @@ async fn list_moments(
 
 async fn get_user_moments(
     State(state): State<Arc<AppState>>,
-    _auth: AuthUser,
+    auth: AuthUser,
     Path(user_id): Path<String>,
     Query(params): Query<MomentsQuery>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
+    let viewer_id = &auth.0.id;
     let limit = params.limit.unwrap_or(20).min(50);
+
+    // Allow viewing own moments without friend check
+    if &user_id != viewer_id {
+        // Check friendship
+        let is_friend: Option<(i64,)> = sqlx::query_as(
+            "SELECT 1 FROM friends WHERE ((user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)) AND status = 'accepted'"
+        )
+        .bind(viewer_id).bind(&user_id).bind(&user_id).bind(viewer_id)
+        .fetch_optional(&state.db).await.unwrap_or(None);
+
+        if is_friend.is_none() {
+            return Err((axum::http::StatusCode::FORBIDDEN, Json(serde_json::json!({ "error": "Not friends" }))));
+        }
+    }
 
     let moments: Vec<(u64, String, String, chrono::NaiveDateTime)> = sqlx::query_as(
         "SELECT id, text_content, visibility, created_at FROM moments WHERE user_id = ? ORDER BY id DESC LIMIT ?"

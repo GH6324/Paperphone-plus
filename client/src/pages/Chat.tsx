@@ -6,7 +6,7 @@ import { get, post, put, uploadFileWithProgress, normalizeFileUrl } from '../api
 import { sendWs, onWs } from '../api/socket'
 import { getKeys } from '../crypto/keystore'
 import { encryptHybrid, decryptHybrid } from '../crypto/ratchet'
-import { ChevronLeft, Lock, Settings, Timer, ImageIcon, Film, Plus, Mic, Download, Paperclip, AlertTriangle, Clock, Package as PackageIcon, FileText, File as FileIcon, Image as LucideImage, Music, Video, Check } from 'lucide-react'
+import { ChevronLeft, Lock, Settings, Timer, ImageIcon, Film, Plus, Mic, Download, Paperclip, AlertTriangle, Clock, Package as PackageIcon, FileText, File as FileIcon, Image as LucideImage, Music, Video, Check, Phone, VideoIcon, SendHorizonal, Smile } from 'lucide-react'
 
 // Auto-delete options (seconds)
 const AUTO_DELETE_OPTIONS = [
@@ -21,8 +21,8 @@ const AUTO_DELETE_OPTIONS = [
 const EMOJI_CATEGORIES = [
   { icon: '😊', label: 'Smileys', emojis: ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','😉','😊','😇','🥰','😍','🤩','😘','😗','☺️','😚','😙','🥲','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🫡','🤫','🤔','🫠','🤐','🤨','😐','😑','😶','🫥','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🥴','😵','🤯','🥶','🥵','😱','😨','😰','😥','😢','😭','😤','😠','😡','🤬','😈','👿','💀','☠️','💩','🤡','👹','👺','👻','👽','👾','🤖'] },
   { icon: '👋', label: 'Gestures', emojis: ['👋','🤚','🖐️','✋','🖖','🫱','🫲','🫳','🫴','👌','🤌','🤏','✌️','🤞','🫰','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','🫵','👍','👎','✊','👊','🤛','🤜','👏','🙌','🫶','👐','🤲','🤝','🙏','💪','🦵','🦶','👂','🦻','👃','🧠','🦷','🦴','👀','👁️','👅','👄'] },
-  { icon: 'heart-filled', label: 'Hearts', emojis: ['heart-filled','🧡','💛','💚','💙','💜','🖤','heart','🤎','💔','❤️‍🔥','❤️‍🩹','❣️','💕','💞','💓','💗','💖','💘','💝','💟','♥️','🫀','💋','💌','💐','🌹','🥀','🌷','🌸','🌺','🌻','🌼','💎','✨','🌟','⭐','🔥','💫','⚡','☀️','🌈'] },
-  { icon: '🎉', label: 'Celebrate', emojis: ['🎉','🎊','🎈','🎁','🎀','🎗️','🏆','🏅','🥇','🥈','🥉','⚽','🏀','🏈','⚾','🎾','🏐','🏉','🎱','🏓','🏸','🥊','🎿','🏂','🏋️','🤸','⛹️','🤾','🚴','🏊','🤽','🧗','🏄','🎮','🎯','🎲','🎰','🎵','🎶','🎤','🎸','🎹','🎺','🎻','🥁','camera','🎬','🎨'] },
+  { icon: '❤️', label: 'Hearts', emojis: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❤️‍🔥','❤️‍🩹','❣️','💕','💞','💓','💗','💖','💘','💝','💟','♥️','🫀','💋','💌','💐','🌹','🥀','🌷','🌸','🌺','🌻','🌼','💎','✨','🌟','⭐','🔥','💫','⚡','☀️','🌈'] },
+  { icon: '🎉', label: 'Celebrate', emojis: ['🎉','🎊','🎈','🎁','🎀','🎗️','🏆','🏅','🥇','🥈','🥉','⚽','🏀','🏈','⚾','🎾','🏐','🏉','🎱','🏓','🏸','🥊','🎿','🏂','🏋️','🤸','⛹️','🤾','🚴','🏊','🤽','🧗','🏄','🎮','🎯','🎲','🎰','🎵','🎶','🎤','🎸','🎹','🎺','🎻','🥁','📷','🎬','🎨'] },
   { icon: '🐱', label: 'Animals', emojis: ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐻‍❄️','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🙈','🙉','🙊','🐒','🐔','🐧','🐦','🐤','🦄','🐴','🫏','🐝','🪱','🐛','🦋','🐌','🐞','🐜','🪲','🪳','🐢','🐍','🦎','🐙','🦑','🦐','🦞','🦀','🐡','🐠','🐟','🐬','🐳','🐋','🦈','🐊'] },
   { icon: '🍔', label: 'Food', emojis: ['🍏','🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🍆','🥑','🥦','🥬','🥒','🌶️','🫑','🌽','🥕','🫒','🧄','🧅','🥔','🍠','🥐','🍞','🥖','🥨','🧀','🥚','🍳','🧈','🥞','🧇','🥓','🥩','🍗','🍖','🌭','🍔','🍟','🍕','🌮','🌯','🫔','🥙','🧆','🥗','🍝','🍜','🍲','🍛','🍣','🍱','🥟','🍤','🍙','🍚','🍘','🍥','🥮','🍢','🧁','🎂','🍰','🍩','🍪','🍫','🍬','🍭','🍮','🍯','🍼','🥤','☕','🍵','🧃','🍶','🍺','🍷','🥂','🍹'] },
   { icon: '🚀', label: 'Travel', emojis: ['🚗','🚕','🚙','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🛻','🚚','🚛','🚜','🏍️','🛵','🚲','🛴','🛹','🛼','🚁','🛸','🚀','✈️','🛩️','🛰️','🚢','⛵','🛥️','🚤','⛴️','🏠','🏡','🏢','🏬','🏭','🏗️','🗼','🗽','⛪','🕌','🕍','⛩️','🕋','⛲','⛺','🌁','🌃','🌆','🌇','🌉','🌌','🎠','🎡','🎢','🏖️','🏝️','🏰','🗻','🌋'] },
@@ -554,7 +554,19 @@ export default function Chat() {
           {chatName}
           {!isGroup && <span style={{ fontSize: 14, opacity: 0.7 }} title={t('chat.e2e_enabled')}><Lock size={16} /></span>}
         </h1>
-        <button className="icon-btn" onClick={() => setShowSettings(true)} style={{ marginLeft: 'auto', fontSize: 18 }} title={t('chat.settings')}><Settings size={18} /></button>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 4, alignItems: 'center' }}>
+          {!isGroup && (
+            <>
+              <button className="icon-btn" title={t('call.voice')}
+                onClick={() => alert(t('call.outgoing'))}
+                style={{ fontSize: 18 }}><Phone size={18} /></button>
+              <button className="icon-btn" title={t('call.video')}
+                onClick={() => alert(t('call.outgoing'))}
+                style={{ fontSize: 18 }}><VideoIcon size={18} /></button>
+            </>
+          )}
+          <button className="icon-btn" onClick={() => setShowSettings(true)} style={{ fontSize: 18 }} title={t('chat.settings')}><Settings size={18} /></button>
+        </div>
       </div>
 
       {currentAutoDelete > 0 && (
@@ -665,7 +677,7 @@ export default function Chat() {
                     const packName = stickerPacks[currentPack]?.name
                     const stickers = stickerCache[packName] || []
                     const staticStickers = stickers.filter((s: any) => !s.is_animated && !s.is_video)
-                    if (staticStickers.length === 0) return <div style={{ width: '100%', textAlign: 'center', color: 'var(--text-muted)', padding: 32 }}>📭 {t('chat.no_stickers')}</div>
+                    if (staticStickers.length === 0) return <div style={{ width: '100%', textAlign: 'center', color: 'var(--text-muted)', padding: 32 }}>{t('chat.no_stickers')}</div>
                     return staticStickers.map((sticker: any, i: number) => (
                       <div key={sticker.file_id || i} onClick={() => sendSticker(sticker.url)} title={sticker.emoji || 'sticker'}
                         style={{ width: 72, height: 72, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, transition: 'background .15s' }}
@@ -688,14 +700,14 @@ export default function Chat() {
               cursor: 'pointer', fontSize: 13, fontWeight: emojiTab === 'emoji' ? 600 : 400,
               color: emojiTab === 'emoji' ? 'var(--accent)' : 'var(--text-primary)',
               borderBottom: emojiTab === 'emoji' ? '2px solid var(--accent)' : '2px solid transparent',
-            }}>😊 Emoji</button>
+            }}><Smile size={14} /> Emoji</button>
             <button onClick={() => setEmojiTab('sticker')} style={{
               flex: 1, padding: '10px 0', border: 'none',
               background: emojiTab === 'sticker' ? 'var(--bg-primary)' : 'transparent',
               cursor: 'pointer', fontSize: 13, fontWeight: emojiTab === 'sticker' ? 600 : 400,
               color: emojiTab === 'sticker' ? 'var(--accent)' : 'var(--text-primary)',
               borderBottom: emojiTab === 'sticker' ? '2px solid var(--accent)' : '2px solid transparent',
-            }}>🎨 Stickers</button>
+            }}>Stickers</button>
           </div>
         </div>
       )}
@@ -714,7 +726,7 @@ export default function Chat() {
               <button onClick={() => { setShowAttachPanel(false); videoInputRef.current?.click() }}
                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, border: 'none', background: 'none', cursor: 'pointer', padding: 8 }}>
                 <div style={{ width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(135deg, #667eea, #764ba2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontSize: 24 }}><Film size={16} /></span>
+                  <span style={{ fontSize: 24, color: '#fff' }}><Film size={24} /></span>
                 </div>
                 <span style={{ fontSize: 12, color: 'var(--text-primary)' }}>{t('chat.attach_video')}</span>
               </button>
@@ -722,7 +734,7 @@ export default function Chat() {
               <button onClick={() => { setShowAttachPanel(false); fileInputRef.current?.click() }}
                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, border: 'none', background: 'none', cursor: 'pointer', padding: 8 }}>
                 <div style={{ width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(135deg, #11998e, #38ef7d)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontSize: 24 }}>📄</span>
+                  <span style={{ fontSize: 24, color: '#fff' }}><FileIcon size={24} /></span>
                 </div>
                 <span style={{ fontSize: 12, color: 'var(--text-primary)' }}>{t('chat.attach_file')}</span>
               </button>
@@ -730,7 +742,7 @@ export default function Chat() {
               <button onClick={() => { setShowAttachPanel(false); startVoice() }}
                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, border: 'none', background: 'none', cursor: 'pointer', padding: 8 }}>
                 <div style={{ width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(135deg, #fc5c7d, #6a82fb)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontSize: 24 }}>🎙️</span>
+                  <span style={{ fontSize: 24, color: '#fff' }}><Mic size={24} /></span>
                 </div>
                 <span style={{ fontSize: 12, color: 'var(--text-primary)' }}>{t('chat.attach_voice')}</span>
               </button>
@@ -748,7 +760,7 @@ export default function Chat() {
       <div className="chat-input-bar">
         <button className="icon-btn" title="Emoji"
           onClick={() => { setShowEmojiPanel(!showEmojiPanel); setShowAttachPanel(false) }}
-          style={{ color: showEmojiPanel ? 'var(--accent)' : undefined }}>😊</button>
+          style={{ color: showEmojiPanel ? 'var(--accent)' : undefined }}><Smile size={20} /></button>
         <textarea ref={inputRef} id="chat-input" rows={1}
           placeholder={t('chat.placeholder')} value={input}
           onChange={e => { setInput(e.target.value); handleTyping() }}
@@ -763,7 +775,11 @@ export default function Chat() {
         <button className="icon-btn" title={t('chat.attach_more')}
           onClick={() => { setShowAttachPanel(!showAttachPanel); setShowEmojiPanel(false) }}
           style={{ fontSize: 18, color: showAttachPanel ? 'var(--accent)' : undefined }}><Plus size={16} /></button>
-        <button className="send-btn" id="send-btn" onClick={() => sendMessage()} disabled={sending}>➤</button>
+        {/* Voice recording */}
+        <button className="icon-btn" title={t('chat.attach_voice')}
+          onClick={() => isRecording ? stopVoice() : startVoice()}
+          style={{ fontSize: 18, color: isRecording ? '#ef4444' : undefined }}><Mic size={18} /></button>
+        <button className="send-btn" id="send-btn" onClick={() => sendMessage()} disabled={sending}><SendHorizonal size={18} /></button>
       </div>
     </div>
   )
