@@ -3,9 +3,12 @@ use crate::config::Config;
 
 /// Send Web Push notification to a user via VAPID
 pub async fn push_to_user(db: &sqlx::MySqlPool, config: &Config, user_id: &str, title: &str, body: &str) {
-    let (_public_key, private_key, _subject) = match (&config.vapid_public_key, &config.vapid_private_key, &config.vapid_subject) {
-        (Some(pub_k), Some(priv_k), Some(subj)) => (pub_k.clone(), priv_k.clone(), subj.clone()),
-        _ => return, // VAPID not configured
+    let (private_key, subject) = match (&config.vapid_private_key, &config.vapid_subject) {
+        (Some(priv_k), Some(subj)) => (priv_k.clone(), subj.clone()),
+        _ => {
+            // VAPID not configured — skip silently
+            return;
+        }
     };
 
     let subs: Vec<(String, String, String)> = sqlx::query_as(
@@ -32,17 +35,26 @@ pub async fn push_to_user(db: &sqlx::MySqlPool, config: &Config, user_id: &str, 
             },
         };
 
-        // Use from_base64 which takes SubscriptionInfo directly and returns full VapidSignatureBuilder
         let signature = match web_push::VapidSignatureBuilder::from_base64(
             &private_key,
             web_push::URL_SAFE_NO_PAD,
             &sub,
         ) {
-            Ok(mut b) => match b.build() {
-                Ok(sig) => sig,
-                Err(_) => continue,
-            },
-            Err(_) => continue,
+            Ok(mut b) => {
+                // Set the subject (mailto: contact) — required by push services
+                b.add_claim("sub", &*subject);
+                match b.build() {
+                    Ok(sig) => sig,
+                    Err(e) => {
+                        tracing::warn!("[Push] VAPID signature build failed for {}: {:?}", &endpoint[..60.min(endpoint.len())], e);
+                        continue;
+                    }
+                }
+            }
+            Err(e) => {
+                tracing::warn!("[Push] VapidSignatureBuilder failed: {:?}", e);
+                continue;
+            }
         };
 
         let mut builder = web_push::WebPushMessageBuilder::new(&sub);
@@ -51,7 +63,10 @@ pub async fn push_to_user(db: &sqlx::MySqlPool, config: &Config, user_id: &str, 
 
         if let Ok(message) = builder.build() {
             if let Ok(client) = web_push::IsahcWebPushClient::new() {
-                let _ = client.send(message).await;
+                match client.send(message).await {
+                    Ok(_) => tracing::debug!("[Push] Notification sent to user {}", user_id),
+                    Err(e) => tracing::warn!("[Push] Send failed for user {}: {:?}", user_id, e),
+                }
             }
         }
     }

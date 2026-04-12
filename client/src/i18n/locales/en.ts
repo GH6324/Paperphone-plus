@@ -184,6 +184,8 @@ export const en: Record<string, string> = {
   'profile.my_qr': 'My QR Code',
   'profile.qr_scan_hint': 'Scan this QR code to add me as a friend',
   'profile.notifications': 'Notifications',
+  'profile.push_blocked': 'Notifications are blocked. Please enable them in your browser settings.',
+  'profile.push_failed': 'Failed to enable notifications. Check console for details.',
 
   // PWA Install
   'pwa.install_title': 'Add to Home Screen',

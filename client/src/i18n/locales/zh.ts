@@ -194,6 +194,8 @@ export const zh: Record<string, string> = {
   'profile.my_qr': '我的二维码',
   'profile.qr_scan_hint': '扫一扫上面的二维码，添加我为好友',
   'profile.notifications': '消息通知',
+  'profile.push_blocked': '通知已被浏览器拦截。请在浏览器设置中允许通知权限。',
+  'profile.push_failed': '开启通知失败，请查看控制台日志。',
 
   // PWA Install
   'pwa.install_title': '添加到主屏幕',

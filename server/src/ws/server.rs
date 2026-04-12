@@ -246,7 +246,11 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppState>) {
 
             for (member_id,) in &members {
                 if member_id != &uid {
-                    state.ws_clients.send_to_user(member_id, envelope.clone());
+                    let delivered = state.ws_clients.send_to_user(member_id, envelope.clone());
+                    // Push notification if offline
+                    if !delivered {
+                        push_offline_message(&state, &uid, member_id).await;
+                    }
                 }
             }
 

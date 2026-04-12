@@ -48,8 +48,18 @@ export default function Profile() {
       } else {
         const ok = await subscribePush()
         setPushEnabled(ok)
+        if (!ok) {
+          // Check why it failed
+          if ('Notification' in window && Notification.permission === 'denied') {
+            alert(t('profile.push_blocked') || 'Notifications are blocked. Please enable them in your browser settings.')
+          } else {
+            alert(t('profile.push_failed') || 'Failed to enable notifications. Check console for details.')
+          }
+        }
       }
-    } catch {}
+    } catch (e) {
+      console.error('[Push] Toggle failed:', e)
+    }
     setPushLoading(false)
   }
 
