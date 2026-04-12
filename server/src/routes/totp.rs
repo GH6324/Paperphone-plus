@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use axum::{Router, routing::post, extract::State, Json};
+use axum::{Router, routing::post, extract::State, Json, http::HeaderMap};
 use serde::Deserialize;
 
 use crate::AppState;
@@ -101,6 +101,7 @@ async fn enable_totp(
 
 async fn verify_totp(
     State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
     Json(body): Json<VerifyWithTokenReq>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
     let claims = verify_token(&body.login_token, &state.config.jwt_secret)
@@ -129,19 +130,22 @@ async fn verify_totp(
     }
 
     let session_id = uuid::Uuid::new_v4().to_string();
-    sqlx::query("INSERT INTO sessions (id, user_id) VALUES (?, ?)")
-        .bind(&session_id).bind(&claims.id).execute(&state.db).await.ok();
+    let (device_name, device_type, os_name, browser_name) = crate::routes::auth::parse_user_agent(&headers);
+    let ip_address = crate::routes::auth::extract_ip(&headers);
+    sqlx::query("INSERT INTO sessions (id, user_id, device_name, device_type, os, browser, ip_address) VALUES (?, ?, ?, ?, ?, ?, ?)")
+        .bind(&session_id).bind(&claims.id).bind(&device_name).bind(&device_type).bind(&os_name).bind(&browser_name).bind(&ip_address)
+        .execute(&state.db).await.ok();
 
     let token = sign_token(&claims.id, &claims.username, Some(&session_id), &state.config.jwt_secret);
 
-    let user: Option<(String, String, String, Option<String>)> = sqlx::query_as(
-        "SELECT id, username, nickname, avatar FROM users WHERE id = ?"
+    let user: Option<(String, String, String, Option<String>, Option<String>)> = sqlx::query_as(
+        "SELECT id, username, nickname, avatar, ik_pub FROM users WHERE id = ?"
     ).bind(&claims.id).fetch_optional(&state.db).await.unwrap_or(None);
 
-    let (id, username, nickname, avatar) = user.unwrap_or_default();
+    let (id, username, nickname, avatar, ik_pub) = user.unwrap_or_default();
     Ok(Json(serde_json::json!({
         "token": token,
-        "user": { "id": id, "username": username, "nickname": nickname, "avatar": avatar }
+        "user": { "id": id, "username": username, "nickname": nickname, "avatar": avatar, "ik_pub": ik_pub }
     })))
 }
 
@@ -188,6 +192,7 @@ struct RecoveryReq {
 
 async fn use_recovery_code(
     State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
     Json(body): Json<RecoveryReq>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
     let claims = verify_token(&body.login_token, &state.config.jwt_secret)
@@ -208,8 +213,11 @@ async fn use_recovery_code(
             .bind(&updated).bind(&claims.id).execute(&state.db).await.ok();
 
         let session_id = uuid::Uuid::new_v4().to_string();
-        sqlx::query("INSERT INTO sessions (id, user_id) VALUES (?, ?)")
-            .bind(&session_id).bind(&claims.id).execute(&state.db).await.ok();
+        let (device_name, device_type, os_name, browser_name) = crate::routes::auth::parse_user_agent(&headers);
+        let ip_address = crate::routes::auth::extract_ip(&headers);
+        sqlx::query("INSERT INTO sessions (id, user_id, device_name, device_type, os, browser, ip_address) VALUES (?, ?, ?, ?, ?, ?, ?)")
+            .bind(&session_id).bind(&claims.id).bind(&device_name).bind(&device_type).bind(&os_name).bind(&browser_name).bind(&ip_address)
+            .execute(&state.db).await.ok();
         let token = sign_token(&claims.id, &claims.username, Some(&session_id), &state.config.jwt_secret);
 
         Ok(Json(serde_json::json!({ "token": token, "remaining_codes": codes.len() })))

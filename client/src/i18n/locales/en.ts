@@ -180,6 +180,13 @@ export const en: Record<string, string> = {
   'profile.tags': 'Friend Tags',
   'profile.my_qr': 'My QR Code',
   'profile.qr_scan_hint': 'Scan this QR code to add me as a friend',
+  'profile.notifications': 'Notifications',
+
+  // PWA Install
+  'pwa.install_title': 'Add to Home Screen',
+  'pwa.install_step1': '1. Tap the Share button ⬆️ in Safari toolbar',
+  'pwa.install_step2': '2. Scroll down and tap "Add to Home Screen"',
+  'pwa.install_step3': '3. Tap "Add" in the top-right corner',
 
   'call.incoming': 'Incoming Call',
   'call.outgoing': 'Calling...',

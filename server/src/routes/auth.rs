@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use axum::{Router, routing::post, extract::State, Json};
+use axum::{Router, routing::post, extract::State, Json, http::HeaderMap};
 use serde::{Deserialize, Serialize};
 use argon2::{Argon2, PasswordHasher, PasswordVerifier, password_hash::{SaltString, rand_core::OsRng}};
 use uuid::Uuid;
@@ -60,6 +60,7 @@ pub fn router() -> Router<Arc<AppState>> {
 
 async fn register(
     State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
     Json(body): Json<RegisterReq>,
 ) -> Result<(axum::http::StatusCode, Json<serde_json::Value>), (axum::http::StatusCode, Json<serde_json::Value>)> {
     if body.username.is_empty() || body.password.is_empty() || body.ik_pub.is_empty() || body.spk_pub.is_empty() || body.spk_sig.is_empty() || body.kem_pub.is_empty() {
@@ -104,10 +105,12 @@ async fn register(
         }
     }
 
-    // Create session
+    // Create session with device info
     let session_id = Uuid::new_v4().to_string();
-    sqlx::query("INSERT INTO sessions (id, user_id) VALUES (?, ?)")
-        .bind(&session_id).bind(&id)
+    let (device_name, device_type, os_name, browser_name) = parse_user_agent(&headers);
+    let ip_address = extract_ip(&headers);
+    sqlx::query("INSERT INTO sessions (id, user_id, device_name, device_type, os, browser, ip_address) VALUES (?, ?, ?, ?, ?, ?, ?)")
+        .bind(&session_id).bind(&id).bind(&device_name).bind(&device_type).bind(&os_name).bind(&browser_name).bind(&ip_address)
         .execute(&state.db).await.ok();
 
     let token = sign_token(&id, &body.username, Some(&session_id), &state.config.jwt_secret);
@@ -120,20 +123,21 @@ async fn register(
 
 async fn login(
     State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
     Json(body): Json<LoginReq>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
     if body.username.is_empty() || body.password.is_empty() {
         return Err((axum::http::StatusCode::BAD_REQUEST, Json(serde_json::json!({ "error": "Missing fields" }))));
     }
 
-    let user: Option<(String, String, String, Option<String>, String)> = sqlx::query_as(
-        "SELECT id, username, nickname, avatar, password FROM users WHERE username = ?"
+    let user: Option<(String, String, String, Option<String>, String, Option<String>)> = sqlx::query_as(
+        "SELECT id, username, nickname, avatar, password, ik_pub FROM users WHERE username = ?"
     )
     .bind(&body.username)
     .fetch_optional(&state.db).await
     .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
 
-    let (id, username, nickname, avatar, pw_hash) = user
+    let (id, username, nickname, avatar, pw_hash, ik_pub) = user
         .ok_or_else(|| (axum::http::StatusCode::UNAUTHORIZED, Json(serde_json::json!({ "error": "Invalid credentials" }))))?;
 
     // Verify password
@@ -155,16 +159,78 @@ async fn login(
         return Ok(Json(serde_json::json!({ "requires_2fa": true, "login_token": login_token })));
     }
 
-    // Create session
+    // Create session with device info
     let session_id = Uuid::new_v4().to_string();
-    sqlx::query("INSERT INTO sessions (id, user_id) VALUES (?, ?)")
-        .bind(&session_id).bind(&id)
+    let (device_name, device_type, os_name, browser_name) = parse_user_agent(&headers);
+    let ip_address = extract_ip(&headers);
+    sqlx::query("INSERT INTO sessions (id, user_id, device_name, device_type, os, browser, ip_address) VALUES (?, ?, ?, ?, ?, ?, ?)")
+        .bind(&session_id).bind(&id).bind(&device_name).bind(&device_type).bind(&os_name).bind(&browser_name).bind(&ip_address)
         .execute(&state.db).await.ok();
 
     let token = sign_token(&id, &username, Some(&session_id), &state.config.jwt_secret);
 
     Ok(Json(serde_json::json!({
         "token": token,
-        "user": { "id": id, "username": username, "nickname": nickname, "avatar": avatar }
+        "user": { "id": id, "username": username, "nickname": nickname, "avatar": avatar, "ik_pub": ik_pub }
     })))
+}
+
+/// Parse User-Agent header into (device_name, device_type, os, browser)
+pub fn parse_user_agent(headers: &HeaderMap) -> (Option<String>, Option<String>, Option<String>, Option<String>) {
+    let ua = headers.get("user-agent").and_then(|v| v.to_str().ok()).unwrap_or("");
+
+    let browser = if ua.contains("Firefox") {
+        Some("Firefox".to_string())
+    } else if ua.contains("Edg/") {
+        Some("Edge".to_string())
+    } else if ua.contains("Chrome") {
+        Some("Chrome".to_string())
+    } else if ua.contains("Safari") {
+        Some("Safari".to_string())
+    } else if !ua.is_empty() {
+        Some(ua.chars().take(64).collect())
+    } else {
+        None
+    };
+
+    let os = if ua.contains("Windows") {
+        Some("Windows".to_string())
+    } else if ua.contains("Mac OS X") || ua.contains("Macintosh") {
+        Some("macOS".to_string())
+    } else if ua.contains("iPhone") || ua.contains("iPad") {
+        Some("iOS".to_string())
+    } else if ua.contains("Android") {
+        Some("Android".to_string())
+    } else if ua.contains("Linux") {
+        Some("Linux".to_string())
+    } else {
+        None
+    };
+
+    let device_type = if ua.contains("Mobile") || ua.contains("iPhone") || ua.contains("Android") {
+        Some("mobile".to_string())
+    } else {
+        Some("desktop".to_string())
+    };
+
+    let device_name = match (browser.as_deref(), os.as_deref()) {
+        (Some(b), Some(o)) => Some(format!("{} on {}", b, o)),
+        (Some(b), None) => Some(b.to_string()),
+        _ => None,
+    };
+
+    (device_name, device_type, os, browser)
+}
+
+/// Extract client IP from X-Forwarded-For or X-Real-IP headers
+pub fn extract_ip(headers: &HeaderMap) -> Option<String> {
+    headers.get("x-forwarded-for")
+        .and_then(|v| v.to_str().ok())
+        .map(|v| v.split(',').next().unwrap_or("").trim().to_string())
+        .filter(|v| !v.is_empty())
+        .or_else(|| {
+            headers.get("x-real-ip")
+                .and_then(|v| v.to_str().ok())
+                .map(|v| v.to_string())
+        })
 }

@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use axum::{Router, routing::{post, delete}, extract::State, Json};
+use axum::{Router, routing::{get, post, delete}, extract::State, Json};
 use serde::Deserialize;
 
 use crate::AppState;
@@ -10,6 +10,7 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/subscribe", post(subscribe))
         .route("/unsubscribe", delete(unsubscribe))
         .route("/onesignal", post(register_onesignal))
+        .route("/vapid-key", get(get_vapid_key))
 }
 
 #[derive(Deserialize)]
@@ -72,4 +73,12 @@ async fn register_onesignal(
     .bind(&auth.0.id).bind(&body.player_id).bind(&body.platform)
     .execute(&state.db).await.ok();
     Ok(Json(serde_json::json!({ "ok": true })))
+}
+
+async fn get_vapid_key(
+    State(state): State<Arc<AppState>>,
+) -> Json<serde_json::Value> {
+    Json(serde_json::json!({
+        "vapid_public_key": state.config.vapid_public_key
+    }))
 }

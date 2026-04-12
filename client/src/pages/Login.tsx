@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { post } from '../api/http'
+import { post, put } from '../api/http'
 import { useStore } from '../store'
 import { useI18n } from '../hooks/useI18n'
 import { allLangs, langNames, LangCode } from '../i18n'
 import { generateKeyPair, generateSignKeyPair, signMessage, initSodium } from '../crypto/ratchet'
-import { setKeys } from '../crypto/keystore'
+import { setKeys, getKeys, loadFromIndexedDB } from '../crypto/keystore'
 
 export default function Login() {
   const { t } = useI18n()
@@ -25,6 +25,44 @@ export default function Login() {
   const [needs2fa, setNeeds2fa] = useState(false)
   const [loginToken, setLoginToken] = useState('')
   const [totpCode, setTotpCode] = useState('')
+
+  // Restore keys from IndexedDB or generate new ones on a new device
+  const ensureKeysExist = async () => {
+    // 1. Try memory / localStorage / sessionStorage
+    if (getKeys()) return
+    // 2. Try IndexedDB
+    const idbKeys = await loadFromIndexedDB()
+    if (idbKeys) return
+    // 3. Generate fresh keys and upload public bundle
+    try {
+      const sodium = await initSodium()
+      const ikPair = await generateKeyPair()
+      const spkPair = await generateKeyPair()
+      const signPair = await generateSignKeyPair()
+      const spkPubBytes = sodium.from_base64(spkPair.publicKey)
+      const spkSig = await signMessage(spkPubBytes, signPair.privateKey)
+      const opks: Array<{ key_id: number; pub: string; priv: string }> = []
+      for (let i = 0; i < 20; i++) {
+        const opk = await generateKeyPair()
+        opks.push({ key_id: i, pub: opk.publicKey, priv: opk.privateKey })
+      }
+      setKeys({
+        ik_pub: ikPair.publicKey, ik_priv: ikPair.privateKey,
+        spk_pub: spkPair.publicKey, spk_priv: spkPair.privateKey,
+        spk_sig: spkSig,
+        sign_pub: signPair.publicKey, sign_priv: signPair.privateKey,
+        opks,
+      })
+      // Upload public keys to server
+      await put('/api/users/keys', {
+        ik_pub: ikPair.publicKey,
+        spk_pub: spkPair.publicKey,
+        spk_sig: spkSig,
+        kem_pub: signPair.publicKey,
+        prekeys: opks.map(k => ({ key_id: k.key_id, opk_pub: k.pub })),
+      })
+    } catch { /* best effort */ }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -83,6 +121,8 @@ export default function Login() {
           setLoginToken(res.login_token)
         } else {
           setAuth(res.token, res.user)
+          // Restore or generate keys after login
+          await ensureKeysExist()
           navigate('/chats')
         }
       }
@@ -100,6 +140,7 @@ export default function Login() {
     try {
       const res = await post('/api/totp/verify', { login_token: loginToken, code: totpCode })
       setAuth(res.token, res.user)
+      await ensureKeysExist()
       navigate('/chats')
     } catch (err: any) {
       setError(err.message || t('common.error'))

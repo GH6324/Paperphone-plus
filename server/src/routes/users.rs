@@ -14,6 +14,7 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/avatar", put(update_avatar))
         .route("/nickname", put(update_nickname))
         .route("/password", put(change_password))
+        .route("/keys", put(update_keys))
 }
 
 #[derive(Deserialize)]
@@ -195,6 +196,45 @@ async fn change_password(
         .bind(&new_hash).bind(&auth.0.id)
         .execute(&state.db).await
         .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
+
+    Ok(Json(serde_json::json!({ "ok": true })))
+}
+
+#[derive(Deserialize)]
+struct UpdateKeysReq {
+    ik_pub: String,
+    spk_pub: String,
+    spk_sig: String,
+    kem_pub: String,
+    prekeys: Option<Vec<PreKeyItem>>,
+}
+
+#[derive(Deserialize)]
+struct PreKeyItem {
+    key_id: i32,
+    opk_pub: String,
+}
+
+async fn update_keys(
+    State(state): State<Arc<AppState>>,
+    auth: AuthUser,
+    Json(body): Json<UpdateKeysReq>,
+) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
+    sqlx::query("UPDATE users SET ik_pub = ?, spk_pub = ?, spk_sig = ?, kem_pub = ? WHERE id = ?")
+        .bind(&body.ik_pub).bind(&body.spk_pub).bind(&body.spk_sig).bind(&body.kem_pub).bind(&auth.0.id)
+        .execute(&state.db).await
+        .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
+
+    // Replace prekeys
+    if let Some(prekeys) = &body.prekeys {
+        sqlx::query("DELETE FROM prekeys WHERE user_id = ?")
+            .bind(&auth.0.id).execute(&state.db).await.ok();
+        for pk in prekeys {
+            sqlx::query("INSERT INTO prekeys (user_id, key_id, opk_pub) VALUES (?, ?, ?)")
+                .bind(&auth.0.id).bind(pk.key_id).bind(&pk.opk_pub)
+                .execute(&state.db).await.ok();
+        }
+    }
 
     Ok(Json(serde_json::json!({ "ok": true })))
 }

@@ -55,7 +55,8 @@ export const del = <T = any>(path: string, body?: any) =>
 export async function uploadFile(file: File): Promise<{ url: string; key: string }> {
   const form = new FormData()
   form.append('file', file)
-  return post('/api/upload', form)
+  const res = await post<{ url: string; key: string }>('/api/upload', form)
+  return { ...res, url: normalizeFileUrl(res.url) }
 }
 
 /**
@@ -81,7 +82,7 @@ export function uploadFileWithProgress(
       try {
         const data = JSON.parse(xhr.responseText)
         if (xhr.status >= 200 && xhr.status < 300) {
-          resolve(data)
+          resolve({ ...data, url: normalizeFileUrl(data.url) })
         } else {
           reject(new Error(data.error || `HTTP ${xhr.status}`))
         }
@@ -98,4 +99,16 @@ export function uploadFileWithProgress(
     if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
     xhr.send(form)
   })
+}
+
+/**
+ * If the server returns a relative file URL (starts with /), prepend
+ * the API base URL so it resolves to the correct server in cross-domain
+ * deployments (e.g. client on Vercel, server on Zeabur).
+ */
+function normalizeFileUrl(url: string): string {
+  if (BASE && url.startsWith('/')) {
+    return `${BASE}${url}`
+  }
+  return url
 }

@@ -190,6 +190,13 @@ export const zh: Record<string, string> = {
   'profile.tags': '好友标签',
   'profile.my_qr': '我的二维码',
   'profile.qr_scan_hint': '扫一扫上面的二维码，添加我为好友',
+  'profile.notifications': '消息通知',
+
+  // PWA Install
+  'pwa.install_title': '添加到主屏幕',
+  'pwa.install_step1': '1. 点击底部 Safari 工具栏的分享按钮 ⬆️',
+  'pwa.install_step2': '2. 向下滑动，点击「添加到主屏幕」',
+  'pwa.install_step3': '3. 点击右上角的「添加」即可',
 
   // Call
   'call.incoming': '来电',

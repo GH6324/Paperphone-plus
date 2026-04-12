@@ -56,6 +56,7 @@ export const ko: Record<string, string> = {
   'profile.change_password': '비밀번호 변경', 'profile.two_factor': '2단계 인증',
   'profile.about': '정보', 'profile.logout': '로그아웃', 'profile.tags': '친구 태그',
   'profile.my_qr': '내 QR 코드', 'profile.qr_scan_hint': '이 QR 코드를 스캔하여 친구로 추가',
+  'profile.notifications': '알림', 'pwa.install_title': '홈 화면에 추가', 'pwa.install_step1': '1. Safari 도구 모음의 공유 버튼 ⬆️ 탭', 'pwa.install_step2': '2. "홈 화면에 추가" 탭', 'pwa.install_step3': '3. 오른쪽 상단의 "추가" 탭',
 
   'call.incoming': '수신 전화', 'call.outgoing': '발신 중...', 'call.connected': '통화 중',
   'call.ended': '통화 종료', 'call.video': '영상 통화', 'call.voice': '음성 통화',

@@ -58,6 +58,7 @@ export const es: Record<string, string> = {
   'profile.change_password': 'Cambiar contraseña', 'profile.two_factor': 'Autenticación 2FA',
   'profile.about': 'Acerca de', 'profile.logout': 'Cerrar sesión', 'profile.tags': 'Etiquetas de amigos',
   'profile.my_qr': 'Mi código QR', 'profile.qr_scan_hint': 'Escanea este código QR para agregarme como amigo',
+  'profile.notifications': 'Notificaciones', 'pwa.install_title': 'Añadir a pantalla', 'pwa.install_step1': '1. Toca el botón Compartir ⬆️ en Safari', 'pwa.install_step2': '2. Desplázate y toca "Añadir a pantalla de inicio"', 'pwa.install_step3': '3. Toca "Añadir" en la esquina superior derecha',
 
   'call.incoming': 'Llamada entrante', 'call.outgoing': 'Llamando...', 'call.connected': 'Conectado',
   'call.ended': 'Llamada finalizada', 'call.video': 'Videollamada', 'call.voice': 'Llamada de voz',

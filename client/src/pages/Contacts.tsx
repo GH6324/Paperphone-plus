@@ -45,11 +45,19 @@ export default function Contacts() {
   // Friends tab: group by tag toggle
   const [groupByTag, setGroupByTag] = useState(false)
 
-  useEffect(() => {
+  const loadContacts = useCallback(() => {
     get<Friend[]>('/api/friends').then(setFriends).catch(() => {})
     get('/api/groups').then(setGroups).catch(() => {})
     get('/api/friends/requests').then(setRequests).catch(() => {})
     loadTagData()
+  }, [])
+
+  useEffect(() => {
+    loadContacts()
+    // Auto-refresh when user switches back to this tab (e.g. after friend accepted)
+    const onFocus = () => loadContacts()
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
   }, [])
 
   const loadTagData = useCallback(async () => {

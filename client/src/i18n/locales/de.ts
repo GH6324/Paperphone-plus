@@ -58,6 +58,7 @@ export const de: Record<string, string> = {
   'profile.change_password': 'Passwort ändern', 'profile.two_factor': 'Zwei-Faktor-Auth',
   'profile.about': 'Über', 'profile.logout': 'Abmelden', 'profile.tags': 'Freund-Tags',
   'profile.my_qr': 'Mein QR-Code', 'profile.qr_scan_hint': 'Scannen Sie diesen QR-Code, um mich als Freund hinzuzufügen',
+  'profile.notifications': 'Benachrichtigungen', 'pwa.install_title': 'Zum Startbildschirm', 'pwa.install_step1': '1. Tippen Sie auf die Teilen-Taste ⬆️ in Safari', 'pwa.install_step2': '2. Scrollen und „Zum Home-Bildschirm" tippen', 'pwa.install_step3': '3. Oben rechts „Hinzufügen" tippen',
 
   'call.incoming': 'Eingehender Anruf', 'call.outgoing': 'Anrufen...', 'call.connected': 'Verbunden',
   'call.ended': 'Anruf beendet', 'call.video': 'Videoanruf', 'call.voice': 'Sprachanruf',

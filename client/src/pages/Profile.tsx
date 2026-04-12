@@ -7,6 +7,7 @@ import { disconnectWs } from '../api/socket'
 import { get, post, put, del } from '../api/http'
 import { allLangs, langNames, LangCode } from '../i18n'
 import { QRCodeCanvas } from '../components/QRCode'
+import { isPushSupported, isPushSubscribed, subscribePush, unsubscribePush } from '../api/push'
 
 type SubView = null | 'password' | 'avatar' | '2fa' | 'sessions' | 'language' | 'fingerprint' | 'myqr'
 
@@ -22,6 +23,34 @@ export default function Profile() {
   const setLang = useStore(s => s.setLang)
 
   const [subView, setSubView] = useState<SubView>(null)
+
+  // Push notifications state
+  const [pushEnabled, setPushEnabled] = useState(false)
+  const [pushLoading, setPushLoading] = useState(false)
+  const pushSupported = isPushSupported()
+
+  // iOS standalone detection
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+  const isStandalone = (window.navigator as any).standalone === true || window.matchMedia('(display-mode: standalone)').matches
+  const showIOSInstall = isIOS && !isStandalone
+
+  useEffect(() => {
+    isPushSubscribed().then(setPushEnabled)
+  }, [])
+
+  const togglePush = async () => {
+    setPushLoading(true)
+    try {
+      if (pushEnabled) {
+        await unsubscribePush()
+        setPushEnabled(false)
+      } else {
+        const ok = await subscribePush()
+        setPushEnabled(ok)
+      }
+    } catch {}
+    setPushLoading(false)
+  }
 
   const handleLogout = () => {
     disconnectWs()
@@ -45,7 +74,7 @@ export default function Profile() {
       </div>
       <div className="page-body">
         {/* User card */}
-        <div className="list-item" style={{ padding: '20px 16px', cursor: 'pointer' }} onClick={() => setSubView('avatar')}>
+        <div className="list-item" style={{ padding: '20px 16px' }}>
           <div className="avatar avatar-lg">
             {user?.avatar ? <img src={user.avatar} alt="" /> : user?.nickname?.[0]?.toUpperCase()}
           </div>
@@ -53,18 +82,20 @@ export default function Profile() {
             <div className="name" style={{ fontSize: 18 }}>{user?.nickname}</div>
             <div className="preview">@{user?.username}</div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <button onClick={(e) => { e.stopPropagation(); setSubView('myqr') }}
-              style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 20, padding: 4 }}
-              title={t('profile.my_qr')}>📱</button>
-            <span className="arrow">›</span>
-          </div>
         </div>
 
         <div className="divider" />
 
         {/* Account */}
         <div className="section-title">{t('profile.account')}</div>
+        <div className="settings-item" onClick={() => setSubView('avatar')}>
+          <span className="label">📷 {t('avatar.title')}</span>
+          <span className="arrow">›</span>
+        </div>
+        <div className="settings-item" onClick={() => setSubView('myqr')}>
+          <span className="label">📱 {t('profile.my_qr')}</span>
+          <span className="arrow">›</span>
+        </div>
         <div className="settings-item" onClick={() => setSubView('password')}>
           <span className="label">🔑 {t('profile.change_password')}</span>
           <span className="arrow">›</span>
@@ -94,6 +125,35 @@ export default function Profile() {
           <span className="label">🌐 {t('profile.language')}</span>
           <span className="value">{langNames[lang]}</span>
         </div>
+
+        {/* Push notifications */}
+        {pushSupported && (
+          <div className="settings-item" onClick={togglePush} style={{ opacity: pushLoading ? 0.5 : 1 }}>
+            <span className="label">🔔 {t('profile.notifications')}</span>
+            <div className={`toggle ${pushEnabled ? 'active' : ''}`} />
+          </div>
+        )}
+
+        {/* iOS PWA Install Guide */}
+        {showIOSInstall && (
+          <>
+            <div className="divider" />
+            <div style={{
+              margin: '0 16px', padding: '16px', borderRadius: 12,
+              background: 'linear-gradient(135deg, rgba(99,102,241,0.12), rgba(168,85,247,0.12))',
+              border: '1px solid rgba(99,102,241,0.2)',
+            }}>
+              <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 8 }}>
+                📲 {t('pwa.install_title')}
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+                {t('pwa.install_step1')}<br />
+                {t('pwa.install_step2')}<br />
+                {t('pwa.install_step3')}
+              </div>
+            </div>
+          </>
+        )}
 
         <div className="divider" />
 

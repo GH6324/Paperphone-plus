@@ -55,6 +55,7 @@ export const ja: Record<string, string> = {
   'profile.sessions': 'デバイス', 'profile.theme': 'ダークモード', 'profile.language': '言語',
   'profile.change_password': 'パスワード変更', 'profile.two_factor': '二段階認証',
   'profile.about': 'について', 'profile.logout': 'ログアウト',  'profile.tags': 'タグ', 'profile.my_qr': 'マイQRコード', 'profile.qr_scan_hint': 'このQRコードをスキャンして友達に追加',
+  'profile.notifications': '通知', 'pwa.install_title': 'ホーム画面に追加', 'pwa.install_step1': '1. Safariの共有ボタン ⬆️ をタップ', 'pwa.install_step2': '2.「ホーム画面に追加」をタップ', 'pwa.install_step3': '3. 右上の「追加」をタップ',
 
   'call.incoming': '着信', 'call.outgoing': '発信中...', 'call.connected': '通話中',
   'call.ended': '通話終了', 'call.video': 'ビデオ通話', 'call.voice': '音声通話',
