@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { get, post, del, uploadFile as httpUploadFile, normalizeFileUrl } from '../api/http'
 import { useStore, Friend } from '../store'
 import { useI18n } from '../hooks/useI18n'
+import { Camera, ChevronLeft, ChevronRight, Eye, EyeOff, Film, Heart, ImageIcon, MessageCircle, Plus, Tag, X, Check, Globe, Users } from 'lucide-react'
 
 const MAX_IMAGES = 9
 const MAX_TEXT = 1024
@@ -74,14 +75,14 @@ export default function Moments() {
   return (
     <div className="page" id="moments-page">
       <div className="page-header">
-        <button className="back-btn" onClick={() => navigate(-1)}>←</button>
+        <button className="back-btn" onClick={() => navigate(-1)}><ChevronLeft size={20} /></button>
         <h1>{t('moments.title')}</h1>
         <button
           className="btn btn-sm btn-primary"
           onClick={() => setShowComposer(true)}
           style={{ marginLeft: 'auto' }}
         >
-          ➕ {t('moments.post')}
+          <Plus size={16} /> {t('moments.post')}
         </button>
       </div>
       <div className="page-body">
@@ -89,7 +90,7 @@ export default function Moments() {
 
         {!loading && moments.length === 0 && (
           <div className="empty-state">
-            <div className="icon">📷</div>
+            <div className="icon"><Camera size={16} /></div>
             <div>{t('moments.empty')}</div>
           </div>
         )}
@@ -114,7 +115,7 @@ export default function Moments() {
                     onClick={() => deleteMoment(m.id)}
                     style={{ fontSize: 14, color: 'var(--text-muted)' }}
                     title={t('common.delete')}
-                  >✕</button>
+                  ><X size={14} /></button>
                 )}
               </div>
 
@@ -143,17 +144,17 @@ export default function Moments() {
               {/* Visibility badge */}
               {m.visibility && m.visibility !== 'public' && isOwner && (
                 <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>
-                  {m.visibility === 'whitelist' ? '👁 ' + t('moments.whitelist') : '🚫 ' + t('moments.blacklist')}
+                  {m.visibility === 'whitelist' ? '<Eye size={14} /> ' + t('moments.whitelist') : '<EyeOff size={14} /> ' + t('moments.blacklist')}
                 </div>
               )}
 
               {/* Actions */}
               <div className="moment-actions">
                 <button className={liked ? 'liked' : ''} onClick={() => toggleLike(m.id, liked)}>
-                  {liked ? '❤️' : '🤍'} {m.likes?.length || 0}
+                  {liked ? 'heart-filled' : 'heart'} {m.likes?.length || 0}
                 </button>
                 <button onClick={() => setCommentingId(commentingId === m.id ? null : m.id)}>
-                  💬 {m.comments?.length || 0}
+                  <MessageCircle size={16} /> {m.comments?.length || 0}
                 </button>
               </div>
 
@@ -163,7 +164,7 @@ export default function Moments() {
                   display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center',
                   padding: '6px 0', borderBottom: m.comments?.length > 0 ? '1px solid var(--border)' : 'none',
                 }}>
-                  <span style={{ fontSize: 13, marginRight: 4 }}>❤️</span>
+                  <span style={{ fontSize: 13, marginRight: 4 }}><Heart size={14} fill="currentColor" /></span>
                   {m.likes.map((l: any) => (
                     <div key={l.id} title={l.nickname} style={{
                       width: 24, height: 24, borderRadius: 12, overflow: 'hidden',
@@ -372,7 +373,7 @@ function MomentComposer({ t, friends, onBack, onPublished }: {
     return (
       <div className="page">
         <div className="page-header">
-          <button className="back-btn" onClick={() => setShowVisSettings(false)}>←</button>
+          <button className="back-btn" onClick={() => setShowVisSettings(false)}><ChevronLeft size={20} /></button>
           <h1>{t('moments.visibility')}</h1>
         </div>
         <div className="page-body">
@@ -380,9 +381,9 @@ function MomentComposer({ t, friends, onBack, onPublished }: {
           {(['public', 'whitelist', 'blacklist'] as const).map(v => (
             <div key={v} className="settings-item" onClick={() => setVisibility(v)} style={{ cursor: 'pointer' }}>
               <span className="label">
-                {v === 'public' ? '🌍' : v === 'whitelist' ? '👁' : '🚫'} {t(`moments.${v}`)}
+                {v === 'public' ? 'globe' : v === 'whitelist' ? 'eye' : 'eye-off'} {t(`moments.${v}`)}
               </span>
-              {visibility === v && <span style={{ color: 'var(--accent)', fontWeight: 600 }}>✓</span>}
+              {visibility === v && <span style={{ color: 'var(--accent)', fontWeight: 600 }}><Check size={14} /></span>}
             </div>
           ))}
 
@@ -397,7 +398,7 @@ function MomentComposer({ t, friends, onBack, onPublished }: {
               {tags.length > 0 && (
                 <>
                   <div style={{ padding: '8px 16px 4px', fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>
-                    🏷️ {t('contacts.tags')}
+                    <Tag size={16} /> {t('contacts.tags')}
                   </div>
                   {tags.map(tag => {
                     const sel = selectedTags.includes(tag.id)
@@ -411,7 +412,7 @@ function MomentComposer({ t, friends, onBack, onPublished }: {
                           background: sel ? 'var(--accent)' : 'transparent',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           color: '#fff', fontSize: 13, fontWeight: 700,
-                        }}>{sel ? '✓' : ''}</span>
+                        }}>{sel ? <Check size={12} /> : ''}</span>
                       </div>
                     )
                   })}
@@ -420,7 +421,7 @@ function MomentComposer({ t, friends, onBack, onPublished }: {
 
               {/* Friends */}
               <div style={{ padding: '8px 16px 4px', fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>
-                👥 {t('contacts.friends')}
+                <Users size={14} /> {t('contacts.friends')}
               </div>
               {friends.map(f => {
                 const sel = selectedFriends.includes(f.id)
@@ -438,7 +439,7 @@ function MomentComposer({ t, friends, onBack, onPublished }: {
                       background: sel ? 'var(--accent)' : 'transparent',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       color: '#fff', fontSize: 13, fontWeight: 700,
-                    }}>{sel ? '✓' : ''}</span>
+                    }}>{sel ? <Check size={12} /> : ''}</span>
                   </div>
                 )
               })}
@@ -452,7 +453,7 @@ function MomentComposer({ t, friends, onBack, onPublished }: {
   return (
     <div className="page">
       <div className="page-header">
-        <button className="back-btn" onClick={onBack}>←</button>
+        <button className="back-btn" onClick={onBack}><ChevronLeft size={20} /></button>
         <h1>{t('moments.new_post')}</h1>
         <button
           className="btn btn-sm btn-primary"
@@ -494,7 +495,7 @@ function MomentComposer({ t, friends, onBack, onPublished }: {
                     border: 'none', fontSize: 12, cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}
-                >✕</button>
+                ><X size={14} /></button>
               </div>
             ))}
           </div>
@@ -513,7 +514,7 @@ function MomentComposer({ t, friends, onBack, onPublished }: {
                 border: 'none', fontSize: 14, cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
-            >✕</button>
+            ><X size={14} /></button>
             <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
               {Math.floor(videoDuration / 60)}:{String(videoDuration % 60).padStart(2, '0')}
             </div>
@@ -528,7 +529,7 @@ function MomentComposer({ t, friends, onBack, onPublished }: {
               onClick={() => imageInputRef.current?.click()}
               disabled={images.length >= MAX_IMAGES}
             >
-              🖼️ {t('moments.add_images')} ({images.length}/{MAX_IMAGES})
+              <ImageIcon size={16} /> {t('moments.add_images')} ({images.length}/{MAX_IMAGES})
             </button>
           )}
           {(mediaMode !== 'images' || images.length === 0) && !videoUrl && (
@@ -536,7 +537,7 @@ function MomentComposer({ t, friends, onBack, onPublished }: {
               className="btn btn-secondary btn-sm"
               onClick={() => videoInputRef.current?.click()}
             >
-              🎬 {t('moments.add_video')}
+              <Film size={16} /> {t('moments.add_video')}
             </button>
           )}
         </div>
@@ -552,10 +553,10 @@ function MomentComposer({ t, friends, onBack, onPublished }: {
           style={{ cursor: 'pointer', marginTop: 8 }}
         >
           <span className="label">
-            {visibility === 'public' ? '🌍' : visibility === 'whitelist' ? '👁' : '🚫'}
+            {visibility === 'public' ? 'globe' : visibility === 'whitelist' ? 'eye' : 'eye-off'}
             {' '}{t('moments.visibility')}: {t(`moments.${visibility}`)}
           </span>
-          <span className="arrow">›</span>
+          <span className="arrow"><ChevronRight size={14} /></span>
         </div>
 
         {visibility !== 'public' && (selectedFriends.length > 0 || selectedTags.length > 0) && (

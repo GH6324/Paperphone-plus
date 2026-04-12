@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { get, post, put, normalizeFileUrl } from '../api/http'
 import { useStore } from '../store'
 import { useI18n } from '../hooks/useI18n'
+import { Camera, ChevronLeft, ChevronRight, Film, Lock, MessageCircle, Pencil, Phone } from 'lucide-react'
 
 export default function UserProfile() {
   const { id } = useParams<{ id: string }>()
@@ -95,7 +96,7 @@ export default function UserProfile() {
   return (
     <div className="page" id="user-profile-page">
       <div className="page-header">
-        <button className="back-btn" onClick={() => navigate(-1)}>←</button>
+        <button className="back-btn" onClick={() => navigate(-1)}><ChevronLeft size={20} /></button>
         <h1>{displayName}</h1>
       </div>
       <div className="page-body">
@@ -126,17 +127,17 @@ export default function UserProfile() {
           </div>
           <div style={{ display: 'flex', gap: 12, width: '100%', maxWidth: 280 }}>
             <button className="btn btn-primary btn-full" onClick={() => navigate(`/chat/${id}`)}>
-              💬 {t('chat.send')}
+              <MessageCircle size={16} /> {t('chat.send')}
             </button>
             <button className="btn btn-secondary btn-full" onClick={() => navigate(`/chat/${id}`)}>
-              📞 {t('call.voice')}
+              <Phone size={16} /> {t('call.voice')}
             </button>
           </div>
         </div>
 
         {/* Remark */}
         <div className="section-title" style={{ padding: '16px 16px 6px' }}>
-          ✏️ {t('friend.remark')}
+          <Pencil size={14} /> {t('friend.remark')}
         </div>
         {editingRemark ? (
           <div style={{ display: 'flex', gap: 8, padding: '0 16px 12px' }}>
@@ -161,13 +162,13 @@ export default function UserProfile() {
             <span className="label" style={{ color: remark ? 'var(--text-primary)' : 'var(--text-muted)' }}>
               {remark || t('friend.no_remark')}
             </span>
-            <span className="arrow">›</span>
+            <span className="arrow"><ChevronRight size={14} /></span>
           </div>
         )}
 
         {/* Privacy settings */}
         <div className="section-title" style={{ padding: '16px 16px 6px' }}>
-          🔒 {t('friend.privacy')}
+          <Lock size={14} /> {t('friend.privacy')}
         </div>
 
         <div className="settings-item" onClick={() => handleTogglePrivacy('hide_their', !hideTheir)} style={{ cursor: 'pointer' }}>
@@ -204,7 +205,7 @@ export default function UserProfile() {
 
         {/* Latest moments */}
         <div className="section-title" style={{ padding: '16px 16px 6px' }}>
-          📷 {t('friend.latest_moments')}
+          <Camera size={16} /> {t('friend.latest_moments')}
         </div>
 
         {moments.length === 0 ? (
@@ -244,7 +245,7 @@ export default function UserProfile() {
               {/* Video indicator */}
               {m.videos?.length > 0 && (
                 <div style={{ fontSize: 12, color: 'var(--accent)', marginBottom: 4 }}>
-                  🎬 {t('friend.has_video')}
+                  <Film size={16} /> {t('friend.has_video')}
                 </div>
               )}
 

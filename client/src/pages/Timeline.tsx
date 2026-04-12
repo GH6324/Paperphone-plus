@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { get, post, del, uploadFile as httpUploadFile, normalizeFileUrl } from '../api/http'
 import { useStore } from '../store'
 import { useI18n } from '../hooks/useI18n'
+import { ChevronLeft, ChevronRight, Film, Heart, ImageIcon, MessageCircle, Pencil, Trash2, VenetianMask, X, Play, FileText, User } from 'lucide-react'
 
 const MAX_IMAGES = 50
 const MAX_TEXT = 2048
@@ -38,10 +39,10 @@ export default function Timeline() {
   return (
     <div className="page" id="timeline-page">
       <div className="page-header">
-        <button className="back-btn" onClick={() => navigate(-1)}>←</button>
+        <button className="back-btn" onClick={() => navigate(-1)}><ChevronLeft size={20} /></button>
         <h1>{t('timeline.title')}</h1>
         <button className="btn btn-sm btn-primary" onClick={() => setShowComposer(true)} style={{ marginLeft: 'auto' }}>
-          ✏️ {t('timeline.post')}
+          <Pencil size={14} /> {t('timeline.post')}
         </button>
       </div>
       <div className="page-body" style={{ padding: '4px 4px 80px' }}>
@@ -49,7 +50,7 @@ export default function Timeline() {
 
         {!loading && posts.length === 0 && (
           <div className="empty-state">
-            <div className="icon">📝</div>
+            <div className="icon"><FileText size={40} strokeWidth={1.5} /></div>
             <div>{t('timeline.empty')}</div>
           </div>
         )}
@@ -116,11 +117,11 @@ export default function Timeline() {
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                       <div className="avatar" style={{ width: 16, height: 16, fontSize: 9 }}>
-                        {p.is_anonymous ? '🎭' : (p.user?.avatar ? <img src={p.user.avatar} alt="" /> : p.user?.nickname?.[0])}
+                        {p.is_anonymous ? <VenetianMask size={18} /> : (p.user?.avatar ? <img src={p.user.avatar} alt="" /> : p.user?.nickname?.[0])}
                       </div>
                       <span>{p.is_anonymous ? t('timeline.anonymous') : p.user?.nickname}</span>
                     </div>
-                    <span>❤️ {p.like_count || 0}</span>
+                    <span><Heart size={14} fill="currentColor" /> {p.like_count || 0}</span>
                   </div>
                 </div>
               </div>
@@ -181,10 +182,10 @@ function PostDetail({ t, postId, user, onBack }: {
   return (
     <div className="page">
       <div className="page-header">
-        <button className="back-btn" onClick={onBack}>←</button>
+        <button className="back-btn" onClick={onBack}><ChevronLeft size={20} /></button>
         <h1>{t('timeline.detail')}</h1>
         {isOwner && (
-          <button className="icon-btn" onClick={deletePost} style={{ marginLeft: 'auto', color: 'var(--danger)' }}>🗑</button>
+          <button className="icon-btn" onClick={deletePost} style={{ marginLeft: 'auto', color: 'var(--danger)' }}><Trash2 size={18} /></button>
         )}
       </div>
       <div className="page-body" style={{ paddingBottom: 80 }}>
@@ -204,14 +205,14 @@ function PostDetail({ t, postId, user, onBack }: {
                       position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
                       width: 32, height: 32, borderRadius: 16, background: 'rgba(0,0,0,0.5)',
                       color: '#fff', border: 'none', fontSize: 16, cursor: 'pointer',
-                    }}>‹</button>
+                    }}><ChevronLeft size={20} /></button>
                   )}
                   {imgIdx < images.length - 1 && (
                     <button onClick={() => setImgIdx(i => i + 1)} style={{
                       position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
                       width: 32, height: 32, borderRadius: 16, background: 'rgba(0,0,0,0.5)',
                       color: '#fff', border: 'none', fontSize: 16, cursor: 'pointer',
-                    }}>›</button>
+                    }}><ChevronRight size={14} /></button>
                   )}
                   <div style={{
                     position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)',
@@ -258,7 +259,7 @@ function PostDetail({ t, postId, user, onBack }: {
         <div style={{ padding: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
             <div className="avatar avatar-sm">
-              {p.is_anonymous ? '🎭' : (p.user?.avatar ? <img src={p.user.avatar} alt="" /> : p.user?.nickname?.[0]?.toUpperCase())}
+              {p.is_anonymous ? <VenetianMask size={18} /> : (p.user?.avatar ? <img src={p.user.avatar} alt="" /> : p.user?.nickname?.[0]?.toUpperCase())}
             </div>
             <div>
               <div style={{ fontWeight: 600, fontSize: 14 }}>
@@ -280,13 +281,13 @@ function PostDetail({ t, postId, user, onBack }: {
               className={`btn btn-sm ${liked ? 'btn-primary' : 'btn-secondary'}`}
               onClick={toggleLike}
             >
-              {liked ? '❤️' : '🤍'} {p.likes?.length || 0}
+              {liked ? 'heart-filled' : 'heart'} {p.likes?.length || 0}
             </button>
             <span style={{
               display: 'flex', alignItems: 'center', gap: 4,
               fontSize: 13, color: 'var(--text-muted)',
             }}>
-              💬 {p.comments?.length || 0} {t('timeline.comments')}
+              <MessageCircle size={16} /> {p.comments?.length || 0} {t('timeline.comments')}
             </span>
           </div>
         </div>
@@ -297,7 +298,7 @@ function PostDetail({ t, postId, user, onBack }: {
             display: 'flex', flexWrap: 'wrap', gap: 4, padding: '0 16px 12px',
             alignItems: 'center',
           }}>
-            <span style={{ fontSize: 12, color: 'var(--text-muted)', marginRight: 4 }}>❤️</span>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)', marginRight: 4 }}><Heart size={14} fill="currentColor" /></span>
             {p.likes.map((l: any) => (
               <div key={l.id} title={l.nickname} style={{
                 width: 22, height: 22, borderRadius: 11, overflow: 'hidden',
@@ -314,7 +315,7 @@ function PostDetail({ t, postId, user, onBack }: {
         {/* Comments */}
         <div style={{ padding: '0 16px' }}>
           <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
-            💬 {t('timeline.comments')} ({p.comments?.length || 0})
+            <MessageCircle size={16} /> {t('timeline.comments')} ({p.comments?.length || 0})
           </div>
           {(p.comments || []).map((c: any) => (
             <div key={c.id} style={{
@@ -322,7 +323,7 @@ function PostDetail({ t, postId, user, onBack }: {
               display: 'flex', gap: 8,
             }}>
               <div className="avatar" style={{ width: 28, height: 28, fontSize: 12, flexShrink: 0 }}>
-                {c.is_anonymous ? '🎭' : c.nickname?.[0]?.toUpperCase()}
+                {c.is_anonymous ? <VenetianMask size={18} /> : c.nickname?.[0]?.toUpperCase()}
               </div>
               <div>
                 <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2 }}>
@@ -353,7 +354,7 @@ function PostDetail({ t, postId, user, onBack }: {
             fontSize: 16, cursor: 'pointer', flexShrink: 0,
           }}
           title={t('timeline.anonymous')}
-        >{isAnon ? '🎭' : '👤'}</button>
+        >{isAnon ? <VenetianMask size={18} /> : <User size={18} />}</button>
         <input
           className="input"
           placeholder={t('timeline.write_comment')}
@@ -474,7 +475,7 @@ function PostComposer({ t, onBack, onPublished }: {
   return (
     <div className="page">
       <div className="page-header">
-        <button className="back-btn" onClick={onBack}>←</button>
+        <button className="back-btn" onClick={onBack}><ChevronLeft size={20} /></button>
         <h1>{t('timeline.new_post')}</h1>
         <button
           className="btn btn-sm btn-primary"
@@ -498,7 +499,7 @@ function PostComposer({ t, onBack, onPublished }: {
               background: isAnon ? '#ff9800' : 'var(--border)',
               fontSize: 18, cursor: 'pointer',
             }}
-          >{isAnon ? '🎭' : '👤'}</button>
+          >{isAnon ? <VenetianMask size={18} /> : <User size={18} />}</button>
           <div>
             <div style={{ fontSize: 13, fontWeight: 600 }}>
               {isAnon ? t('timeline.posting_anonymous') : t('timeline.posting_public')}
@@ -539,7 +540,7 @@ function PostComposer({ t, onBack, onPublished }: {
                     border: 'none', fontSize: 11, cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}
-                >✕</button>
+                ><X size={14} /></button>
               </div>
             ))}
           </div>
@@ -557,7 +558,7 @@ function PostComposer({ t, onBack, onPublished }: {
                 background: 'rgba(0,0,0,0.6)', color: '#fff',
                 border: 'none', fontSize: 14, cursor: 'pointer',
               }}
-            >✕</button>
+            ><X size={14} /></button>
           </div>
         )}
 
@@ -565,12 +566,12 @@ function PostComposer({ t, onBack, onPublished }: {
         <div style={{ display: 'flex', gap: 12 }}>
           {mediaMode !== 'video' && (
             <button className="btn btn-secondary btn-sm" onClick={() => imageInputRef.current?.click()} disabled={images.length >= MAX_IMAGES}>
-              🖼️ {t('timeline.add_images')} ({images.length}/{MAX_IMAGES})
+              <ImageIcon size={16} /> {t('timeline.add_images')} ({images.length}/{MAX_IMAGES})
             </button>
           )}
           {(mediaMode !== 'images' || images.length === 0) && !videoUrl && (
             <button className="btn btn-secondary btn-sm" onClick={() => videoInputRef.current?.click()}>
-              🎬 {t('timeline.add_video')}
+              <Film size={16} /> {t('timeline.add_video')}
             </button>
           )}
         </div>

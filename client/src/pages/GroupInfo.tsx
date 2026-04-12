@@ -5,6 +5,7 @@ import { uploadFileWithProgress } from '../api/http'
 import { useI18n } from '../hooks/useI18n'
 import { useStore } from '../store'
 import { QRCodeCanvas } from '../components/QRCode'
+import { BellOff, Camera, ChevronLeft, ChevronRight, ChevronDown, Megaphone, MessageCircle, Pencil, Settings, Smartphone, Users } from 'lucide-react'
 
 const INVITE_EXPIRY_OPTIONS = [
   { days: 7, key: 'group.qr_expire_1w' },
@@ -182,7 +183,7 @@ export default function GroupInfo() {
       <input ref={avatarRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarChange} />
 
       <div className="page-header">
-        <button className="back-btn" onClick={() => navigate(-1)}>←</button>
+        <button className="back-btn" onClick={() => navigate(-1)}><ChevronLeft size={20} /></button>
         <h1>{t('group.info')}</h1>
       </div>
 
@@ -200,14 +201,14 @@ export default function GroupInfo() {
             }}
             onClick={() => isOwner && avatarRef.current?.click()}
           >
-            {group.avatar ? <img src={group.avatar} alt="" /> : '👥'}
+            {group.avatar ? <img src={group.avatar} alt="" /> : <Users size={20} />}
             {isOwner && (
               <div style={{
                 position: 'absolute', bottom: -2, right: -2,
                 width: 24, height: 24, borderRadius: 12,
                 background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 border: '2px solid var(--bg-primary)', fontSize: 12,
-              }}>📷</div>
+              }}><Camera size={16} /></div>
             )}
           </div>
 
@@ -217,7 +218,7 @@ export default function GroupInfo() {
             {isOwner && (
               <button onClick={() => { setEditVal(group.name); setEditing('name') }}
                 style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 16, opacity: 0.5, padding: 4 }}
-                title={t('group.edit_name')}>✏️</button>
+                title={t('group.edit_name')}><Pencil size={14} /></button>
             )}
           </div>
 
@@ -231,7 +232,7 @@ export default function GroupInfo() {
           margin: '0 16px 12px', padding: 14, borderRadius: 12,
           background: 'var(--bg-card)', display: 'flex', alignItems: 'flex-start', gap: 10,
         }}>
-          <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>📢</span>
+          <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}><Megaphone size={18} /></span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4 }}>{t('group.notice')}</div>
             <div style={{ fontSize: 14, color: 'var(--text-primary)', wordBreak: 'break-word' }}>
@@ -240,18 +241,18 @@ export default function GroupInfo() {
           </div>
           {isOwner && (
             <button onClick={() => { setEditVal(group.notice || ''); setEditing('notice') }}
-              style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 14, opacity: 0.5, padding: 4, flexShrink: 0 }}>✏️</button>
+              style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 14, opacity: 0.5, padding: 4, flexShrink: 0 }}><Pencil size={14} /></button>
           )}
         </div>
 
         {/* ── Settings section ── */}
         <div style={{ margin: '0 16px 8px' }}>
-          <div className="section-title" style={{ padding: '8px 0' }}>⚙️ {t('group.settings')}</div>
+          <div className="section-title" style={{ padding: '8px 0' }}><Settings size={18} /> {t('group.settings')}</div>
 
           {/* Mute toggle */}
           <div className="list-item" onClick={toggleMute} style={{ cursor: 'pointer', borderRadius: 12, marginBottom: 6 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
-              <span style={{ fontSize: 20 }}>🔕</span>
+              <span style={{ fontSize: 20 }}><BellOff size={18} /></span>
               <div>
                 <div style={{ fontSize: 14, fontWeight: 500 }}>{t('group.mute')}</div>
                 <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('group.mute_desc')}</div>
@@ -277,10 +278,10 @@ export default function GroupInfo() {
           <div className="list-item" onClick={() => navigate(`/chat/${id}?group=1`)}
             style={{ cursor: 'pointer', borderRadius: 12, marginBottom: 6 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 20 }}>💬</span>
+              <span style={{ fontSize: 20 }}><MessageCircle size={18} /></span>
               <div style={{ fontSize: 14, fontWeight: 500 }}>{t('group.send_message')}</div>
             </div>
-            <span style={{ opacity: 0.4, fontSize: 14 }}>›</span>
+            <span style={{ opacity: 0.4, fontSize: 14 }}><ChevronRight size={14} /></span>
           </div>
           {/* Group QR Code */}
           <div className="list-item" onClick={async () => {
@@ -298,10 +299,10 @@ export default function GroupInfo() {
             }}
             style={{ cursor: 'pointer', borderRadius: 12, marginBottom: 6 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 20 }}>📱</span>
+              <span style={{ fontSize: 20 }}><Smartphone size={18} /></span>
               <div style={{ fontSize: 14, fontWeight: 500 }}>{t('group.qr_code')}</div>
             </div>
-            <span style={{ opacity: 0.4, fontSize: 14 }}>{inviteLoading ? '...' : showQR ? '▼' : '›'}</span>
+            <span style={{ opacity: 0.4, fontSize: 14 }}>{inviteLoading ? '...' : showQR ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</span>
           </div>
 
           {/* Inline invite QR panel */}
@@ -374,7 +375,7 @@ export default function GroupInfo() {
                 </div>
                 <div className="preview" style={{ fontSize: 12 }}>@{m.username}</div>
               </div>
-              <span style={{ opacity: 0.4, fontSize: 14 }}>›</span>
+              <span style={{ opacity: 0.4, fontSize: 14 }}><ChevronRight size={14} /></span>
             </div>
           ))}
         </div>

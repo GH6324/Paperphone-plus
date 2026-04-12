@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, ReactNode } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useStore } from '../store'
 import { useI18n } from '../hooks/useI18n'
@@ -6,6 +6,7 @@ import { get, post, put, uploadFileWithProgress, normalizeFileUrl } from '../api
 import { sendWs, onWs } from '../api/socket'
 import { getKeys } from '../crypto/keystore'
 import { encryptHybrid, decryptHybrid } from '../crypto/ratchet'
+import { ChevronLeft, Lock, Settings, Timer, ImageIcon, Film, Plus, Mic, Download, Paperclip, AlertTriangle, Clock, Package as PackageIcon, FileText, File as FileIcon, Image as LucideImage, Music, Video, Check } from 'lucide-react'
 
 // Auto-delete options (seconds)
 const AUTO_DELETE_OPTIONS = [
@@ -20,8 +21,8 @@ const AUTO_DELETE_OPTIONS = [
 const EMOJI_CATEGORIES = [
   { icon: '😊', label: 'Smileys', emojis: ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','😉','😊','😇','🥰','😍','🤩','😘','😗','☺️','😚','😙','🥲','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🫡','🤫','🤔','🫠','🤐','🤨','😐','😑','😶','🫥','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🥴','😵','🤯','🥶','🥵','😱','😨','😰','😥','😢','😭','😤','😠','😡','🤬','😈','👿','💀','☠️','💩','🤡','👹','👺','👻','👽','👾','🤖'] },
   { icon: '👋', label: 'Gestures', emojis: ['👋','🤚','🖐️','✋','🖖','🫱','🫲','🫳','🫴','👌','🤌','🤏','✌️','🤞','🫰','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','🫵','👍','👎','✊','👊','🤛','🤜','👏','🙌','🫶','👐','🤲','🤝','🙏','💪','🦵','🦶','👂','🦻','👃','🧠','🦷','🦴','👀','👁️','👅','👄'] },
-  { icon: '❤️', label: 'Hearts', emojis: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❤️‍🔥','❤️‍🩹','❣️','💕','💞','💓','💗','💖','💘','💝','💟','♥️','🫀','💋','💌','💐','🌹','🥀','🌷','🌸','🌺','🌻','🌼','💎','✨','🌟','⭐','🔥','💫','⚡','☀️','🌈'] },
-  { icon: '🎉', label: 'Celebrate', emojis: ['🎉','🎊','🎈','🎁','🎀','🎗️','🏆','🏅','🥇','🥈','🥉','⚽','🏀','🏈','⚾','🎾','🏐','🏉','🎱','🏓','🏸','🥊','🎿','🏂','🏋️','🤸','⛹️','🤾','🚴','🏊','🤽','🧗','🏄','🎮','🎯','🎲','🎰','🎵','🎶','🎤','🎸','🎹','🎺','🎻','🥁','📸','🎬','🎨'] },
+  { icon: 'heart-filled', label: 'Hearts', emojis: ['heart-filled','🧡','💛','💚','💙','💜','🖤','heart','🤎','💔','❤️‍🔥','❤️‍🩹','❣️','💕','💞','💓','💗','💖','💘','💝','💟','♥️','🫀','💋','💌','💐','🌹','🥀','🌷','🌸','🌺','🌻','🌼','💎','✨','🌟','⭐','🔥','💫','⚡','☀️','🌈'] },
+  { icon: '🎉', label: 'Celebrate', emojis: ['🎉','🎊','🎈','🎁','🎀','🎗️','🏆','🏅','🥇','🥈','🥉','⚽','🏀','🏈','⚾','🎾','🏐','🏉','🎱','🏓','🏸','🥊','🎿','🏂','🏋️','🤸','⛹️','🤾','🚴','🏊','🤽','🧗','🏄','🎮','🎯','🎲','🎰','🎵','🎶','🎤','🎸','🎹','🎺','🎻','🥁','camera','🎬','🎨'] },
   { icon: '🐱', label: 'Animals', emojis: ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐻‍❄️','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🙈','🙉','🙊','🐒','🐔','🐧','🐦','🐤','🦄','🐴','🫏','🐝','🪱','🐛','🦋','🐌','🐞','🐜','🪲','🪳','🐢','🐍','🦎','🐙','🦑','🦐','🦞','🦀','🐡','🐠','🐟','🐬','🐳','🐋','🦈','🐊'] },
   { icon: '🍔', label: 'Food', emojis: ['🍏','🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🍆','🥑','🥦','🥬','🥒','🌶️','🫑','🌽','🥕','🫒','🧄','🧅','🥔','🍠','🥐','🍞','🥖','🥨','🧀','🥚','🍳','🧈','🥞','🧇','🥓','🥩','🍗','🍖','🌭','🍔','🍟','🍕','🌮','🌯','🫔','🥙','🧆','🥗','🍝','🍜','🍲','🍛','🍣','🍱','🥟','🍤','🍙','🍚','🍘','🍥','🥮','🍢','🧁','🎂','🍰','🍩','🍪','🍫','🍬','🍭','🍮','🍯','🍼','🥤','☕','🍵','🧃','🍶','🍺','🍷','🥂','🍹'] },
   { icon: '🚀', label: 'Travel', emojis: ['🚗','🚕','🚙','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🛻','🚚','🚛','🚜','🏍️','🛵','🚲','🛴','🛹','🛼','🚁','🛸','🚀','✈️','🛩️','🛰️','🚢','⛵','🛥️','🚤','⛴️','🏠','🏡','🏢','🏬','🏭','🏗️','🗼','🗽','⛪','🕌','🕍','⛩️','🕋','⛲','⛺','🌁','🌃','🌆','🌇','🌉','🌌','🎠','🎡','🎢','🏖️','🏝️','🏰','🗻','🌋'] },
@@ -412,7 +413,7 @@ export default function Chat() {
   // ── Render message bubble content ──
   const renderBubble = (msg: any, displayText: string, isEncFailed: boolean) => {
     if (isEncFailed) {
-      return <span style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>🔒 {t('chat.decrypt_failed')}</span>
+      return <span style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}><Lock size={16} /> {t('chat.decrypt_failed')}</span>
     }
     if (msg.msg_type === 'image') {
       return <img className="msg-image" src={normalizeFileUrl(displayText)} alt="" style={{ maxWidth: 240, borderRadius: 8, cursor: 'pointer' }} />
@@ -423,7 +424,7 @@ export default function Chat() {
     if (msg.msg_type === 'voice') {
       return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 20 }}>🎙️</span>
+          <span style={{ fontSize: 20 }}><Mic size={20} /></span>
           <audio src={normalizeFileUrl(displayText)} controls style={{ height: 32, maxWidth: 200 }} />
         </div>
       )
@@ -450,11 +451,11 @@ export default function Chat() {
               </div>
               {meta.fileSize && <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{formatFileSize(meta.fileSize)}</div>}
             </div>
-            <span style={{ fontSize: 18, color: 'var(--accent)' }}>⬇️</span>
+            <span style={{ fontSize: 18, color: 'var(--accent)' }}><Download size={18} /></span>
           </a>
         )
       }
-      return <a href={normalizeFileUrl(displayText)} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)' }}>📎 {t('chat.file')}</a>
+      return <a href={normalizeFileUrl(displayText)} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: 4 }}><Paperclip size={14} /> {t('chat.file')}</a>
     }
     return displayText
   }
@@ -465,20 +466,20 @@ export default function Chat() {
     return (
       <div className="page" id="chat-page">
         <div className="page-header">
-          <button className="back-btn" onClick={() => setShowSettings(false)}>←</button>
+          <button className="back-btn" onClick={() => setShowSettings(false)}><ChevronLeft size={20} /></button>
           <h1>{t('chat.settings')}</h1>
         </div>
         <div className="page-body">
           {!isGroup && (
             <div style={{ padding: 16, display: 'flex', alignItems: 'center', gap: 12, background: 'var(--bg-card)', margin: '8px 16px', borderRadius: 12 }}>
-              <span style={{ fontSize: 24 }}>🔒</span>
+              <span style={{ fontSize: 24 }}><Lock size={16} /></span>
               <div>
                 <div style={{ fontWeight: 600, fontSize: 14 }}>{t('chat.e2e_enabled')}</div>
                 <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('chat.e2e_desc')}</div>
               </div>
             </div>
           )}
-          <div className="section-title" style={{ padding: '16px 16px 8px' }}>⏱️ {t('auto_delete.title')}</div>
+          <div className="section-title" style={{ padding: '16px 16px 8px' }}><Timer size={14} /> {t('auto_delete.title')}</div>
           <div style={{ padding: '0 16px 8px', fontSize: 12, color: 'var(--text-muted)' }}>
             {isGroup ? t('auto_delete.group_desc') : t('auto_delete.private_desc')}
           </div>
@@ -492,7 +493,7 @@ export default function Chat() {
                 onClick={() => canEdit && handleAutoDelete(opt.value)}
                 style={{ cursor: canEdit ? 'pointer' : 'default', opacity: canEdit ? 1 : 0.5, background: selected ? 'var(--bg-card)' : undefined }}>
                 <span className="label">{t(opt.key)}</span>
-                {selected && <span style={{ color: 'var(--accent)', fontWeight: 600 }}>✓</span>}
+                {selected && <span style={{ color: 'var(--accent)', fontWeight: 600 }}><Check size={16} /></span>}
               </div>
             )
           })}
@@ -525,7 +526,7 @@ export default function Chat() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               animation: 'pulse-ring 1.5s infinite',
             }}>
-              <span style={{ fontSize: 28 }}>🎙️</span>
+              <span style={{ fontSize: 28 }}><Mic size={28} /></span>
             </div>
             <div style={{ fontSize: 22, fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)' }}>
               {Math.floor(recordDuration / 60).toString().padStart(2, '0')}:{(recordDuration % 60).toString().padStart(2, '0')}
@@ -545,18 +546,18 @@ export default function Chat() {
       <input ref={fileInputRef} type="file" style={{ display: 'none' }} onChange={handleFileUpload} />
 
       <div className="page-header">
-        <button className="back-btn" onClick={() => navigate(-1)}>←</button>
+        <button className="back-btn" onClick={() => navigate(-1)}><ChevronLeft size={20} /></button>
         <h1 style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
           onClick={() => isGroup ? navigate(`/group/${id}`) : navigate(`/user/${id}`)}>
           {chatName}
-          {!isGroup && <span style={{ fontSize: 14, opacity: 0.7 }} title={t('chat.e2e_enabled')}>🔒</span>}
+          {!isGroup && <span style={{ fontSize: 14, opacity: 0.7 }} title={t('chat.e2e_enabled')}><Lock size={16} /></span>}
         </h1>
-        <button className="icon-btn" onClick={() => setShowSettings(true)} style={{ marginLeft: 'auto', fontSize: 18 }} title={t('chat.settings')}>⚙️</button>
+        <button className="icon-btn" onClick={() => setShowSettings(true)} style={{ marginLeft: 'auto', fontSize: 18 }} title={t('chat.settings')}><Settings size={18} /></button>
       </div>
 
       {currentAutoDelete > 0 && (
         <div style={{ textAlign: 'center', padding: '4px 12px', fontSize: 11, color: 'var(--text-muted)', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}>
-          ⏱️ {t('auto_delete.active_indicator')} {autoDeleteLabel(currentAutoDelete)}
+          <Timer size={14} /> {t('auto_delete.active_indicator')} {autoDeleteLabel(currentAutoDelete)}
         </div>
       )}
 
@@ -567,7 +568,7 @@ export default function Chat() {
           color: '#b8860b', background: 'rgba(255, 193, 7, 0.1)',
           borderBottom: '1px solid rgba(255, 193, 7, 0.15)',
         }}>
-          <span style={{ fontSize: 14, flexShrink: 0 }}>⚠️</span>
+          <span style={{ fontSize: 14, flexShrink: 0 }}><AlertTriangle size={14} /></span>
           <span>{t('chat.group_unencrypted_warning')}</span>
         </div>
       )}
@@ -618,7 +619,7 @@ export default function Chat() {
             {emojiTab === 'emoji' ? (
               <>
                 <div style={{ display: 'flex', gap: 2, padding: '6px 8px', overflowX: 'auto', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-                  <button onClick={() => setEmojiCat(-1)} style={{ width: 32, height: 32, border: 'none', borderRadius: 8, background: emojiCat === -1 ? 'var(--accent)' : 'transparent', cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>🕐</button>
+                  <button onClick={() => setEmojiCat(-1)} style={{ width: 32, height: 32, border: 'none', borderRadius: 8, background: emojiCat === -1 ? 'var(--accent)' : 'transparent', cursor: 'pointer', fontSize: 16, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: emojiCat === -1 ? '#fff' : 'var(--text-secondary)' }}><Clock size={16} /></button>
                   {EMOJI_CATEGORIES.map((cat, i) => (
                     <button key={i} onClick={() => setEmojiCat(i)} style={{ width: 32, height: 32, border: 'none', borderRadius: 8, background: emojiCat === i ? 'var(--accent)' : 'transparent', cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>{cat.icon}</button>
                   ))}
@@ -657,7 +658,7 @@ export default function Chat() {
                   {loadingStickers ? (
                     <div style={{ width: '100%', textAlign: 'center', color: 'var(--text-muted)', padding: 32, fontSize: 13 }}>{t('common.loading')}</div>
                   ) : !stickerPacks[currentPack] ? (
-                    <div style={{ width: '100%', textAlign: 'center', color: 'var(--text-muted)', padding: 32 }}>📭 {t('chat.no_stickers')}</div>
+                    <div style={{ width: '100%', textAlign: 'center', color: 'var(--text-muted)', padding: 32 }}>{t('chat.no_stickers')}</div>
                   ) : (() => {
                     const packName = stickerPacks[currentPack]?.name
                     const stickers = stickerCache[packName] || []
@@ -711,7 +712,7 @@ export default function Chat() {
               <button onClick={() => { setShowAttachPanel(false); videoInputRef.current?.click() }}
                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, border: 'none', background: 'none', cursor: 'pointer', padding: 8 }}>
                 <div style={{ width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(135deg, #667eea, #764ba2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontSize: 24 }}>🎬</span>
+                  <span style={{ fontSize: 24 }}><Film size={16} /></span>
                 </div>
                 <span style={{ fontSize: 12, color: 'var(--text-primary)' }}>{t('chat.attach_video')}</span>
               </button>
@@ -755,26 +756,26 @@ export default function Chat() {
         {/* Image quick button */}
         <button className="icon-btn" title={t('chat.attach_image')}
           onClick={() => imageInputRef.current?.click()}
-          style={{ fontSize: 18 }}>🖼️</button>
+          style={{ fontSize: 18 }}><ImageIcon size={16} /></button>
         {/* More attachments */}
         <button className="icon-btn" title={t('chat.attach_more')}
           onClick={() => { setShowAttachPanel(!showAttachPanel); setShowEmojiPanel(false) }}
-          style={{ fontSize: 18, color: showAttachPanel ? 'var(--accent)' : undefined }}>➕</button>
+          style={{ fontSize: 18, color: showAttachPanel ? 'var(--accent)' : undefined }}><Plus size={16} /></button>
         <button className="send-btn" id="send-btn" onClick={() => sendMessage()} disabled={sending}>➤</button>
       </div>
     </div>
   )
 }
 
-function getFileIcon(fileType: string): string {
-  if (fileType.startsWith('image/')) return '🖼️'
-  if (fileType.startsWith('video/')) return '🎬'
-  if (fileType.startsWith('audio/')) return '🎵'
-  if (fileType.includes('pdf')) return '📕'
-  if (fileType.includes('word') || fileType.includes('document')) return '📘'
-  if (fileType.includes('sheet') || fileType.includes('excel')) return '📗'
-  if (fileType.includes('presentation') || fileType.includes('powerpoint')) return '📙'
-  if (fileType.includes('zip') || fileType.includes('rar') || fileType.includes('7z') || fileType.includes('tar')) return '📦'
-  if (fileType.includes('text')) return '📝'
-  return '📄'
+function getFileIcon(fileType: string): ReactNode {
+  if (fileType.startsWith('image/')) return <LucideImage size={22} />
+  if (fileType.startsWith('video/')) return <Video size={22} />
+  if (fileType.startsWith('audio/')) return <Music size={22} />
+  if (fileType.includes('pdf')) return <FileText size={22} />
+  if (fileType.includes('word') || fileType.includes('document')) return <FileText size={22} />
+  if (fileType.includes('sheet') || fileType.includes('excel')) return <FileText size={22} />
+  if (fileType.includes('presentation') || fileType.includes('powerpoint')) return <FileText size={22} />
+  if (fileType.includes('zip') || fileType.includes('rar') || fileType.includes('7z') || fileType.includes('tar')) return <PackageIcon size={22} />
+  if (fileType.includes('text')) return <FileText size={22} />
+  return <FileIcon size={22} />
 }

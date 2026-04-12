@@ -12,6 +12,7 @@
     "crystals-kyber-js": "^2.7.0",
     "jsqr": "^1.4.0",
     "libsodium-wrappers-sumo": "^0.7.15",
+    "lucide-react": "^1.8.0",
     "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -80,6 +80,7 @@ export const en: Record<string, string> = {
 
   'group.create': 'Create Group',
   'group.name': 'Group Name',
+  'group.name_hint': 'Enter group name',
   'group.members': 'Members',
   'group.notice': 'Notice',
   'group.invite': 'Invite Link',

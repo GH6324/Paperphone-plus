@@ -8,6 +8,7 @@ import { get, post, put, del, uploadFile } from '../api/http'
 import { allLangs, langNames, LangCode } from '../i18n'
 import { QRCodeCanvas } from '../components/QRCode'
 import { isPushSupported, isPushSubscribed, subscribePush, unsubscribePush } from '../api/push'
+import { Camera, ChevronLeft, ChevronRight, Smartphone, Check, Copy, KeyRound, Shield, Fingerprint, Moon, Globe, Bell, Download as DownloadIcon, Monitor, CheckCircle } from 'lucide-react'
 
 type SubView = null | 'password' | 'avatar' | '2fa' | 'sessions' | 'language' | 'fingerprint' | 'myqr'
 
@@ -89,28 +90,28 @@ export default function Profile() {
         {/* Account */}
         <div className="section-title">{t('profile.account')}</div>
         <div className="settings-item" onClick={() => setSubView('avatar')}>
-          <span className="label">📷 {t('avatar.title')}</span>
-          <span className="arrow">›</span>
+          <span className="label"><Camera size={16} /> {t('avatar.title')}</span>
+          <span className="arrow"><ChevronRight size={14} /></span>
         </div>
         <div className="settings-item" onClick={() => setSubView('myqr')}>
-          <span className="label">📱 {t('profile.my_qr')}</span>
-          <span className="arrow">›</span>
+          <span className="label"><Smartphone size={16} /> {t('profile.my_qr')}</span>
+          <span className="arrow"><ChevronRight size={14} /></span>
         </div>
         <div className="settings-item" onClick={() => setSubView('password')}>
-          <span className="label">🔑 {t('profile.change_password')}</span>
-          <span className="arrow">›</span>
+          <span className="label"><KeyRound size={16} /> {t('profile.change_password')}</span>
+          <span className="arrow"><ChevronRight size={14} /></span>
         </div>
         <div className="settings-item" onClick={() => setSubView('2fa')}>
-          <span className="label">🛡️ {t('profile.two_factor')}</span>
-          <span className="arrow">›</span>
+          <span className="label"><Shield size={16} /> {t('profile.two_factor')}</span>
+          <span className="arrow"><ChevronRight size={14} /></span>
         </div>
         <div className="settings-item" onClick={() => setSubView('sessions')}>
-          <span className="label">📱 {t('profile.sessions')}</span>
-          <span className="arrow">›</span>
+          <span className="label"><Smartphone size={16} /> {t('profile.sessions')}</span>
+          <span className="arrow"><ChevronRight size={14} /></span>
         </div>
         <div className="settings-item" onClick={() => setSubView('fingerprint')}>
-          <span className="label">🔏 {t('fingerprint.title')}</span>
-          <span className="arrow">›</span>
+          <span className="label"><Fingerprint size={16} /> {t('fingerprint.title')}</span>
+          <span className="arrow"><ChevronRight size={14} /></span>
         </div>
 
         <div className="divider" />
@@ -118,18 +119,18 @@ export default function Profile() {
         {/* Appearance */}
         <div className="section-title">{t('profile.appearance')}</div>
         <div className="settings-item" onClick={toggleTheme}>
-          <span className="label">🌙 {t('profile.theme')}</span>
+          <span className="label"><Moon size={16} /> {t('profile.theme')}</span>
           <div className={`toggle ${theme === 'dark' ? 'active' : ''}`} />
         </div>
         <div className="settings-item" onClick={() => setSubView('language')}>
-          <span className="label">🌐 {t('profile.language')}</span>
+          <span className="label"><Globe size={16} /> {t('profile.language')}</span>
           <span className="value">{langNames[lang]}</span>
         </div>
 
         {/* Push notifications */}
         {pushSupported && (
           <div className="settings-item" onClick={togglePush} style={{ opacity: pushLoading ? 0.5 : 1 }}>
-            <span className="label">🔔 {t('profile.notifications')}</span>
+            <span className="label"><Bell size={16} /> {t('profile.notifications')}</span>
             <div className={`toggle ${pushEnabled ? 'active' : ''}`} />
           </div>
         )}
@@ -144,7 +145,7 @@ export default function Profile() {
               border: '1px solid rgba(99,102,241,0.2)',
             }}>
               <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 8 }}>
-                📲 {t('pwa.install_title')}
+                <DownloadIcon size={16} /> {t('pwa.install_title')}
               </div>
               <div style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>
                 {t('pwa.install_step1')}<br />
@@ -198,11 +199,11 @@ function ChangePassword({ onBack, t }: { onBack: () => void; t: (k: string) => s
     return (
       <div className="page">
         <div className="page-header">
-          <button className="back-btn" onClick={onBack}>←</button>
+          <button className="back-btn" onClick={onBack}><ChevronLeft size={20} /></button>
           <h1>{t('profile.change_password')}</h1>
         </div>
         <div className="page-body" style={{ padding: 32, textAlign: 'center' }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>✅</div>
+          <div style={{ fontSize: 48, marginBottom: 16, color: 'var(--accent)' }}><CheckCircle size={48} /></div>
           <div style={{ fontSize: 16, fontWeight: 600 }}>{t('password.changed')}</div>
           <button className="btn btn-primary" style={{ marginTop: 24 }} onClick={onBack}>{t('common.ok')}</button>
         </div>
@@ -213,7 +214,7 @@ function ChangePassword({ onBack, t }: { onBack: () => void; t: (k: string) => s
   return (
     <div className="page">
       <div className="page-header">
-        <button className="back-btn" onClick={onBack}>←</button>
+        <button className="back-btn" onClick={onBack}><ChevronLeft size={20} /></button>
         <h1>{t('profile.change_password')}</h1>
       </div>
       <div className="page-body">
@@ -261,7 +262,7 @@ function ChangeAvatar({ onBack, t, user, setAuth }: { onBack: () => void; t: (k:
   return (
     <div className="page">
       <div className="page-header">
-        <button className="back-btn" onClick={onBack}>←</button>
+        <button className="back-btn" onClick={onBack}><ChevronLeft size={20} /></button>
         <h1>{t('avatar.title')}</h1>
       </div>
       <div className="page-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 32, gap: 20 }}>
@@ -346,7 +347,7 @@ function TwoFactorAuth({ onBack, t }: { onBack: () => void; t: (k: string) => st
   return (
     <div className="page">
       <div className="page-header">
-        <button className="back-btn" onClick={onBack}>←</button>
+        <button className="back-btn" onClick={onBack}><ChevronLeft size={20} /></button>
         <h1>{t('profile.two_factor')}</h1>
       </div>
       <div className="page-body" style={{ padding: 16 }}>
@@ -354,7 +355,7 @@ function TwoFactorAuth({ onBack, t }: { onBack: () => void; t: (k: string) => st
 
         {step === 'off' && (
           <div style={{ textAlign: 'center', padding: '32px 0' }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>🛡️</div>
+            <div style={{ fontSize: 48, marginBottom: 16, color: 'var(--accent)' }}><Shield size={48} /></div>
             <div style={{ marginBottom: 8, fontWeight: 600 }}>{t('totp.title')}</div>
             <div style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>{t('totp.description')}</div>
             <button className="btn btn-primary" onClick={handleSetup} disabled={loading}>
@@ -399,7 +400,7 @@ function TwoFactorAuth({ onBack, t }: { onBack: () => void; t: (k: string) => st
 
         {step === 'on' && (
           <div style={{ textAlign: 'center', padding: '32px 0' }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>✅</div>
+            <div style={{ fontSize: 48, marginBottom: 16, color: 'var(--accent)' }}><CheckCircle size={48} /></div>
             <div style={{ fontWeight: 600, marginBottom: 8 }}>{t('totp.enabled')}</div>
             <div style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>{t('totp.enabled_desc')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 300, margin: '0 auto' }}>
@@ -457,7 +458,7 @@ function Sessions({ onBack, t }: { onBack: () => void; t: (k: string) => string 
   return (
     <div className="page">
       <div className="page-header">
-        <button className="back-btn" onClick={onBack}>←</button>
+        <button className="back-btn" onClick={onBack}><ChevronLeft size={20} /></button>
         <h1>{t('profile.sessions')}</h1>
       </div>
       <div className="page-body">
@@ -469,14 +470,14 @@ function Sessions({ onBack, t }: { onBack: () => void; t: (k: string) => string 
             <div className="section-title">{t('sessions.current')}</div>
             <div className="list-item" style={{ background: 'var(--bg-card)', borderRadius: 12, padding: 12 }}>
               <div style={{ fontSize: 28, marginRight: 12 }}>
-                {s.device_type === 'mobile' ? '📱' : '💻'}
+                {s.device_type === 'mobile' ? <Smartphone size={18} /> : <Monitor size={18} />}
               </div>
               <div className="list-content">
                 <div className="name">{s.browser || s.device_name || t('sessions.unknown')}</div>
                 <div className="preview">{s.os} · {s.ip_address || ''}</div>
                 <div className="preview" style={{ fontSize: 11 }}>{t('sessions.active')}: {formatTime(s.last_active)}</div>
               </div>
-              <span style={{ color: 'var(--accent)', fontWeight: 600, fontSize: 12 }}>✓ {t('sessions.this_device')}</span>
+              <span style={{ color: 'var(--accent)', fontWeight: 600, fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}><Check size={12} /> {t('sessions.this_device')}</span>
             </div>
           </div>
         ))}
@@ -491,7 +492,7 @@ function Sessions({ onBack, t }: { onBack: () => void; t: (k: string) => string 
             {otherSessions.map(s => (
               <div key={s.id} className="list-item" style={{ borderBottom: '1px solid var(--border)' }}>
                 <div style={{ fontSize: 24, marginRight: 12 }}>
-                  {s.device_type === 'mobile' ? '📱' : '💻'}
+                  {s.device_type === 'mobile' ? <Smartphone size={18} /> : <Monitor size={18} />}
                 </div>
                 <div className="list-content">
                   <div className="name">{s.browser || s.device_name || t('sessions.unknown')}</div>
@@ -539,7 +540,7 @@ function LanguagePicker({ onBack, t, lang, setLang }: { onBack: () => void; t: (
   return (
     <div className="page">
       <div className="page-header">
-        <button className="back-btn" onClick={onBack}>←</button>
+        <button className="back-btn" onClick={onBack}><ChevronLeft size={20} /></button>
         <h1>{t('profile.language')}</h1>
       </div>
       <div className="page-body">
@@ -566,7 +567,7 @@ function LanguagePicker({ onBack, t, lang, setLang }: { onBack: () => void; t: (
                 </div>
               </div>
               {isSelected && (
-                <span style={{ color: 'var(--accent)', fontWeight: 600, fontSize: 18 }}>✓</span>
+                <span style={{ color: 'var(--accent)', fontWeight: 600, fontSize: 18 }}><Check size={18} /></span>
               )}
             </div>
           )
@@ -636,12 +637,12 @@ function KeyFingerprint({ onBack, t, user }: { onBack: () => void; t: (k: string
   return (
     <div className="page">
       <div className="page-header">
-        <button className="back-btn" onClick={onBack}>←</button>
+        <button className="back-btn" onClick={onBack}><ChevronLeft size={20} /></button>
         <h1>{t('fingerprint.title')}</h1>
       </div>
       <div className="page-body" style={{ padding: 16 }}>
         <div style={{ textAlign: 'center', padding: '24px 0' }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>🔏</div>
+          <div style={{ fontSize: 48, marginBottom: 16, color: 'var(--accent)' }}><Fingerprint size={48} /></div>
           <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 8 }}>
             {t('fingerprint.identity_key')}
           </div>
@@ -680,7 +681,7 @@ function KeyFingerprint({ onBack, t, user }: { onBack: () => void; t: (k: string
         {/* Copy button */}
         <div style={{ textAlign: 'center', marginTop: 24 }}>
           <button className="btn btn-primary" onClick={handleCopy} style={{ minWidth: 180 }}>
-            {copied ? `✓ ${t('fingerprint.copied')}` : `📋 ${t('fingerprint.copy')}`}
+            {copied ? <><Check size={14} /> {t('fingerprint.copied')}</> : <><Copy size={14} /> {t('fingerprint.copy')}</>}
           </button>
         </div>
 
@@ -713,7 +714,7 @@ function MyQRCode({ onBack, t, user }: { onBack: () => void; t: (k: string) => s
   return (
     <div className="page">
       <div className="page-header">
-        <button className="back-btn" onClick={onBack}>←</button>
+        <button className="back-btn" onClick={onBack}><ChevronLeft size={20} /></button>
         <h1>{t('profile.my_qr')}</h1>
       </div>
       <div className="page-body" style={{

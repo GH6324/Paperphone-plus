@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { post, put } from '../api/http'
 import { useStore } from '../store'
 import { useI18n } from '../hooks/useI18n'
+import { ShieldCheck, Lock, Shield, Link, Atom } from 'lucide-react'
 import { allLangs, langNames, LangCode } from '../i18n'
 import { generateKeyPair, generateSignKeyPair, signMessage, initSodium } from '../crypto/ratchet'
 import { setKeys, getKeys, loadFromIndexedDB } from '../crypto/keystore'
@@ -153,7 +154,7 @@ export default function Login() {
     return (
       <div className="login-page">
         <div className="login-card">
-          <div className="login-logo">🔐</div>
+          <div className="login-logo"><ShieldCheck size={36} /></div>
           <h1 className="login-title">{t('auth.totp_required')}</h1>
           <form className="login-form" onSubmit={handle2fa}>
             <div className="input-group">
@@ -186,19 +187,19 @@ export default function Login() {
         {/* Security Features */}
         <div className="security-badges">
           <div className="security-badge">
-            <span className="security-icon">🔒</span>
+            <span className="security-icon"><Lock size={16} /></span>
             <span className="security-text">{t('security.local_keys')}</span>
           </div>
           <div className="security-badge">
-            <span className="security-icon">🛡️</span>
+            <span className="security-icon"><Shield size={16} /></span>
             <span className="security-text">{t('security.e2e')}</span>
           </div>
           <div className="security-badge">
-            <span className="security-icon">🔗</span>
+            <span className="security-icon"><Link size={16} /></span>
             <span className="security-text">{t('security.forward')}</span>
           </div>
           <div className="security-badge">
-            <span className="security-icon">⚛️</span>
+            <span className="security-icon"><Atom size={16} /></span>
             <span className="security-text">{t('security.quantum')}</span>
           </div>
         </div>

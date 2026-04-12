@@ -86,6 +86,7 @@ export const zh: Record<string, string> = {
   // Groups
   'group.create': '创建群组',
   'group.name': '群组名称',
+  'group.name_hint': '请输入群组名称',
   'group.members': '群成员',
   'group.notice': '群公告',
   'group.invite': '邀请链接',

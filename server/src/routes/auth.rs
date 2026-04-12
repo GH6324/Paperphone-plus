@@ -44,6 +44,7 @@ struct TwoFaResponse {
 }
 
 #[derive(Serialize)]
+#[allow(dead_code)]
 struct UserInfo {
     id: String,
     username: String,

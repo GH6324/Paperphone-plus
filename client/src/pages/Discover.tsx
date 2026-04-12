@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useI18n } from '../hooks/useI18n'
 import { post } from '../api/http'
 import { QRScanner } from '../components/QRCode'
+import { Camera, Newspaper, ScanLine, ChevronRight } from 'lucide-react'
 
 export default function Discover() {
   const { t } = useI18n()
@@ -11,9 +12,9 @@ export default function Discover() {
   const [scanResult, setScanResult] = useState('')
 
   const items = [
-    { icon: '📸', label: t('discover.moments'), path: '/moments' },
-    { icon: '📰', label: t('discover.timeline'), path: '/timeline' },
-    { icon: '📷', label: t('discover.scan'), action: 'scan' },
+    { icon: <Camera size={22} />, label: t('discover.moments'), path: '/moments' },
+    { icon: <Newspaper size={22} />, label: t('discover.timeline'), path: '/timeline' },
+    { icon: <ScanLine size={22} />, label: t('discover.scan'), action: 'scan' },
   ]
 
   const handleScan = async (data: string) => {
@@ -69,7 +70,7 @@ export default function Discover() {
               <span style={{ fontSize: 24 }}>{item.icon}</span>
               <span className="label">{item.label}</span>
             </div>
-            <span className="arrow">›</span>
+            <span className="arrow"><ChevronRight size={16} /></span>
           </div>
         ))}
 

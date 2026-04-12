@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { get, post, del } from '../api/http'
-import { useStore, Friend } from '../store'
-import { onWs } from '../api/socket'
+import { get, post, del, put } from '../api/http'
+import { useStore, Friend, Group } from '../store'
 import { useI18n } from '../hooks/useI18n'
+import { onWs } from '../api/socket'
+import { ChevronLeft, Plus, Tag, Users, X, Pencil, Check, UserPlus } from 'lucide-react'
 
 type Tab = 'friends' | 'groups' | 'requests' | 'tags'
 
@@ -32,6 +33,11 @@ export default function Contacts() {
 
   const [requestMsg, setRequestMsg] = useState('')
   const [sentIds, setSentIds] = useState<Set<string>>(new Set())
+
+  // Create group state
+  const [showCreateGroup, setShowCreateGroup] = useState(false)
+  const [newGroupName, setNewGroupName] = useState('')
+  const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set())
 
   // Tags state
   const [tags, setTags] = useState<Tag[]>([])
@@ -133,6 +139,24 @@ export default function Contacts() {
     }
   }
 
+  const createGroup = async () => {
+    if (!newGroupName.trim()) return
+    try {
+      const res = await post<{ id: string }>('/api/groups', {
+        name: newGroupName.trim(),
+        member_ids: Array.from(selectedMembers),
+      })
+      setShowCreateGroup(false)
+      setNewGroupName('')
+      setSelectedMembers(new Set())
+      // Refresh groups and navigate to new group
+      get('/api/groups').then(setGroups).catch(() => {})
+      navigate(`/chat/${res.id}?group=1`)
+    } catch (err: any) {
+      alert(err.message || t('common.error'))
+    }
+  }
+
   const createTag = async () => {
     if (!newTagName.trim()) return
     try {
@@ -186,7 +210,7 @@ export default function Contacts() {
     return (
       <div className="page" id="contacts-page">
         <div className="page-header">
-          <button className="back-btn" onClick={() => setEditingTag(null)}>←</button>
+          <button className="back-btn" onClick={() => setEditingTag(null)}><ChevronLeft size={20} /></button>
           <h1 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ width: 12, height: 12, borderRadius: 6, background: editingTag.color, display: 'inline-block' }} />
             {editingTag.name}
@@ -216,7 +240,7 @@ export default function Contacts() {
                   color: '#fff', fontSize: 14, fontWeight: 700,
                   transition: 'all 0.15s ease',
                 }}>
-                  {assigned ? '✓' : ''}
+                  {assigned ? <Check size={14} /> : ''}
                 </span>
               </div>
             )
@@ -236,7 +260,7 @@ export default function Contacts() {
     return (
       <div className="page" id="contacts-page">
         <div className="page-header">
-          <button className="back-btn" onClick={() => setFilterTag(null)}>←</button>
+          <button className="back-btn" onClick={() => setFilterTag(null)}><ChevronLeft size={20} /></button>
           <h1 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ width: 12, height: 12, borderRadius: 6, background: filterTag.color, display: 'inline-block' }} />
             {filterTag.name}
@@ -268,7 +292,7 @@ export default function Contacts() {
           ))}
           {filtered.length === 0 && (
             <div className="empty-state">
-              <div className="icon">🏷️</div>
+              <div className="icon"><Tag size={16} /></div>
               <div>{t('tags.no_friends_in_tag')}</div>
             </div>
           )}
@@ -295,7 +319,7 @@ export default function Contacts() {
       <div className="page-header">
         <h1>{t('contacts.title')}</h1>
         <button className="btn btn-sm btn-secondary" onClick={() => setShowAdd(!showAdd)} style={{ marginLeft: 'auto' }}>
-          {showAdd ? '✕' : '➕'}
+          {showAdd ? <X size={16} /> : <UserPlus size={16} />}
         </button>
       </div>
 
@@ -375,7 +399,7 @@ export default function Contacts() {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '8px 16px', borderBottom: '1px solid var(--border)',
               }}>
-                <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>🏷️ {t('tags.group_by_tag')}</span>
+                <span style={{ fontSize: 13, color: 'var(--text-muted)' }}><Tag size={16} /> {t('tags.group_by_tag')}</span>
                 <div
                   className={`toggle ${groupByTag ? 'active' : ''}`}
                   onClick={() => setGroupByTag(!groupByTag)}
@@ -462,7 +486,7 @@ export default function Contacts() {
             )}
 
             {friends.length === 0 && (
-              <div className="empty-state"><div className="icon">👥</div><div>{t('contacts.empty')}</div></div>
+              <div className="empty-state"><div className="icon"><Users size={18} /></div><div>{t('contacts.empty')}</div></div>
             )}
           </>
         )}
@@ -471,19 +495,90 @@ export default function Contacts() {
         {tab === 'groups' && (
           <>
             <div style={{ padding: 16 }}>
-              <button className="btn btn-primary btn-full" onClick={() => {/* TODO: Create group modal */}}>
+              <button className="btn btn-primary btn-full" onClick={() => setShowCreateGroup(true)}>
                 {t('group.create')}
               </button>
             </div>
             {groups.map(g => (
               <div key={g.id} className="list-item" onClick={() => navigate(`/chat/${g.id}?group=1`)}>
-                <div className="avatar">{g.avatar ? <img src={g.avatar} alt="" /> : '👥'}</div>
+                <div className="avatar">{g.avatar ? <img src={g.avatar} alt="" /> : <Users size={20} />}</div>
                 <div className="list-content">
                   <div className="name">{g.name}</div>
                 </div>
               </div>
             ))}
           </>
+        )}
+
+        {/* ── Create Group Modal ──────────────────────── */}
+        {showCreateGroup && (
+          <div className="modal-overlay" onClick={() => setShowCreateGroup(false)}>
+            <div className="modal" onClick={e => e.stopPropagation()}>
+              <h2 style={{ fontSize: 17, fontWeight: 600, marginBottom: 16 }}>{t('group.create')}</h2>
+              <div className="input-group" style={{ marginBottom: 16 }}>
+                <label>{t('group.name')}</label>
+                <input
+                  className="input"
+                  id="create-group-name"
+                  placeholder={t('group.name_hint')}
+                  value={newGroupName}
+                  onChange={e => setNewGroupName(e.target.value)}
+                  maxLength={64}
+                  autoFocus
+                />
+              </div>
+              {friends.length > 0 && (
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>
+                    {t('group.add_members')} ({selectedMembers.size})
+                  </label>
+                  <div style={{ maxHeight: 200, overflowY: 'auto' }}>
+                    {friends.map(f => (
+                      <div
+                        key={f.id}
+                        className="list-item"
+                        style={{ padding: '8px 0' }}
+                        onClick={() => {
+                          setSelectedMembers(prev => {
+                            const next = new Set(prev)
+                            next.has(f.id) ? next.delete(f.id) : next.add(f.id)
+                            return next
+                          })
+                        }}
+                      >
+                        <div style={{
+                          width: 22, height: 22, borderRadius: 6,
+                          border: selectedMembers.has(f.id) ? 'none' : '2px solid var(--border)',
+                          background: selectedMembers.has(f.id) ? 'var(--accent)' : 'transparent',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: 'white', fontSize: 14, flexShrink: 0,
+                        }}>
+                          {selectedMembers.has(f.id) && <Check size={12} />}
+                        </div>
+                        <div className="avatar avatar-sm">{f.avatar ? <img src={f.avatar} alt="" /> : f.nickname?.[0]}</div>
+                        <div className="list-content">
+                          <div className="name" style={{ fontSize: 14 }}>{f.nickname}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button className="btn btn-secondary btn-full" onClick={() => setShowCreateGroup(false)}>
+                  {t('common.cancel')}
+                </button>
+                <button
+                  className="btn btn-primary btn-full"
+                  onClick={createGroup}
+                  disabled={!newGroupName.trim()}
+                  style={{ opacity: newGroupName.trim() ? 1 : 0.5 }}
+                >
+                  {t('common.confirm')}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* ── Requests Tab ───────────────────────────── */}
@@ -526,7 +621,7 @@ export default function Contacts() {
                 </div>
               ) : (
                 <button className="btn btn-primary btn-full" onClick={() => setShowTagCreate(true)}>
-                  ➕ {t('tags.create')}
+                  <Plus size={14} /> {t('tags.create')}
                 </button>
               )}
             </div>
@@ -550,14 +645,14 @@ export default function Contacts() {
                       onClick={e => { e.stopPropagation(); setEditingTag(tag) }}
                       style={{ padding: '2px 8px', fontSize: 12 }}
                     >
-                      ✎
+                      <Pencil size={12} />
                     </button>
                     <button
                       className="btn btn-sm btn-danger"
                       onClick={e => { e.stopPropagation(); deleteTag(tag.id) }}
                       style={{ padding: '2px 8px', fontSize: 12 }}
                     >
-                      ✕
+                      <X size={12} />
                     </button>
                   </div>
                 </div>
@@ -566,7 +661,7 @@ export default function Contacts() {
 
             {tags.length === 0 && !showTagCreate && (
               <div className="empty-state">
-                <div className="icon">🏷️</div>
+                <div className="icon"><Tag size={16} /></div>
                 <div>{t('tags.empty')}</div>
               </div>
             )}
