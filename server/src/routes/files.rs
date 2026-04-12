@@ -5,7 +5,7 @@ use crate::AppState;
 
 pub fn router() -> Router<Arc<AppState>> {
     Router::new()
-        .route("/*path", get(proxy_file))
+        .route("/{*path}", get(proxy_file))
 }
 
 async fn proxy_file(
