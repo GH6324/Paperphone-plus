@@ -14,6 +14,8 @@ import GroupInfo from './pages/GroupInfo'
 import Moments from './pages/Moments'
 import Timeline from './pages/Timeline'
 import TabBar from './components/TabBar'
+import { CallProvider } from './contexts/CallContext'
+import CallOverlay from './components/CallOverlay'
 import { subscribePush, isPushSubscribed } from './api/push'
 import { post } from './api/http'
 
@@ -21,11 +23,9 @@ function ProtectedLayout() {
   useSocket()
 
   // Auto-subscribe to push notifications when authenticated
-  // Only auto-subscribe if permission already granted (to avoid browser blocking).
-  // First-time permission prompt is triggered via Profile settings (user interaction).
   useEffect(() => {
-    (async () => {
-      // Web Push (VAPID)
+    // ── Web Push (VAPID) ──
+    ;(async () => {
       try {
         if ('Notification' in window && Notification.permission === 'granted') {
           const alreadySub = await isPushSubscribed()
@@ -37,29 +37,65 @@ function ProtectedLayout() {
       } catch (e) {
         console.warn('[Push] Web Push subscription failed:', e)
       }
+    })()
 
-      // OneSignal registration
+    // ── OneSignal registration (Median.co native wrapper) ──
+    // The Median.co WebView bridge injects window.median asynchronously,
+    // so we poll for it with a retry mechanism.
+    let attempt = 0
+    const maxAttempts = 20 // ~10 seconds
+    const tryRegisterMedian = () => {
+      const w = window as any
+      if (w.median?.onesignal?.onesignalInfo) {
+        console.log('[OneSignal] Median.co bridge detected, requesting player info...')
+        w.median.onesignal.onesignalInfo((info: any) => {
+          console.log('[OneSignal] Got info:', JSON.stringify(info))
+          if (info?.oneSignalUserId) {
+            console.log('[OneSignal] Registering player_id:', info.oneSignalUserId)
+            post('/api/push/onesignal', {
+              player_id: info.oneSignalUserId,
+              platform: info.platform || 'android',
+            }).then(() => {
+              console.log('[OneSignal] ✅ Player ID registered on server')
+            }).catch((e: any) => {
+              console.error('[OneSignal] Failed to register player_id:', e)
+            })
+          } else {
+            console.warn('[OneSignal] No oneSignalUserId in info')
+          }
+        })
+      } else if (w.gonative?.onesignal?.onesignalInfo) {
+        // Legacy GoNative bridge (older Median.co versions)
+        console.log('[OneSignal] GoNative bridge detected')
+        w.gonative.onesignal.onesignalInfo((info: any) => {
+          if (info?.oneSignalUserId) {
+            post('/api/push/onesignal', {
+              player_id: info.oneSignalUserId,
+              platform: info.platform || 'android',
+            }).catch(() => {})
+          }
+        })
+      } else {
+        attempt++
+        if (attempt < maxAttempts) {
+          setTimeout(tryRegisterMedian, 500)
+        }
+      }
+    }
+    tryRegisterMedian()
+
+    // ── OneSignal Web SDK (if loaded globally) ──
+    ;(async () => {
       try {
         const w = window as any
-        // Median.co native app wrapper
-        if (w.median?.onesignal?.onesignalInfo) {
-          w.median.onesignal.onesignalInfo((info: any) => {
-            if (info?.oneSignalUserId) {
-              post('/api/push/onesignal', {
-                player_id: info.oneSignalUserId,
-                platform: info.platform || 'unknown',
-              }).catch(() => {})
-            }
-          })
-        }
-        // OneSignal Web SDK
         if (w.OneSignal) {
           const playerId = await w.OneSignal.getUserId?.()
           if (playerId) {
-            post('/api/push/onesignal', {
+            console.log('[OneSignal] Web SDK player_id:', playerId)
+            await post('/api/push/onesignal', {
               player_id: playerId,
               platform: 'web',
-            }).catch(() => {})
+            })
           }
         }
       } catch {}
@@ -67,7 +103,7 @@ function ProtectedLayout() {
   }, [])
 
   return (
-    <>
+    <CallProvider>
       <Routes>
         <Route path="/chats" element={<Chats />} />
         <Route path="/chat/:id" element={<Chat />} />
@@ -81,7 +117,8 @@ function ProtectedLayout() {
         <Route path="*" element={<Navigate to="/chats" replace />} />
       </Routes>
       <TabBar />
-    </>
+      <CallOverlay />
+    </CallProvider>
   )
 }
 

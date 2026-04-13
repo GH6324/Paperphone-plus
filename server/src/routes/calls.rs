@@ -1,12 +1,12 @@
 use std::sync::Arc;
-use axum::{Router, routing::post, extract::State, Json};
+use axum::{Router, routing::get, extract::State, Json};
 
 use crate::AppState;
 use crate::auth::middleware::AuthUser;
 
 pub fn router() -> Router<Arc<AppState>> {
     Router::new()
-        .route("/turn-credentials", post(get_turn_credentials))
+        .route("/turn-credentials", get(get_turn_credentials))
 }
 
 async fn get_turn_credentials(

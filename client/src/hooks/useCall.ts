@@ -9,9 +9,9 @@
  */
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { sendWs, onWs } from '../api/socket'
-import { post } from '../api/http'
+import { get } from '../api/http'
 
-export type CallState = 'idle' | 'outgoing' | 'incoming' | 'connecting' | 'connected'
+export type CallState = 'idle' | 'outgoing' | 'incoming' | 'connecting' | 'connected' | 'error'
 
 interface CallInfo {
   peerId: string
@@ -31,6 +31,7 @@ export function useCall(userId: string | undefined) {
   const [callDuration, setCallDuration] = useState(0)
   const [isMuted, setIsMuted] = useState(false)
   const [isCameraOff, setIsCameraOff] = useState(false)
+  const [callError, setCallError] = useState<string>('')
 
   const pcRef = useRef<RTCPeerConnection | null>(null)
   const localStreamRef = useRef<MediaStream | null>(null)
@@ -39,28 +40,29 @@ export function useCall(userId: string | undefined) {
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null)
   const durationTimer = useRef<ReturnType<typeof setInterval> | null>(null)
   const iceCandidateQueue = useRef<RTCIceCandidateInit[]>([])
-  // Use ref for callState in callbacks to avoid stale closure
   const callStateRef = useRef<CallState>('idle')
   callStateRef.current = callState
 
   // ── Fetch & normalize TURN credentials ──
   const getIceServers = async (): Promise<RTCIceServer[]> => {
     try {
-      const res = await post<{ iceServers: any }>('/api/calls/turn-credentials')
+      const res = await get<{ iceServers: any }>('/api/calls/turn-credentials')
       const raw = res.iceServers
-      // Ensure iceServers is always a proper array
       if (Array.isArray(raw) && raw.length > 0) {
-        // Normalize each entry: ensure "urls" is always present
-        return raw.map((s: any) => ({
+        const servers = raw.map((s: any) => ({
           urls: s.urls || s.url || '',
-          username: s.username,
-          credential: s.credential,
+          ...(s.username ? { username: s.username } : {}),
+          ...(s.credential ? { credential: s.credential } : {}),
         })).filter((s: any) => s.urls)
+        if (servers.length > 0) {
+          console.log('[Call] Using TURN/STUN servers:', servers.length)
+          return servers
+        }
       }
-      console.warn('[Call] Invalid iceServers response, using defaults:', raw)
+      console.warn('[Call] Using default STUN servers')
       return DEFAULT_ICE_SERVERS
     } catch (err) {
-      console.warn('[Call] Failed to fetch TURN credentials:', err)
+      console.warn('[Call] TURN fetch failed, using defaults:', err)
       return DEFAULT_ICE_SERVERS
     }
   }
@@ -68,7 +70,6 @@ export function useCall(userId: string | undefined) {
   // ── Create peer connection ──
   const createPeerConnection = async (peerId: string, isVideo: boolean) => {
     const iceServers = await getIceServers()
-    console.log('[Call] Using ICE servers:', JSON.stringify(iceServers))
 
     const pc = new RTCPeerConnection({ iceServers })
     pcRef.current = pc
@@ -81,13 +82,11 @@ export function useCall(userId: string | undefined) {
       e.streams[0]?.getTracks().forEach(track => {
         remoteStream.addTrack(track)
       })
-      // Attach to video element
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = remoteStream
       }
     }
 
-    // ICE candidates → send via signaling
     pc.onicecandidate = (e) => {
       if (e.candidate) {
         sendWs({
@@ -104,32 +103,47 @@ export function useCall(userId: string | undefined) {
         setCallState('connected')
         startDurationTimer()
       } else if (pc.connectionState === 'failed') {
-        cleanup()
+        setCallError('Connection failed')
+        setCallState('error')
+        // Auto-close after 3 seconds
+        setTimeout(() => cleanup(), 3000)
       }
     }
 
     pc.oniceconnectionstatechange = () => {
       console.log('[Call] ICE state:', pc.iceConnectionState)
-      if (pc.iceConnectionState === 'failed') {
-        cleanup()
-      }
     }
-
-    // Get local media
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: isVideo ? { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } : false,
-    })
-    localStreamRef.current = stream
-    if (localVideoRef.current) {
-      localVideoRef.current.srcObject = stream
-    }
-    stream.getTracks().forEach(track => pc.addTrack(track, stream))
 
     return pc
   }
 
-  // ── Internal cleanup (no signaling) ──
+  // ── Get local media ──
+  const getLocalMedia = async (pc: RTCPeerConnection, isVideo: boolean) => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: isVideo ? { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } : false,
+      })
+      localStreamRef.current = stream
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = stream
+      }
+      stream.getTracks().forEach(track => pc.addTrack(track, stream))
+      return true
+    } catch (err: any) {
+      console.error('[Call] getUserMedia failed:', err)
+      if (err?.name === 'NotAllowedError') {
+        setCallError('Microphone/camera access denied')
+      } else if (err?.name === 'NotFoundError') {
+        setCallError('No microphone/camera found')
+      } else {
+        setCallError('Failed to access media devices')
+      }
+      return false
+    }
+  }
+
+  // ── Internal cleanup ──
   const cleanup = useCallback(() => {
     pcRef.current?.close()
     pcRef.current = null
@@ -150,6 +164,7 @@ export function useCall(userId: string | undefined) {
     setCallDuration(0)
     setIsMuted(false)
     setIsCameraOff(false)
+    setCallError('')
   }, [])
 
   // ── Start outgoing call ──
@@ -159,14 +174,22 @@ export function useCall(userId: string | undefined) {
     setCallState('outgoing')
     setCallInfo({ peerId, isVideo })
     setCallDuration(0)
+    setCallError('')
 
     try {
       const pc = await createPeerConnection(peerId, isVideo)
 
+      const mediaOk = await getLocalMedia(pc, isVideo)
+      if (!mediaOk) {
+        setCallState('error')
+        // Keep error overlay visible for 3 seconds
+        setTimeout(() => cleanup(), 3000)
+        return
+      }
+
       const offer = await pc.createOffer()
       await pc.setLocalDescription(offer)
 
-      // Send single call_offer with SDP
       sendWs({
         type: 'call_offer',
         to: peerId,
@@ -176,7 +199,9 @@ export function useCall(userId: string | undefined) {
       })
     } catch (err) {
       console.error('[Call] startCall failed:', err)
-      cleanup()
+      setCallError('Call failed: ' + (err as Error).message)
+      setCallState('error')
+      setTimeout(() => cleanup(), 3000)
     }
   }, [cleanup])
 
@@ -189,7 +214,14 @@ export function useCall(userId: string | undefined) {
     try {
       const pc = await createPeerConnection(callInfo.peerId, callInfo.isVideo)
 
-      // Set remote description from stored offer
+      const mediaOk = await getLocalMedia(pc, callInfo.isVideo)
+      if (!mediaOk) {
+        sendWs({ type: 'call_reject', to: callInfo.peerId })
+        setCallState('error')
+        setTimeout(() => cleanup(), 3000)
+        return
+      }
+
       if (callInfo.sdp && callInfo.sdp_type) {
         await pc.setRemoteDescription(new RTCSessionDescription({
           type: callInfo.sdp_type,
@@ -197,7 +229,6 @@ export function useCall(userId: string | undefined) {
         }))
       }
 
-      // Process queued ICE candidates
       for (const candidate of iceCandidateQueue.current) {
         await pc.addIceCandidate(new RTCIceCandidate(candidate)).catch(() => {})
       }
@@ -214,7 +245,9 @@ export function useCall(userId: string | undefined) {
       })
     } catch (err) {
       console.error('[Call] acceptCall failed:', err)
-      cleanup()
+      setCallError('Call failed: ' + (err as Error).message)
+      setCallState('error')
+      setTimeout(() => cleanup(), 3000)
     }
   }, [callInfo, cleanup])
 
@@ -280,7 +313,6 @@ export function useCall(userId: string | undefined) {
           type: data.sdp_type || 'answer',
           sdp: data.sdp,
         }))
-        // Process queued ICE candidates
         for (const candidate of iceCandidateQueue.current) {
           await pc.addIceCandidate(new RTCIceCandidate(candidate)).catch(() => {})
         }
@@ -316,7 +348,6 @@ export function useCall(userId: string | undefined) {
     }
   }, [userId, cleanup])
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => { cleanup() }
   }, [cleanup])
@@ -325,6 +356,7 @@ export function useCall(userId: string | undefined) {
     callState,
     callInfo,
     callDuration,
+    callError,
     isMuted,
     isCameraOff,
     localVideoRef,
@@ -336,6 +368,7 @@ export function useCall(userId: string | undefined) {
     hangUp,
     toggleMute,
     toggleCamera,
+    cleanup,
   }
 }
 

@@ -2,12 +2,12 @@ import { useEffect, useRef, useState, useCallback, ReactNode } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useStore } from '../store'
 import { useI18n } from '../hooks/useI18n'
-import { useCall, formatDuration } from '../hooks/useCall'
+import { useCallContext } from '../contexts/CallContext'
 import { get, post, put, uploadFileWithProgress, normalizeFileUrl } from '../api/http'
 import { sendWs, onWs } from '../api/socket'
 import { getKeys } from '../crypto/keystore'
 import { encryptHybrid, decryptHybrid } from '../crypto/ratchet'
-import { ChevronLeft, Lock, Settings, Timer, ImageIcon, Film, Plus, Mic, Download, Paperclip, AlertTriangle, Clock, Package as PackageIcon, FileText, File as FileIcon, Image as LucideImage, Music, Video, Check, CheckCheck, Phone, PhoneOff, PhoneIncoming, MicOff, CameraOff, VideoIcon, SendHorizonal, Smile, WifiOff } from 'lucide-react'
+import { ChevronLeft, Lock, Settings, Timer, ImageIcon, Film, Plus, Mic, Download, Paperclip, AlertTriangle, Clock, Package as PackageIcon, FileText, File as FileIcon, Image as LucideImage, Music, Video, Check, CheckCheck, Phone, VideoIcon, SendHorizonal, Smile, WifiOff } from 'lucide-react'
 
 // Auto-delete options (seconds)
 const AUTO_DELETE_OPTIONS = [
@@ -93,8 +93,8 @@ export default function Chat() {
   const groups = useStore(s => s.groups)
   const wsConnected = useStore(s => s.wsConnected)
 
-  // ── WebRTC Call ──
-  const call = useCall(user?.id)
+  // ── WebRTC Call (global context) ──
+  const call = useCallContext()
 
   const [input, setInput] = useState('')
   const [typing, setTyping] = useState(false)
@@ -550,107 +550,6 @@ export default function Chat() {
 
   return (
     <div className="page" id="chat-page" style={{ position: 'relative' }}>
-      {/* ═══ Call Overlay ═══ */}
-      {call.callState !== 'idle' && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 10000,
-          background: call.callInfo?.isVideo ? '#000' : 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          color: '#fff', animation: 'fade-in .3s ease',
-        }}>
-          {/* Remote video (full screen) */}
-          {call.callInfo?.isVideo && (
-            <video ref={call.remoteVideoRef} autoPlay playsInline
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-          )}
-
-          {/* Local video (PIP) */}
-          {call.callInfo?.isVideo && call.callState === 'connected' && (
-            <video ref={call.localVideoRef} autoPlay playsInline muted
-              style={{
-                position: 'absolute', top: 60, right: 16, width: 120, height: 160,
-                borderRadius: 12, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.3)',
-                zIndex: 10, boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-              }} />
-          )}
-
-          {/* Call info overlay */}
-          <div style={{
-            position: 'relative', zIndex: 5, display: 'flex', flexDirection: 'column',
-            alignItems: 'center', gap: 12,
-          }}>
-            {/* Avatar */}
-            <div style={{
-              width: 96, height: 96, borderRadius: '50%', background: 'rgba(255,255,255,0.15)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 40, fontWeight: 600, border: '3px solid rgba(255,255,255,0.2)',
-              backdropFilter: 'blur(10px)',
-            }}>
-              {friend?.avatar
-                ? <img src={friend.avatar} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-                : (chatName?.[0] || '?')}
-            </div>
-
-            <div style={{ fontSize: 22, fontWeight: 600 }}>{chatName}</div>
-
-            {/* Status text */}
-            <div style={{ fontSize: 14, opacity: 0.8 }}>
-              {call.callState === 'outgoing' && (t('call.outgoing') || 'Calling...')}
-              {call.callState === 'incoming' && (t('call.incoming') || 'Incoming call')}
-              {call.callState === 'connecting' && (t('call.connecting') || 'Connecting...')}
-              {call.callState === 'connected' && formatDuration(call.callDuration)}
-            </div>
-          </div>
-
-          {/* Controls */}
-          <div style={{
-            position: 'absolute', bottom: 60, left: 0, right: 0,
-            display: 'flex', justifyContent: 'center', gap: 24, zIndex: 5,
-          }}>
-            {/* Incoming: Accept / Reject */}
-            {call.callState === 'incoming' && (
-              <>
-                <button onClick={call.rejectCall}
-                  style={{ width: 64, height: 64, borderRadius: '50%', border: 'none', background: '#ef4444', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(239,68,68,0.4)' }}>
-                  <PhoneOff size={28} />
-                </button>
-                <button onClick={call.acceptCall}
-                  style={{ width: 64, height: 64, borderRadius: '50%', border: 'none', background: '#22c55e', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(34,197,94,0.4)' }}>
-                  <PhoneIncoming size={28} />
-                </button>
-              </>
-            )}
-
-            {/* Outgoing: Cancel */}
-            {call.callState === 'outgoing' && (
-              <button onClick={call.cancelCall}
-                style={{ width: 64, height: 64, borderRadius: '50%', border: 'none', background: '#ef4444', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(239,68,68,0.4)' }}>
-                <PhoneOff size={28} />
-              </button>
-            )}
-
-            {/* Connected: Mute / Camera / Hang up */}
-            {(call.callState === 'connected' || call.callState === 'connecting') && (
-              <>
-                <button onClick={call.toggleMute}
-                  style={{ width: 52, height: 52, borderRadius: '50%', border: 'none', background: call.isMuted ? '#ef4444' : 'rgba(255,255,255,0.2)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)' }}>
-                  {call.isMuted ? <MicOff size={22} /> : <Mic size={22} />}
-                </button>
-                {call.callInfo?.isVideo && (
-                  <button onClick={call.toggleCamera}
-                    style={{ width: 52, height: 52, borderRadius: '50%', border: 'none', background: call.isCameraOff ? '#ef4444' : 'rgba(255,255,255,0.2)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)' }}>
-                    {call.isCameraOff ? <CameraOff size={22} /> : <VideoIcon size={22} />}
-                  </button>
-                )}
-                <button onClick={call.hangUp}
-                  style={{ width: 64, height: 64, borderRadius: '50%', border: 'none', background: '#ef4444', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(239,68,68,0.4)' }}>
-                  <PhoneOff size={28} />
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Upload progress overlay */}
       {uploadProgress >= 0 && <UploadOverlay progress={uploadProgress} label={uploadLabel} />}
