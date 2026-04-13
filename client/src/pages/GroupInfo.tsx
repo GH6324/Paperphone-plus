@@ -82,6 +82,8 @@ export default function GroupInfo() {
     try {
       await post(`/api/groups/${id}/mute`, { muted: newVal })
       setMyMuted(newVal)
+      // Refresh groups in store so mute status is picked up by notification handler
+      get('/api/groups').then(g => useStore.getState().setGroups(g)).catch(() => {})
     } catch {}
   }
 

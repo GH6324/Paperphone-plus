@@ -48,6 +48,7 @@ export interface Group {
   owner_id: string
   notice?: string
   auto_delete: number
+  muted?: boolean
   members?: GroupMember[]
 }
 

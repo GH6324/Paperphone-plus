@@ -240,15 +240,15 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppState>) {
             .execute(&state.db).await.ok();
 
             // Send to all group members except sender
-            let members: Vec<(String,)> = sqlx::query_as(
-                "SELECT user_id FROM group_members WHERE group_id = ?"
+            let members: Vec<(String, i8)> = sqlx::query_as(
+                "SELECT user_id, muted FROM group_members WHERE group_id = ?"
             ).bind(group_id).fetch_all(&state.db).await.unwrap_or_default();
 
-            for (member_id,) in &members {
+            for (member_id, muted) in &members {
                 if member_id != &uid {
                     let delivered = state.ws_clients.send_to_user(member_id, envelope.clone());
-                    // Push notification if offline
-                    if !delivered {
+                    // Push notification if offline AND not muted
+                    if !delivered && *muted == 0 {
                         push_offline_message(&state, &uid, member_id).await;
                     }
                 }

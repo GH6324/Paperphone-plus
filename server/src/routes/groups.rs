@@ -81,8 +81,8 @@ async fn list_groups(
     State(state): State<Arc<AppState>>,
     auth: AuthUser,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    let rows: Vec<(String, String, Option<String>, String, Option<String>, i32)> = sqlx::query_as(
-        "SELECT g.id, g.name, g.avatar, g.owner_id, g.notice, g.auto_delete
+    let rows: Vec<(String, String, Option<String>, String, Option<String>, i32, i8)> = sqlx::query_as(
+        "SELECT g.id, g.name, g.avatar, g.owner_id, g.notice, g.auto_delete, gm.muted
          FROM `groups` g JOIN group_members gm ON gm.group_id = g.id
          WHERE gm.user_id = ?"
     )
@@ -90,8 +90,8 @@ async fn list_groups(
     .fetch_all(&state.db).await
     .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
 
-    let groups: Vec<serde_json::Value> = rows.iter().map(|(id, name, avatar, owner_id, notice, auto_del)| {
-        serde_json::json!({ "id": id, "name": name, "avatar": avatar, "owner_id": owner_id, "notice": notice, "auto_delete": auto_del })
+    let groups: Vec<serde_json::Value> = rows.iter().map(|(id, name, avatar, owner_id, notice, auto_del, muted)| {
+        serde_json::json!({ "id": id, "name": name, "avatar": avatar, "owner_id": owner_id, "notice": notice, "auto_delete": auto_del, "muted": *muted == 1 })
     }).collect();
 
     Ok(Json(serde_json::json!(groups)))

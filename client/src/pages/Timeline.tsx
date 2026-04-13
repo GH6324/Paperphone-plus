@@ -77,19 +77,29 @@ export default function Timeline() {
                 {/* Cover image/video thumbnail */}
                 {cover && (
                   <div style={{ position: 'relative' }}>
-                    <img
-                      src={normalizeFileUrl(isVideo ? (cover.thumbnail || cover.url) : cover.url)}
-                      alt=""
-                      loading="lazy"
-                      style={{ width: '100%', display: 'block' }}
-                    />
+                    {isVideo && !cover.thumbnail ? (
+                      <video
+                        src={normalizeFileUrl(cover.url)}
+                        muted
+                        preload="metadata"
+                        style={{ width: '100%', display: 'block' }}
+                      />
+                    ) : (
+                      <img
+                        src={normalizeFileUrl(isVideo ? (cover.thumbnail || cover.url) : cover.url)}
+                        alt=""
+                        loading="lazy"
+                        style={{ width: '100%', display: 'block' }}
+                      />
+                    )}
                     {isVideo && (
                       <div style={{
                         position: 'absolute', bottom: 6, right: 6,
                         background: 'rgba(0,0,0,0.6)', color: '#fff',
                         padding: '2px 6px', borderRadius: 4, fontSize: 11,
+                        display: 'flex', alignItems: 'center', gap: 3,
                       }}>
-                        ▶ {Math.floor((cover.duration || 0) / 60)}:{String((cover.duration || 0) % 60).padStart(2, '0')}
+                        <Play size={10} fill="#fff" /> {Math.floor((cover.duration || 0) / 60)}:{String((cover.duration || 0) % 60).padStart(2, '0')}
                       </div>
                     )}
                     {p.media?.length > 1 && !isVideo && (
@@ -251,6 +261,8 @@ function PostDetail({ t, postId, user, onBack }: {
             src={normalizeFileUrl(video.url)}
             poster={video.thumbnail ? normalizeFileUrl(video.thumbnail) : undefined}
             controls
+            playsInline
+            preload="metadata"
             style={{ width: '100%', maxHeight: '60vh', background: '#000' }}
           />
         )}
@@ -281,7 +293,7 @@ function PostDetail({ t, postId, user, onBack }: {
               className={`btn btn-sm ${liked ? 'btn-primary' : 'btn-secondary'}`}
               onClick={toggleLike}
             >
-              {liked ? 'heart-filled' : 'heart'} {p.likes?.length || 0}
+              <Heart size={16} fill={liked ? 'currentColor' : 'none'} /> {p.likes?.length || 0}
             </button>
             <span style={{
               display: 'flex', alignItems: 'center', gap: 4,

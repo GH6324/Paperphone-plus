@@ -26,11 +26,17 @@ export function useSocket() {
         if (!isFromMe && !isOnChat) {
           useStore.getState().incrementUnread(chatId)
 
+          // Check if this group is muted
+          const groups = useStore.getState().groups
+          const group = data.group_id ? groups.find(g => g.id === data.group_id) : null
+          const isMuted = !!group?.muted
+
+          // Skip notifications for muted groups
+          if (isMuted) return
+
           // Resolve sender info
           const friends = useStore.getState().friends
-          const groups = useStore.getState().groups
           const friend = friends.find(f => f.id === data.from)
-          const group = data.group_id ? groups.find(g => g.id === data.group_id) : null
           const senderName = data.from_nickname || friend?.nickname || friend?.username || data.from || '?'
           const chatName = group ? group.name : senderName
           const avatar = friend?.avatar || group?.avatar

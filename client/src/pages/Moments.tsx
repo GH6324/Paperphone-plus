@@ -144,14 +144,14 @@ export default function Moments() {
               {/* Visibility badge */}
               {m.visibility && m.visibility !== 'public' && isOwner && (
                 <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>
-                  {m.visibility === 'whitelist' ? '<Eye size={14} /> ' + t('moments.whitelist') : '<EyeOff size={14} /> ' + t('moments.blacklist')}
+                  {m.visibility === 'whitelist' ? <><Eye size={14} /> {t('moments.whitelist')}</> : <><EyeOff size={14} /> {t('moments.blacklist')}</>}
                 </div>
               )}
 
               {/* Actions */}
               <div className="moment-actions">
                 <button className={liked ? 'liked' : ''} onClick={() => toggleLike(m.id, liked)}>
-                  {liked ? 'heart-filled' : 'heart'} {m.likes?.length || 0}
+                  <Heart size={16} fill={liked ? 'currentColor' : 'none'} /> {m.likes?.length || 0}
                 </button>
                 <button onClick={() => setCommentingId(commentingId === m.id ? null : m.id)}>
                   <MessageCircle size={16} /> {m.comments?.length || 0}
@@ -381,7 +381,7 @@ function MomentComposer({ t, friends, onBack, onPublished }: {
           {(['public', 'whitelist', 'blacklist'] as const).map(v => (
             <div key={v} className="settings-item" onClick={() => setVisibility(v)} style={{ cursor: 'pointer' }}>
               <span className="label">
-                {v === 'public' ? 'globe' : v === 'whitelist' ? 'eye' : 'eye-off'} {t(`moments.${v}`)}
+                {v === 'public' ? <Globe size={16} /> : v === 'whitelist' ? <Eye size={16} /> : <EyeOff size={16} />} {t(`moments.${v}`)}
               </span>
               {visibility === v && <span style={{ color: 'var(--accent)', fontWeight: 600 }}><Check size={14} /></span>}
             </div>
@@ -553,7 +553,7 @@ function MomentComposer({ t, friends, onBack, onPublished }: {
           style={{ cursor: 'pointer', marginTop: 8 }}
         >
           <span className="label">
-            {visibility === 'public' ? 'globe' : visibility === 'whitelist' ? 'eye' : 'eye-off'}
+            {visibility === 'public' ? <Globe size={16} /> : visibility === 'whitelist' ? <Eye size={16} /> : <EyeOff size={16} />}
             {' '}{t('moments.visibility')}: {t(`moments.${visibility}`)}
           </span>
           <span className="arrow"><ChevronRight size={14} /></span>
