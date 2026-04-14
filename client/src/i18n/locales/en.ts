@@ -294,14 +294,25 @@ export const en: Record<string, string> = {
   // Profile
   'profile.appearance': 'Appearance',
 
-  // Fingerprint
+  // Fingerprint (self key view)
   'fingerprint.title': 'Key Fingerprint',
   'fingerprint.identity_key': 'Identity Key Fingerprint',
+  'fingerprint.my_key_title': 'My Identity Key',
+  'fingerprint.my_key_subtitle': 'My Identity Key Fingerprint',
+  'fingerprint.my_key_desc': 'This is your identity key fingerprint. To verify end-to-end encryption with a contact, open their profile and check the Safety Number.',
+  'fingerprint.my_key_verify_hint': 'To verify end-to-end encryption, open your contact\'s profile → tap "Verify Encryption" and compare the safety number in person with your contact.',
   'fingerprint.description': 'Compare this fingerprint with your contact in person to verify that your communication is not being intercepted by a third party.',
-  'fingerprint.copy': 'Copy Fingerprint',
+  'fingerprint.copy': 'Copy',
   'fingerprint.copied': 'Copied',
   'fingerprint.how_to_verify': 'How to verify?',
   'fingerprint.verify_steps': 'Meet your contact in person (or use another trusted channel) and compare fingerprints. Both of you should open Settings → Key Fingerprint and check that every line matches. If they are identical, your end-to-end encryption is secure.',
+
+  // Safety Number (combined key verification)
+  'safety.title': 'Encryption',
+  'safety.verify_encryption': 'Verify Encryption',
+  'safety.description': 'If you and your contact see the same safety number, your end-to-end encrypted communication is secure and has not been intercepted.',
+  'safety.how_to_verify': 'How to verify?',
+  'safety.verify_steps': 'Meet your contact in person (or use another trusted channel). Both of you should open each other\'s profile, tap "Verify Encryption", and compare the safety number line by line. If they match, your encryption is secure.',
 
   // Notifications
   'notification.new_message': 'New Message',

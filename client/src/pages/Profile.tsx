@@ -648,16 +648,16 @@ function KeyFingerprint({ onBack, t, user }: { onBack: () => void; t: (k: string
     <div className="page">
       <div className="page-header">
         <button className="back-btn" onClick={onBack}><ChevronLeft size={20} /></button>
-        <h1>{t('fingerprint.title')}</h1>
+        <h1>{t('fingerprint.my_key_title')}</h1>
       </div>
       <div className="page-body" style={{ padding: 16 }}>
         <div style={{ textAlign: 'center', padding: '24px 0' }}>
           <div style={{ fontSize: 48, marginBottom: 16, color: 'var(--accent)' }}><Fingerprint size={48} /></div>
           <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 8 }}>
-            {t('fingerprint.identity_key')}
+            {t('fingerprint.my_key_subtitle')}
           </div>
           <div style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 24, lineHeight: 1.5 }}>
-            {t('fingerprint.description')}
+            {t('fingerprint.my_key_desc')}
           </div>
         </div>
 
@@ -706,9 +706,9 @@ function KeyFingerprint({ onBack, t, user }: { onBack: () => void; t: (k: string
           lineHeight: 1.6,
         }}>
           <div style={{ fontWeight: 600, marginBottom: 8, color: 'var(--text-primary)' }}>
-            {t('fingerprint.how_to_verify')}
+            {t('safety.how_to_verify')}
           </div>
-          {t('fingerprint.verify_steps')}
+          {t('fingerprint.my_key_verify_hint')}
         </div>
       </div>
     </div>

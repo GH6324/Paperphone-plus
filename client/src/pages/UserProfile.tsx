@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { get, post, put, normalizeFileUrl } from '../api/http'
 import { useStore } from '../store'
 import { useI18n } from '../hooks/useI18n'
-import { Camera, ChevronLeft, ChevronRight, Film, Lock, MessageCircle, Pencil, Phone } from 'lucide-react'
+import { getKeys } from '../crypto/keystore'
+import { Camera, Check, ChevronDown, ChevronLeft, ChevronRight, Copy, Film, Fingerprint, Lock, MessageCircle, Pencil, Phone, ShieldCheck } from 'lucide-react'
 
 export default function UserProfile() {
   const { id } = useParams<{ id: string }>()
@@ -28,6 +29,11 @@ export default function UserProfile() {
   // Latest moments
   const [moments, setMoments] = useState<any[]>([])
 
+  // Safety number
+  const [safetyNumber, setSafetyNumber] = useState('')
+  const [showSafetyNumber, setShowSafetyNumber] = useState(false)
+  const [copied, setCopied] = useState(false)
+
   useEffect(() => {
     if (!id) return
     setLoading(true)
@@ -49,6 +55,75 @@ export default function UserProfile() {
 
     setLoading(false)
   }, [id])
+
+  // Compute safety number when user data is loaded
+  useEffect(() => {
+    if (!user?.ik_pub) return
+    computeSafetyNumber(user.ik_pub)
+  }, [user?.ik_pub])
+
+  const computeSafetyNumber = async (theirIkPub: string) => {
+    try {
+      const keys = getKeys()
+      const myIkPub = keys?.ik_pub || me?.ik_pub
+      if (!myIkPub || !theirIkPub) {
+        setSafetyNumber('—')
+        return
+      }
+
+      // Decode base64 to bytes
+      const decode = (b64: string) => {
+        const raw = atob(b64.replace(/-/g, '+').replace(/_/g, '/'))
+        const bytes = new Uint8Array(raw.length)
+        for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i)
+        return bytes
+      }
+
+      const myBytes = decode(myIkPub)
+      const theirBytes = decode(theirIkPub)
+
+      // Sort keys lexicographically for deterministic order
+      // (so both parties compute the same result)
+      let first: Uint8Array, second: Uint8Array
+      const myHex = Array.from(myBytes).map(b => b.toString(16).padStart(2, '0')).join('')
+      const theirHex = Array.from(theirBytes).map(b => b.toString(16).padStart(2, '0')).join('')
+      if (myHex <= theirHex) {
+        first = myBytes
+        second = theirBytes
+      } else {
+        first = theirBytes
+        second = myBytes
+      }
+
+      // Concatenate sorted keys
+      const combined = new Uint8Array(first.length + second.length)
+      combined.set(first, 0)
+      combined.set(second, first.length)
+
+      // SHA-256 hash
+      const hashBuffer = await crypto.subtle.digest('SHA-256', combined)
+      const hashArray = new Uint8Array(hashBuffer)
+
+      // Format as 5-digit decimal groups (Signal-style)
+      // Convert 32 bytes to 12 groups of 5 digits
+      const groups: string[] = []
+      for (let i = 0; i < 12; i++) {
+        const offset = i * 2
+        const val = (hashArray[offset % 32] << 8) | hashArray[(offset + 1) % 32]
+        groups.push(String(val * 3 + i).padStart(5, '0').slice(-5))
+      }
+      setSafetyNumber(groups.join(' '))
+    } catch {
+      setSafetyNumber('—')
+    }
+  }
+
+  const handleCopySafety = () => {
+    navigator.clipboard.writeText(safetyNumber).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
 
   // Update remark from friend data
   useEffect(() => {
@@ -202,6 +277,82 @@ export default function UserProfile() {
             }} />
           </div>
         </div>
+
+        {/* Safety Number — E2E verification */}
+        <div className="section-title" style={{ padding: '16px 16px 6px' }}>
+          <ShieldCheck size={14} /> {t('safety.title')}
+        </div>
+        <div
+          className="settings-item"
+          onClick={() => setShowSafetyNumber(!showSafetyNumber)}
+          style={{ cursor: 'pointer' }}
+        >
+          <span className="label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Fingerprint size={14} />
+            {t('safety.verify_encryption')}
+          </span>
+          <span className="arrow">{showSafetyNumber ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</span>
+        </div>
+
+        {showSafetyNumber && safetyNumber && (
+          <div style={{
+            margin: '0 12px 8px', padding: 20, borderRadius: 16,
+            background: 'var(--bg-card)',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14,
+          }}>
+            <div style={{
+              fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', lineHeight: 1.5,
+            }}>
+              {t('safety.description')}
+            </div>
+
+            {/* Safety number grid */}
+            <div style={{
+              background: 'var(--bg-primary)',
+              borderRadius: 12, padding: '16px 20px',
+              width: '100%', maxWidth: 300,
+            }}>
+              <div style={{
+                fontFamily: '"SF Mono", "Fira Code", "Cascadia Code", monospace',
+                fontSize: 18, lineHeight: 2.2,
+                textAlign: 'center', letterSpacing: 2,
+                color: 'var(--text-primary)',
+              }}>
+                {(() => {
+                  const nums = safetyNumber.split(' ')
+                  const rows: string[][] = []
+                  for (let i = 0; i < nums.length; i += 4) rows.push(nums.slice(i, i + 4))
+                  return rows.map((row, i) => <div key={i}>{row.join('  ')}</div>)
+                })()}
+              </div>
+            </div>
+
+            {/* Participants */}
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>
+              {me?.nickname} ↔ {displayName}
+            </div>
+
+            {/* Copy button */}
+            <button
+              className="btn btn-sm btn-secondary"
+              onClick={(e) => { e.stopPropagation(); handleCopySafety() }}
+              style={{ minWidth: 140 }}
+            >
+              {copied ? <><Check size={12} /> {t('fingerprint.copied')}</> : <><Copy size={12} /> {t('fingerprint.copy')}</>}
+            </button>
+
+            {/* How to verify */}
+            <div style={{
+              fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6,
+              background: 'var(--bg-primary)', borderRadius: 10, padding: 12, width: '100%',
+            }}>
+              <div style={{ fontWeight: 600, marginBottom: 4, color: 'var(--text-primary)' }}>
+                {t('safety.how_to_verify')}
+              </div>
+              {t('safety.verify_steps')}
+            </div>
+          </div>
+        )}
 
         {/* Latest moments */}
         <div className="section-title" style={{ padding: '16px 16px 6px' }}>

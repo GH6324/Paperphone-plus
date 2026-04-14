@@ -26,13 +26,18 @@ export function useSocket() {
         if (!isFromMe && !isOnChat) {
           useStore.getState().incrementUnread(chatId)
 
+          // Skip all notifications for offline catch-up messages
+          // (they are historical and should not ring/toast)
+          if (data.offline) return
+
           // Check if this group is muted
           const groups = useStore.getState().groups
           const group = data.group_id ? groups.find(g => g.id === data.group_id) : null
-          const isMuted = !!group?.muted
-
-          // Skip notifications for muted groups
-          if (isMuted) return
+          if (data.group_id) {
+            // If groups haven't loaded yet, skip notification (fail-closed)
+            // If group is muted, also skip
+            if (!group || group.muted) return
+          }
 
           // Resolve sender info
           const friends = useStore.getState().friends

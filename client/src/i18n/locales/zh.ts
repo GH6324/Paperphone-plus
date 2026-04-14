@@ -308,14 +308,25 @@ export const zh: Record<string, string> = {
   // Profile
   'profile.appearance': '外观设置',
 
-  // Fingerprint
+  // Fingerprint (self key view)
   'fingerprint.title': '密钥指纹',
   'fingerprint.identity_key': '身份密钥指纹',
+  'fingerprint.my_key_title': '我的身份密钥',
+  'fingerprint.my_key_subtitle': '我的身份密钥指纹',
+  'fingerprint.my_key_desc': '这是你的身份密钥指纹。要验证与好友之间的加密是否安全，请打开好友的个人资料页查看「安全号码」。',
+  'fingerprint.my_key_verify_hint': '要验证端到端加密，请打开好友的个人资料页 → 点击「验证加密安全性」，双方当面比对显示的安全号码是否一致。',
   'fingerprint.description': '你可以将该指纹与好友当面核对，确认通信未被中间人攻击篡改。如果双方显示的指纹一致，则端到端加密是安全的。',
-  'fingerprint.copy': '复制指纹',
+  'fingerprint.copy': '复制',
   'fingerprint.copied': '已复制',
   'fingerprint.how_to_verify': '如何验证？',
   'fingerprint.verify_steps': '与好友当面（或通过其他可信渠道）比对此指纹。双方分别打开「设置 → 密钥指纹」，逐行核对显示的十六进制字符。如果完全一致，说明你们的加密通道没有被第三方劫持。',
+
+  // Safety Number (combined key verification)
+  'safety.title': '加密验证',
+  'safety.verify_encryption': '验证加密安全性',
+  'safety.description': '如果你和对方看到的安全号码完全一致，则你们之间的端到端加密没有被第三方劫持。',
+  'safety.how_to_verify': '如何验证？',
+  'safety.verify_steps': '与好友当面（或通过可信的其他渠道），双方分别打开对方的个人资料页，点击「验证加密安全性」，逐行比对安全号码。如果完全一致，说明加密通道是安全的。',
 
   // Notifications
   'notification.new_message': '新消息',
