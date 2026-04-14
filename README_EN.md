@@ -28,13 +28,14 @@ A WeChat-style end-to-end encrypted instant messaging app with stateless ECDH + 
 <img width=30% height=30% src="screenshot/ui14.jpg" alt="ui14">
 <img width=30% height=30% src="screenshot/ui15.jpg" alt="ui15">
 <img width=30% height=30% src="screenshot/ui16.jpg" alt="ui16">
+<img width=30% height=30% src="screenshot/ui17.jpg" alt="ui17">
 
 </details>
 
 ## Features
 | Feature | Description |
 |---------|-------------|
-| 🔐 End-to-End Encryption | Stateless ECDH + XSalsa20-Poly1305 — ephemeral keys per message, forward secrecy |
+| 🔐 End-to-End Encryption | Stateless ECDH + XSalsa20-Poly1305 — ephemeral keys per message, forward secrecy, Signal-style safety number verification |
 | 🗝️ Zero-Knowledge Server | Server stores only ciphertext; private keys never leave the device |
 | 📹 Video & Voice Calls | WebRTC P2P (1:1) + Mesh (group), Cloudflare TURN for NAT traversal |
 | 👥 Group Chat | Up to 2000 members, plain-text messages (no encryption), Do Not Disturb mode, member management |

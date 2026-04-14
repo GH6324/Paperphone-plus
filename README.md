@@ -28,13 +28,14 @@
 <img width=30% height=30% src="screenshot/ui14.jpg" alt="ui14">
 <img width=30% height=30% src="screenshot/ui15.jpg" alt="ui15">
 <img width=30% height=30% src="screenshot/ui16.jpg" alt="ui16">
+<img width=30% height=30% src="screenshot/ui17.jpg" alt="ui17">
 
 </details>
 
 ## 特性
 | 功能 | 说明 |
 |------|------|
-| 🔐 端对端加密 | 无状态 ECDH + XSalsa20-Poly1305，逐消息临时密钥，前向保密 |
+| 🔐 端对端加密 | 无状态 ECDH + XSalsa20-Poly1305，逐消息临时密钥，前向保密，Signal 风格安全号码验证 |
 | 🗝️ 零知识服务器 | 服务器只存储密文，私钥仅在设备本地（四层持久化） |
 | 📹 视频/语音通话 | WebRTC P2P（1:1）+ Mesh（多人），Cloudflare TURN 穿透 |
 | 👥 群聊 | 最多 2000 人群组，纯文本消息（无加密），免打扰模式，成员管理 |
