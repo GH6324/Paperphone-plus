@@ -419,4 +419,7 @@ paperphone-plus/
 | `STICKER_PACKS` | 自定义贴纸包列表（可选，逗号分隔 `包名:显示名`） | 内置 8 个默认包 |
 ---
 如果这个项目对你有用的话，请我喝罐可乐吧。
+<br>
 <img width=30% height=30% src="请我喝可乐.jpg" alt="qrcode">
+<br>
+Telegram群组：https://t.me/+vHJtvWJY_gEyMTUx
