@@ -4,7 +4,7 @@ import { get, post, put, del, uploadFileWithProgress } from '../api/http'
 import { useI18n } from '../hooks/useI18n'
 import { useStore } from '../store'
 import { QRCodeCanvas } from '../components/QRCode'
-import { BellOff, Camera, ChevronLeft, ChevronRight, ChevronDown, Megaphone, MessageCircle, Pencil, Settings, Smartphone, Users } from 'lucide-react'
+import { BellOff, Camera, ChevronLeft, ChevronRight, ChevronDown, Megaphone, MessageCircle, Pencil, Settings, Smartphone, Users, UserPlus, Plus, Check } from 'lucide-react'
 
 const INVITE_EXPIRY_OPTIONS = [
   { days: 7, key: 'group.qr_expire_1w' },
@@ -27,9 +27,37 @@ export default function GroupInfo() {
   const [inviteId, setInviteId] = useState('')
   const [inviteExpiry, setInviteExpiry] = useState(7)
   const [inviteLoading, setInviteLoading] = useState(false)
+  const [showInvite, setShowInvite] = useState(false)
+  const [selectedFriends, setSelectedFriends] = useState<Set<string>>(new Set())
   const avatarRef = useRef<HTMLInputElement>(null)
+  const friends = useStore(s => s.friends)
 
   const isOwner = group?.owner_id === user?.id
+
+  // Friends not in this group
+  const friendsNotInGroup = friends.filter(f =>
+    !group?.members?.some((m: any) => m.id === f.id)
+  )
+
+  const toggleFriendSelect = (fid: string) => {
+    setSelectedFriends(prev => {
+      const next = new Set(prev)
+      if (next.has(fid)) next.delete(fid)
+      else next.add(fid)
+      return next
+    })
+  }
+
+  const inviteFriends = async () => {
+    if (selectedFriends.size === 0) return
+    try {
+      await post(`/api/groups/${id}/members`, { user_ids: [...selectedFriends] })
+      reload()
+      get('/api/groups').then(g => useStore.getState().setGroups(g)).catch(() => {})
+      setSelectedFriends(new Set())
+      setShowInvite(false)
+    } catch {}
+  }
 
   const reload = () => {
     if (id) get(`/api/groups/${id}`).then((g: any) => {
@@ -176,6 +204,90 @@ export default function GroupInfo() {
                   padding: '8px 20px', borderRadius: 10, border: 'none',
                   background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 600,
                 }}>{t('common.save')}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Friend invite dialog */}
+      {showInvite && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          animation: 'fade-in .2s ease',
+        }}>
+          <div style={{
+            background: 'var(--bg-card)', borderRadius: 16, padding: 0,
+            width: 'min(400px, 90vw)', maxHeight: '70vh',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column',
+            overflow: 'hidden',
+          }}>
+            <div style={{
+              padding: '16px 20px', borderBottom: '1px solid var(--border)',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            }}>
+              <div style={{ fontSize: 16, fontWeight: 600 }}>{t('group.invite_friends')}</div>
+              <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                {selectedFriends.size > 0 && `${selectedFriends.size} ${t('tags.assigned_count')}`}
+              </div>
+            </div>
+
+            <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
+              {friendsNotInGroup.length === 0 ? (
+                <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
+                  {t('group.no_friends_to_invite')}
+                </div>
+              ) : (
+                friendsNotInGroup.map(f => {
+                  const selected = selectedFriends.has(f.id)
+                  return (
+                    <div key={f.id} onClick={() => toggleFriendSelect(f.id)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 12,
+                        padding: '10px 20px', cursor: 'pointer',
+                        background: selected ? 'rgba(76, 175, 80, 0.08)' : 'transparent',
+                        transition: 'background .15s ease',
+                      }}>
+                      <div style={{
+                        width: 22, height: 22, borderRadius: 6,
+                        border: selected ? 'none' : '2px solid var(--border)',
+                        background: selected ? 'var(--accent)' : 'transparent',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'all .15s ease', flexShrink: 0,
+                      }}>
+                        {selected && <Check size={14} color="#fff" />}
+                      </div>
+                      <div className="avatar avatar-sm">
+                        {f.avatar ? <img src={f.avatar} alt="" /> : f.nickname?.[0]?.toUpperCase()}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 500 }}>{f.nickname}</div>
+                        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>@{f.username}</div>
+                      </div>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+
+            <div style={{
+              padding: '12px 20px', borderTop: '1px solid var(--border)',
+              display: 'flex', gap: 10, justifyContent: 'flex-end',
+            }}>
+              <button onClick={() => { setShowInvite(false); setSelectedFriends(new Set()) }}
+                style={{
+                  padding: '8px 20px', borderRadius: 10, border: '1px solid var(--border)',
+                  background: 'var(--bg-primary)', color: 'var(--text-primary)', cursor: 'pointer', fontSize: 14,
+                }}>{t('common.cancel')}</button>
+              <button onClick={inviteFriends}
+                disabled={selectedFriends.size === 0}
+                style={{
+                  padding: '8px 20px', borderRadius: 10, border: 'none',
+                  background: selectedFriends.size > 0 ? 'var(--accent)' : 'var(--border)',
+                  color: '#fff', cursor: selectedFriends.size > 0 ? 'pointer' : 'default',
+                  fontSize: 14, fontWeight: 600,
+                }}>{t('group.add_members')}</button>
             </div>
           </div>
         </div>
@@ -354,8 +466,17 @@ export default function GroupInfo() {
 
         {/* ── Members ── */}
         <div style={{ margin: '0 16px' }}>
-          <div className="section-title" style={{ padding: '8px 0' }}>
-            👥 {t('group.members')} ({group.members?.length || 0})
+          <div className="section-title" style={{ padding: '8px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span>👥 {t('group.members')} ({group.members?.length || 0})</span>
+            <button onClick={() => setShowInvite(true)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 4,
+                border: 'none', background: 'var(--accent)', color: '#fff',
+                padding: '5px 12px', borderRadius: 8, fontSize: 12,
+                fontWeight: 600, cursor: 'pointer',
+              }}>
+              <UserPlus size={14} /> {t('group.invite_friends')}
+            </button>
           </div>
 
           {group.members?.map((m: any) => (

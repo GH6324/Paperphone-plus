@@ -15,8 +15,10 @@ import Moments from './pages/Moments'
 import Timeline from './pages/Timeline'
 import TabBar from './components/TabBar'
 import CallOverlay from './components/CallOverlay'
+import GroupCallOverlay from './components/GroupCallOverlay'
 import NotificationToast from './components/NotificationToast'
 import { CallProvider } from './contexts/CallContext'
+import { GroupCallProvider } from './contexts/GroupCallContext'
 import { registerServiceWorker, subscribePush, isPushSubscribed } from './api/push'
 import { post } from './api/http'
 
@@ -114,21 +116,24 @@ function ProtectedLayout() {
 
   return (
     <CallProvider>
-      <Routes>
-        <Route path="/chats" element={<Chats />} />
-        <Route path="/chat/:id" element={<Chat />} />
-        <Route path="/contacts" element={<Contacts />} />
-        <Route path="/discover" element={<Discover />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/user/:id" element={<UserProfile />} />
-        <Route path="/group/:id" element={<GroupInfo />} />
-        <Route path="/moments" element={<Moments />} />
-        <Route path="/timeline" element={<Timeline />} />
-        <Route path="*" element={<Navigate to="/chats" replace />} />
-      </Routes>
-      <TabBar />
-      <CallOverlay />
-      <NotificationToast />
+      <GroupCallProvider>
+        <Routes>
+          <Route path="/chats" element={<Chats />} />
+          <Route path="/chat/:id" element={<Chat />} />
+          <Route path="/contacts" element={<Contacts />} />
+          <Route path="/discover" element={<Discover />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/user/:id" element={<UserProfile />} />
+          <Route path="/group/:id" element={<GroupInfo />} />
+          <Route path="/moments" element={<Moments />} />
+          <Route path="/timeline" element={<Timeline />} />
+          <Route path="*" element={<Navigate to="/chats" replace />} />
+        </Routes>
+        <TabBar />
+        <CallOverlay />
+        <GroupCallOverlay />
+        <NotificationToast />
+      </GroupCallProvider>
     </CallProvider>
   )
 }

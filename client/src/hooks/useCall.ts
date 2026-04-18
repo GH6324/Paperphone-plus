@@ -298,6 +298,9 @@ export function useCall(userId: string | undefined) {
     const unsubOffer = onWs('call_offer', (data) => {
       if (data.from === userId) return
 
+      // Skip group call offers (they have call_id) — handled by useGroupCall
+      if (data.call_id) return
+
       if (callStateRef.current !== 'idle') {
         sendWs({ type: 'call_reject', to: data.from })
         return
@@ -324,6 +327,8 @@ export function useCall(userId: string | undefined) {
     })
 
     const unsubAnswer = onWs('call_answer', async (data) => {
+      // Skip group call answers
+      if (data.call_id) return
       const pc = pcRef.current
       if (!pc) return
       try {
@@ -342,6 +347,8 @@ export function useCall(userId: string | undefined) {
     })
 
     const unsubIce = onWs('ice_candidate', async (data) => {
+      // Skip group call ICE candidates
+      if (data.call_id) return
       const pc = pcRef.current
       if (data.candidate) {
         if (pc && pc.remoteDescription) {

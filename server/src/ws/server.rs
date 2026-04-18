@@ -354,6 +354,46 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppState>) {
                 push_incoming_call(&state, &uid, &parsed).await;
             }
         }
+
+        // ── GROUP CALL SIGNALING ─────────────────────────────────
+        let group_call_types = ["group_call_invite", "group_call_join", "group_call_leave"];
+        if group_call_types.contains(&msg_type) {
+            let mut envelope = parsed.clone();
+            envelope["from"] = serde_json::json!(uid);
+
+            if let Some(group_id) = parsed.get("group_id").and_then(|v| v.as_str()) {
+                // For invite, attach sender info and group name
+                if msg_type == "group_call_invite" {
+                    let sender: Option<(String, Option<String>)> = sqlx::query_as(
+                        "SELECT nickname, avatar FROM users WHERE id = ?"
+                    ).bind(&uid).fetch_optional(&state.db).await.ok().flatten();
+                    if let Some((nick, avatar)) = sender {
+                        envelope["from_nickname"] = serde_json::json!(nick);
+                        envelope["from_avatar"] = serde_json::json!(avatar);
+                    }
+                    let group_name: Option<(String,)> = sqlx::query_as(
+                        "SELECT name FROM `groups` WHERE id = ?"
+                    ).bind(group_id).fetch_optional(&state.db).await.ok().flatten();
+                    if let Some((gname,)) = group_name {
+                        envelope["group_name"] = serde_json::json!(gname);
+                    }
+                }
+
+                // Broadcast to all group members except sender
+                let members: Vec<(String,)> = sqlx::query_as(
+                    "SELECT user_id FROM group_members WHERE group_id = ? AND user_id != ?"
+                ).bind(group_id).bind(&uid).fetch_all(&state.db).await.unwrap_or_default();
+
+                for (mid,) in &members {
+                    state.ws_clients.send_to_user(mid, envelope.clone());
+                }
+
+                // Push notification for group call invite
+                if msg_type == "group_call_invite" {
+                    push_incoming_call(&state, &uid, &parsed).await;
+                }
+            }
+        }
     }
 
     // Cleanup on disconnect

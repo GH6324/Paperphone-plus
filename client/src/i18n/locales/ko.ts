@@ -36,6 +36,8 @@ export const ko: Record<string, string> = {
   'group.settings': '설정', 'group.mute_desc': '이 그룹의 알림을 받지 않습니다', 'group.send_message': '메시지 보내기', 'group.owner': '방장',
   'group.uploading_avatar': '그룹 아이콘 업로드 중...', 'group.disband_confirm': '이 그룹을 해산하시겠습니까? 되돌릴 수 없습니다.', 'group.leave_confirm': '이 그룹을 나가시겠습니까?',
   'group.qr_code': '그룹 QR 코드', 'group.qr_expire_1w': '1주', 'group.qr_expire_1m': '1개월', 'group.qr_expire_3m': '3개월', 'group.qr_hint': 'QR 코드를 스캔하여 그룹에 참여하세요. 링크는 선택한 기간 후 만료됩니다.',
+  'group.invite_friends': '친구 초대', 'group.select_friends': '친구 선택', 'group.invite_success': '초대 완료', 'group.no_friends_to_invite': '모든 친구가 이미 그룹에 있습니다',
+  'group.voice_call': '그룹 음성 통화', 'group.video_call': '그룹 영상 통화',
 
   'discover.title': '발견', 'discover.moments': '모먼트', 'discover.timeline': '타임라인',
   'discover.scan': 'QR 스캔', 'discover.scan_result': '스캔 결과', 'discover.invite_expired': '초대 링크가 만료되었거나 유효하지 않습니다',
@@ -62,6 +64,8 @@ export const ko: Record<string, string> = {
   'call.ended': '통화 종료', 'call.video': '영상 통화', 'call.voice': '음성 통화',
   'call.accept': '수락', 'call.reject': '거절', 'call.hangup': '종료',
   'call.mute': '음소거', 'call.camera': '카메라',
+  'call.group_incoming': '그룹 통화 초대', 'call.group_voice': '그룹 음성 통화', 'call.group_video': '그룹 영상 통화',
+  'call.participants': '명 참여', 'call.joining': '참여 중...', 'call.group_ended': '그룹 통화가 종료되었습니다',
 
   'common.ok': '확인', 'common.cancel': '취소', 'common.save': '저장', 'common.delete': '삭제',
   'common.edit': '편집', 'common.loading': '로딩 중...', 'common.error': '오류',

@@ -114,6 +114,12 @@ export const zh: Record<string, string> = {
   'group.qr_expire_1m': '1 个月',
   'group.qr_expire_3m': '3 个月',
   'group.qr_hint': '扫描二维码加入群聊，该链接将在选定时间后过期',
+  'group.invite_friends': '邀请好友入群',
+  'group.select_friends': '选择好友',
+  'group.invite_success': '已成功邀请',
+  'group.no_friends_to_invite': '所有好友都已在群中',
+  'group.voice_call': '群语音通话',
+  'group.video_call': '群视频通话',
 
   // Discover
   'discover.title': '发现',
@@ -216,6 +222,12 @@ export const zh: Record<string, string> = {
   'call.hangup': '挂断',
   'call.mute': '静音',
   'call.camera': '摄像头',
+  'call.group_incoming': '群通话邀请',
+  'call.group_voice': '群语音通话',
+  'call.group_video': '群视频通话',
+  'call.participants': '位参与者',
+  'call.joining': '加入中...',
+  'call.group_ended': '群通话已结束',
 
   // Common
   'common.ok': '确定',

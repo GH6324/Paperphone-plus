@@ -38,6 +38,8 @@ export const es: Record<string, string> = {
   'group.settings': 'Configuración', 'group.mute_desc': 'No recibirás notificaciones de este grupo', 'group.send_message': 'Enviar mensaje', 'group.owner': 'Admin',
   'group.uploading_avatar': 'Subiendo avatar del grupo...', 'group.disband_confirm': '¿Estás seguro de disolver este grupo? No se puede deshacer.', 'group.leave_confirm': '¿Estás seguro de abandonar este grupo?',
   'group.qr_code': 'Código QR del grupo', 'group.qr_expire_1w': '1 semana', 'group.qr_expire_1m': '1 mes', 'group.qr_expire_3m': '3 meses', 'group.qr_hint': 'Escanea el código QR para unirte al grupo. El enlace expira después del período seleccionado.',
+  'group.invite_friends': 'Invitar amigos', 'group.select_friends': 'Seleccionar amigos', 'group.invite_success': 'Invitación enviada', 'group.no_friends_to_invite': 'Todos tus amigos ya están en este grupo',
+  'group.voice_call': 'Llamada de voz grupal', 'group.video_call': 'Videollamada grupal',
 
   'discover.title': 'Descubrir', 'discover.moments': 'Momentos', 'discover.timeline': 'Timeline',
   'discover.scan': 'Escanear QR', 'discover.scan_result': 'Resultado del escaneo', 'discover.invite_expired': 'El enlace de invitación ha caducado o es inválido',
@@ -64,6 +66,8 @@ export const es: Record<string, string> = {
   'call.ended': 'Llamada finalizada', 'call.video': 'Videollamada', 'call.voice': 'Llamada de voz',
   'call.accept': 'Aceptar', 'call.reject': 'Rechazar', 'call.hangup': 'Colgar',
   'call.mute': 'Silenciar', 'call.camera': 'Cámara',
+  'call.group_incoming': 'Invitación a llamada grupal', 'call.group_voice': 'Llamada de voz grupal', 'call.group_video': 'Videollamada grupal',
+  'call.participants': 'participantes', 'call.joining': 'Uniendo...', 'call.group_ended': 'Llamada grupal finalizada',
 
   'common.ok': 'Aceptar', 'common.cancel': 'Cancelar', 'common.save': 'Guardar', 'common.delete': 'Eliminar',
   'common.edit': 'Editar', 'common.loading': 'Cargando...', 'common.error': 'Error',

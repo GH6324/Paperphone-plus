@@ -38,6 +38,8 @@ export const ru: Record<string, string> = {
   'group.settings': 'Настройки', 'group.mute_desc': 'Вы не будете получать уведомления от этой группы', 'group.send_message': 'Написать сообщение', 'group.owner': 'Админ',
   'group.uploading_avatar': 'Загрузка аватара группы...', 'group.disband_confirm': 'Вы уверены, что хотите распустить эту группу? Это нельзя отменить.', 'group.leave_confirm': 'Вы уверены, что хотите покинуть эту группу?',
   'group.qr_code': 'QR-код группы', 'group.qr_expire_1w': '1 неделя', 'group.qr_expire_1m': '1 месяц', 'group.qr_expire_3m': '3 месяца', 'group.qr_hint': 'Отсканируйте QR-код, чтобы присоединиться к группе. Ссылка истекает после выбранного периода.',
+  'group.invite_friends': 'Пригласить друзей', 'group.select_friends': 'Выбрать друзей', 'group.invite_success': 'Приглашение отправлено', 'group.no_friends_to_invite': 'Все друзья уже в этой группе',
+  'group.voice_call': 'Групповой голосовой звонок', 'group.video_call': 'Групповой видеозвонок',
 
   'discover.title': 'Обзор', 'discover.moments': 'Моменты', 'discover.timeline': 'Лента',
   'discover.scan': 'Сканировать QR', 'discover.scan_result': 'Результат сканирования', 'discover.invite_expired': 'Ссылка-приглашение истекла или недействительна',
@@ -64,6 +66,8 @@ export const ru: Record<string, string> = {
   'call.ended': 'Звонок завершён', 'call.video': 'Видеозвонок', 'call.voice': 'Голосовой звонок',
   'call.accept': 'Принять', 'call.reject': 'Отклонить', 'call.hangup': 'Завершить',
   'call.mute': 'Без звука', 'call.camera': 'Камера',
+  'call.group_incoming': 'Приглашение в групповой звонок', 'call.group_voice': 'Групповой голосовой звонок', 'call.group_video': 'Групповой видеозвонок',
+  'call.participants': 'участников', 'call.joining': 'Подключение...', 'call.group_ended': 'Групповой звонок завершён',
 
   'common.ok': 'ОК', 'common.cancel': 'Отмена', 'common.save': 'Сохранить', 'common.delete': 'Удалить',
   'common.edit': 'Редактировать', 'common.loading': 'Загрузка...', 'common.error': 'Ошибка',

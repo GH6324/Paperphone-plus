@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useStore } from '../store'
 import { useI18n } from '../hooks/useI18n'
 import { useCallContext } from '../contexts/CallContext'
+import { useGroupCallContext } from '../contexts/GroupCallContext'
 import { get, post, put, uploadFileWithProgress, normalizeFileUrl } from '../api/http'
 import { sendWs, onWs } from '../api/socket'
 import { getKeys } from '../crypto/keystore'
@@ -95,6 +96,7 @@ export default function Chat() {
 
   // ── WebRTC Call (global context) ──
   const call = useCallContext()
+  const groupCall = useGroupCallContext()
 
   const [input, setInput] = useState('')
   const [typing, setTyping] = useState(false)
@@ -607,6 +609,16 @@ export default function Chat() {
                 style={{ fontSize: 18 }}><Phone size={18} /></button>
               <button className="icon-btn" title={t('call.video')}
                 onClick={() => call.startCall(id!, true)}
+                style={{ fontSize: 18 }}><VideoIcon size={18} /></button>
+            </>
+          )}
+          {isGroup && (
+            <>
+              <button className="icon-btn" title={t('call.group_voice') || 'Group Voice Call'}
+                onClick={() => groupCall.startGroupCall(id!, false, group?.name)}
+                style={{ fontSize: 18 }}><Phone size={18} /></button>
+              <button className="icon-btn" title={t('call.group_video') || 'Group Video Call'}
+                onClick={() => groupCall.startGroupCall(id!, true, group?.name)}
                 style={{ fontSize: 18 }}><VideoIcon size={18} /></button>
             </>
           )}

@@ -36,6 +36,8 @@ export const ja: Record<string, string> = {
   'group.settings': '設定', 'group.mute_desc': 'このグループからの通知を受け取りません', 'group.send_message': 'メッセージを送る', 'group.owner': 'オーナー',
   'group.uploading_avatar': 'グループアイコンをアップロード中...', 'group.disband_confirm': 'このグループを解散しますか？元に戻せません。', 'group.leave_confirm': 'このグループを退出しますか？',
   'group.qr_code': 'グループQRコード', 'group.qr_expire_1w': '1週間', 'group.qr_expire_1m': '1ヶ月', 'group.qr_expire_3m': '3ヶ月', 'group.qr_hint': 'QRコードをスキャンしてグループに参加。リンクは選択した期間後に有効期限切れ',
+  'group.invite_friends': '友達を招待', 'group.select_friends': '友達を選択', 'group.invite_success': '招待しました', 'group.no_friends_to_invite': '全ての友達が既にグループに参加しています',
+  'group.voice_call': 'グループ音声通話', 'group.video_call': 'グループビデオ通話',
 
   'discover.title': '発見', 'discover.moments': 'モーメンツ', 'discover.timeline': 'タイムライン',
   'discover.scan': 'QRスキャン', 'discover.scan_result': 'スキャン結果', 'discover.invite_expired': '招待リンクは期限切れまたは無効です',
@@ -61,6 +63,8 @@ export const ja: Record<string, string> = {
   'call.ended': '通話終了', 'call.video': 'ビデオ通話', 'call.voice': '音声通話',
   'call.accept': '応答', 'call.reject': '拒否', 'call.hangup': '終了',
   'call.mute': 'ミュート', 'call.camera': 'カメラ',
+  'call.group_incoming': 'グループ通話の招待', 'call.group_voice': 'グループ音声通話', 'call.group_video': 'グループビデオ通話',
+  'call.participants': '人の参加者', 'call.joining': '参加中...', 'call.group_ended': 'グループ通話が終了しました',
 
   'common.ok': 'OK', 'common.cancel': 'キャンセル', 'common.save': '保存', 'common.delete': '削除',
   'common.edit': '編集', 'common.loading': '読み込み中...', 'common.error': 'エラー',
