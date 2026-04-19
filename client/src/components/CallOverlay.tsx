@@ -76,7 +76,7 @@ export default function CallOverlay() {
 
       {/* Controls */}
       <div style={{
-        position: 'absolute', bottom: 60, left: 0, right: 0,
+        position: 'absolute', bottom: 'calc(60px + env(safe-area-inset-bottom, 0px))', left: 0, right: 0,
         display: 'flex', justifyContent: 'center', gap: 24, zIndex: 5,
       }}>
         {/* Incoming: Accept / Reject */}

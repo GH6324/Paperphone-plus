@@ -61,6 +61,8 @@
   --tabbar-h: 52px;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
 
   /* ── Motion (iOS spring curves) ─────────────────────────── */
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -117,6 +119,7 @@
 
 html, body, #root {
   height: 100%;
+  height: 100dvh; /* Dynamic viewport height for iOS Safari */
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
   font-size: 15px;
   line-height: 1.5;
@@ -126,6 +129,7 @@ html, body, #root {
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -249,8 +253,7 @@ body {
    ═══════════════════════════════════════════════════════════════ */
 .tabbar {
   display: flex;
-  height: calc(var(--tabbar-h) + var(--safe-bottom));
-  padding-bottom: var(--safe-bottom);
+  height: var(--tabbar-h);
   z-index: 10;
   position: relative;
   border-top: none;
@@ -260,6 +263,7 @@ body {
   margin: 0 12px calc(8px + var(--safe-bottom));
   border-radius: var(--radius-xl);
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .tabbar-item {
@@ -1331,4 +1335,375 @@ textarea.input {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   iPhone 12+ Responsive Adaptations
+   iPhone 12 mini:       375 × 812pt  (safe-top: 47pt, safe-bottom: 34pt)
+   iPhone 12/12 Pro:     390 × 844pt  (safe-top: 47pt, safe-bottom: 34pt)
+   iPhone 13/13 Pro/14:  390 × 844pt  (safe-top: 47pt, safe-bottom: 34pt)
+   iPhone 13 Pro Max:    428 × 926pt  (safe-top: 47pt, safe-bottom: 34pt)
+   iPhone 14 Pro:        393 × 852pt  (safe-top: 59pt Dynamic Island, safe-bottom: 34pt)
+   iPhone 14 Pro Max:    430 × 932pt  (safe-top: 59pt Dynamic Island, safe-bottom: 34pt)
+   iPhone 15/15 Pro:     393 × 852pt  (safe-top: 59pt Dynamic Island, safe-bottom: 34pt)
+   iPhone 15 Pro Max:    430 × 932pt  (safe-top: 59pt Dynamic Island, safe-bottom: 34pt)
+   iPhone 16/16 Pro:     393 × 852pt  (safe-top: 59pt Dynamic Island, safe-bottom: 34pt)
+   iPhone 16 Pro Max:    440 × 956pt  (safe-top: 59pt Dynamic Island, safe-bottom: 34pt)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── iPhone 12 mini (375pt wide, smallest notch iPhone) ───── */
+@media screen and (max-width: 375px) {
+  :root {
+    --header-h: 48px;
+    --tabbar-h: 48px;
+  }
+
+  .page-header h1 {
+    font-size: 16px;
+  }
+
+  .page-header {
+    padding: 0 12px;
+    padding-top: var(--safe-top);
+  }
+
+  .list-item {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .avatar-lg {
+    width: 56px;
+    height: 56px;
+    font-size: 22px;
+  }
+
+  .list-content .name {
+    font-size: 14px;
+  }
+
+  .list-content .preview {
+    font-size: 12px;
+  }
+
+  .tabbar {
+    margin: 0 8px calc(6px + var(--safe-bottom));
+  }
+
+  .tabbar-item {
+    font-size: 9px;
+  }
+
+  .tabbar-item .tab-icon {
+    font-size: 19px;
+  }
+
+  .msg-bubble {
+    padding: 8px 12px;
+    font-size: 13.5px;
+  }
+
+  .chat-input-bar {
+    padding: 6px 8px;
+    padding-bottom: calc(6px + var(--safe-bottom));
+  }
+
+  .chat-input-bar textarea {
+    padding: 7px 14px;
+    font-size: 14px;
+  }
+
+  .search-bar {
+    padding: 6px 12px;
+  }
+
+  .search-bar input {
+    padding: 8px 14px 8px 36px;
+    font-size: 13px;
+  }
+
+  .security-badges {
+    gap: 6px;
+  }
+
+  .security-badge {
+    padding: 6px 8px;
+  }
+
+  .security-text {
+    font-size: 10px;
+  }
+
+  .login-card {
+    padding: 28px 20px;
+  }
+
+  .login-title {
+    font-size: 22px;
+  }
+
+  .moment-card {
+    padding: 12px;
+    margin: 4px 6px;
+  }
+
+  .settings-item {
+    padding: 12px 14px;
+  }
+
+  .btn {
+    padding: 9px 18px;
+    font-size: 13px;
+  }
+
+  .icon-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+
+  .modal {
+    width: 92%;
+    padding: 20px;
+  }
+}
+
+/* ── iPhone 12/13/14 standard (390pt wide) ────────────────── */
+@media screen and (min-width: 376px) and (max-width: 393px) {
+  :root {
+    --header-h: 52px;
+    --tabbar-h: 50px;
+  }
+
+  .page-header {
+    padding: 0 14px;
+    padding-top: var(--safe-top);
+  }
+
+  .tabbar {
+    margin: 0 10px calc(6px + var(--safe-bottom));
+  }
+}
+
+/* ── iPhone 14 Pro / 15 / 16 (393pt, Dynamic Island) ──────── */
+@media screen and (min-width: 393px) and (max-width: 430px) {
+  :root {
+    --header-h: 54px;
+    --tabbar-h: 52px;
+  }
+}
+
+/* ── iPhone Pro Max / Plus models (428-440pt) ─────────────── */
+@media screen and (min-width: 428px) and (max-width: 480px) {
+  :root {
+    --header-h: 56px;
+    --tabbar-h: 54px;
+  }
+
+  .page-header h1 {
+    font-size: 18px;
+  }
+
+  .avatar {
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+  }
+
+  .avatar-lg {
+    width: 68px;
+    height: 68px;
+    font-size: 28px;
+  }
+
+  .list-item {
+    padding: 14px 16px;
+  }
+
+  .list-content .name {
+    font-size: 16px;
+  }
+
+  .msg-bubble {
+    font-size: 15px;
+  }
+
+  .settings-item {
+    padding: 15px 16px;
+  }
+
+  .settings-item .label {
+    font-size: 16px;
+  }
+
+  .moment-card {
+    padding: 18px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   iPhone Height-Based Adaptations
+   Tall screens (812pt+) get more spacing; shorter viewports tighten up
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Short tall phones (iPhone 12 mini: 812pt) */
+@media screen and (max-height: 720px) {
+  .login-card {
+    padding: 24px 20px;
+  }
+
+  .login-logo-img {
+    width: 56px;
+    height: 56px;
+  }
+
+  .login-title {
+    font-size: 22px;
+    margin-bottom: 2px;
+  }
+
+  .security-badges {
+    margin-bottom: 16px;
+  }
+
+  .call-avatar {
+    width: 100px;
+    height: 100px;
+    font-size: 40px;
+    margin-bottom: 20px;
+  }
+
+  .call-name {
+    font-size: 20px;
+  }
+
+  .call-status {
+    margin-bottom: 36px;
+  }
+}
+
+/* Tall phones (926pt+ — Pro Max / Plus models) */
+@media screen and (min-height: 860px) {
+  .login-card {
+    padding: 40px 28px;
+  }
+
+  .login-logo-img {
+    width: 80px;
+    height: 80px;
+  }
+
+  .empty-state {
+    padding: 56px 24px;
+  }
+
+  .call-avatar {
+    width: 130px;
+    height: 130px;
+    font-size: 52px;
+    margin-bottom: 28px;
+  }
+
+  .call-status {
+    margin-bottom: 56px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Safe Area — Full-Screen Overlays & Fixed Elements
+   Ensures modals, call UI, and overlays respect notch/Dynamic Island
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Fixed overlays should respect safe areas */
+.modal-overlay {
+  padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+}
+
+/* Call page safe area adjustments */
+.call-page {
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+}
+
+/* Login page must also respect safe areas */
+.login-page {
+  padding-top: calc(24px + var(--safe-top));
+  padding-bottom: calc(24px + var(--safe-bottom));
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Touch Target Compliance
+   Apple HIG minimum 44×44pt targets on iPhone
+   ═══════════════════════════════════════════════════════════════ */
+@media screen and (max-width: 480px) and (pointer: coarse) {
+  .icon-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .tabbar-item {
+    min-height: 44px;
+  }
+
+  .settings-item {
+    min-height: 44px;
+  }
+
+  .page-header .back-btn {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Landscape Safe Area (iPhone held horizontally)
+   ═══════════════════════════════════════════════════════════════ */
+@media screen and (orientation: landscape) and (max-height: 480px) {
+  .page-header {
+    padding-left: max(16px, var(--safe-left));
+    padding-right: max(16px, var(--safe-right));
+  }
+
+  .tabbar {
+    margin-left: max(12px, var(--safe-left));
+    margin-right: max(12px, var(--safe-right));
+  }
+
+  .chat-input-bar {
+    padding-left: max(12px, var(--safe-left));
+    padding-right: max(12px, var(--safe-right));
+  }
+
+  .chat-messages {
+    padding-left: max(12px, var(--safe-left));
+    padding-right: max(12px, var(--safe-right));
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Notch / Dynamic Island — Prevent Content Overlap
+   Uses @supports to only apply when env() is available (iOS 11+)
+   ═══════════════════════════════════════════════════════════════ */
+@supports (padding-top: env(safe-area-inset-top)) {
+  /* Ensure fixed/absolute positioned elements don't slip behind notch */
+  .page-header {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .chat-input-bar {
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .tabbar {
+    margin-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  }
 }
