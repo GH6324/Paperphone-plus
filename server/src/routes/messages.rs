@@ -24,7 +24,7 @@ async fn get_private_messages(
     Path(user_id): Path<String>,
     Query(params): Query<PaginationQuery>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    let limit = params.limit.unwrap_or(50).min(200);
+    let limit = params.limit.unwrap_or(50).min(50000);
 
     let rows: Vec<(String, String, String, String, Option<String>, Option<String>, Option<String>, String, chrono::NaiveDateTime, Option<chrono::NaiveDateTime>)> = if let Some(before) = &params.before {
         sqlx::query_as(
@@ -77,7 +77,7 @@ async fn get_group_messages(
     Path(group_id): Path<String>,
     Query(params): Query<PaginationQuery>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    let limit = params.limit.unwrap_or(50).min(200);
+    let limit = params.limit.unwrap_or(50).min(50000);
 
     let rows: Vec<(String, String, String, Option<String>, String, chrono::NaiveDateTime, String, Option<String>)> = if let Some(before) = &params.before {
         sqlx::query_as(

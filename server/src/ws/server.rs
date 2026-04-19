@@ -456,7 +456,7 @@ async fn flush_offline_messages(state: &Arc<AppState>, user_id: &str, tx: &mpsc:
              (SELECT last_active FROM sessions WHERE user_id = ? AND revoked = 0 ORDER BY last_active DESC LIMIT 1),
              DATE_SUB(NOW(), INTERVAL 7 DAY)
            )
-         ORDER BY m.created_at ASC LIMIT 200"
+         ORDER BY m.created_at ASC LIMIT 50000"
     ).bind(user_id).bind(user_id).bind(user_id).fetch_all(&state.db).await.unwrap_or_default();
 
     for (id, from_id, group_id, ct, hdr, msg_type, created, nick, avatar) in &group_rows {

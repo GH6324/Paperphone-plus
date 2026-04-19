@@ -162,7 +162,7 @@ export default function Chat() {
   // ── Load history + decrypt ──
   useEffect(() => {
     if (!id) return
-    const path = isGroup ? `/api/messages/group/${id}` : `/api/messages/private/${id}`
+    const path = isGroup ? `/api/messages/group/${id}?limit=50000` : `/api/messages/private/${id}?limit=50000`
     get(path).then(async (msgs: any[]) => {
       if (!Array.isArray(msgs)) return
       if (!isGroup) {
