@@ -199,11 +199,13 @@ spec:
             default: ${MYSQL_ROOT_PASSWORD}
             expose: true
           MYSQL_HOST:
-            default: mysql.zeabur.internal
+            default: ${CONTAINER_HOSTNAME}
             expose: true
+            readonly: true
           MYSQL_PORT:
-            default: "3306"
+            default: ${DATABASE_PORT}
             expose: true
+            readonly: true
         instructions:
           - title: MySQL Host
             content: ${PORT_FORWARDED_HOSTNAME}
@@ -237,14 +239,17 @@ spec:
             dir: /data
         env:
           REDIS_HOST:
-            default: redis.zeabur.internal
+            default: ${CONTAINER_HOSTNAME}
             expose: true
+            readonly: true
           REDIS_PORT:
-            default: "6379"
+            default: ${DATABASE_PORT}
             expose: true
+            readonly: true
           REDIS_URI:
             default: redis://${REDIS_HOST}:${REDIS_PORT}
             expose: true
+            readonly: true
         instructions:
           - title: Redis Connection String
             content: redis://${PORT_FORWARDED_HOSTNAME}:${DATABASE_PORT_FORWARDED_PORT}
