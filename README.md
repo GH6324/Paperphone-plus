@@ -41,7 +41,7 @@
 | 👥 群聊 | 最多 2000 人群组，纯文本消息（无加密），免打扰模式，成员管理 |
 | 👫 好友系统 | 添加好友需对方审核，支持 512 字验证消息；备注名称；好友标签分组 |
 | ⏱️ 消息自动删除 | 5 档可选（永不/1天/3天/1周/1月），私聊双方均可设置，群聊群主专属 |
-| 🔔 消息推送 | Web Push (VAPID) + OneSignal 双通道，离线也能收到通知 |
+| 🔔 消息推送 | Web Push (VAPID) + FCM + OneSignal 三通道，离线也能收到通知 |
 | 🌐 多语言 | 中文、英文、日语、韩语、法语、德语、俄语、西班牙语（自动检测 + 手动切换） |
 | 📱 iOS 永久免签 | PWA H5 → Safari「添加到主屏幕」，无需企业证书 |
 | 💬 消息功能 | 文字、图片、视频、文档文件（PDF/DOCX/XLSX 等带类型图标）、语音消息、Emoji 面板（200+，8 分类）、Telegram 贴纸包、已读状态 |
@@ -168,7 +168,18 @@ CF_CALLS_APP_SECRET=your_app_secret_here
 
 4. 重启后端，TURN 凭据会在每次通话时自动刷新（TTL 86400s）
 
-> **未配置时**：自动降级为 STUN only（Google + Cloudflare 公共 STUN），局域网内可正常通话。
+### 使用 Metered.ca TURN（免费备选方案）
+1. 在 [Metered.ca](https://www.metered.ca) 注册账号
+2. 创建 TURN App 并获取 **API Key**
+3. 填入 `server/.env`：
+
+```env
+METERED_TURN_API_KEY=your_metered_api_key_here
+```
+
+> **优先级**：Cloudflare TURN → Metered.ca TURN → STUN only（公共 STUN），自动降级。
+
+> **均未配置时**：自动降级为 STUN only（Google + Cloudflare 公共 STUN），局域网内可正常通话。
 
 ### 通话功能说明
 | 类型 | 技术方案 | 适用场景 |
@@ -179,11 +190,12 @@ CF_CALLS_APP_SECRET=your_app_secret_here
 
 ---
 
-离线消息通知通过**双通道**推送，最大化消息送达率：
+离线消息通知通过**三通道**推送，最大化消息送达率：
 
 | 通道 | 适用场景 | 配置 |
 |------|----------|------|
 | Web Push (VAPID) | 浏览器 (Chrome/Edge/Firefox) + iOS PWA (Safari 16.4+) | VAPID 密钥 |
+| FCM (Firebase) | Capacitor 打包的原生 Android App | Firebase 服务账号 JSON |
 | OneSignal | Median.co 打包的原生 Android/iOS App | OneSignal App ID + REST Key |
 
 ### 配置 Web Push
@@ -213,6 +225,17 @@ VAPID_SUBJECT=mailto:admin@your-domain.com
 ```env
 ONESIGNAL_APP_ID=your_onesignal_app_id
 ONESIGNAL_REST_KEY=your_onesignal_rest_api_key
+```
+
+### 配置 FCM（Capacitor 原生 Android App）
+1. 在 [Firebase Console](https://console.firebase.google.com) 创建项目并添加 Android 应用
+2. 进入 Project Settings → Service accounts → Generate new private key，下载 JSON 文件
+3. 从 JSON 文件中提取以下三个字段，填入 `server/.env`：
+
+```env
+FCM_PROJECT_ID=your_firebase_project_id
+FCM_CLIENT_EMAIL=firebase-adminsdk-xxx@your-project.iam.gserviceaccount.com
+FCM_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----\n"
 ```
 
 > **未配置时**：推送功能静默禁用，不影响其他功能。
@@ -299,6 +322,7 @@ paperphone-plus/
 │       │   └── tags.rs              # 好友标签 CRUD
 │       ├── services/
 │       │   ├── push.rs              # Web Push VAPID 服务
+│       │   ├── fcm.rs               # Firebase Cloud Messaging 服务
 │       │   └── onesignal.rs         # OneSignal REST API 服务
 │       └── ws/
 │           └── server.rs            # WebSocket 路由（消息/通话信令/已读/推送）
@@ -365,6 +389,7 @@ paperphone-plus/
 | `moment_visibility` | 动态可见性规则 |
 | `moment_privacy` | 朋友圈用户级隐私设置（不看/不让看） |
 | `push_subscriptions` | Web Push 推送订阅（VAPID） |
+| `fcm_tokens` | FCM 设备令牌（Capacitor Android） |
 | `onesignal_players` | OneSignal 设备注册（Median.co） |
 | `user_totp` | TOTP 两步验证密钥与恢复码 |
 | `sessions` | 多设备会话管理 |
@@ -410,9 +435,13 @@ paperphone-plus/
 | `R2_PUBLIC_URL` | R2 公开 URL（可选），设置后文件走 CDN 直链 | — |
 | `CF_CALLS_APP_ID` | Cloudflare Calls App ID（可选） | — |
 | `CF_CALLS_APP_SECRET` | Cloudflare Calls App Secret（可选） | — |
+| `METERED_TURN_API_KEY` | Metered.ca TURN API Key（可选，免费备选方案） | — |
 | `VAPID_PUBLIC_KEY` | Web Push VAPID 公钥（可选） | — |
 | `VAPID_PRIVATE_KEY` | Web Push VAPID 私钥（可选） | — |
 | `VAPID_SUBJECT` | VAPID 联系邮箱（可选） | `mailto:admin@paperphone.app` |
+| `FCM_PROJECT_ID` | Firebase 项目 ID（可选，Capacitor Android） | — |
+| `FCM_CLIENT_EMAIL` | Firebase 服务账号邮箱（可选） | — |
+| `FCM_PRIVATE_KEY` | Firebase 服务账号私钥（可选） | — |
 | `ONESIGNAL_APP_ID` | OneSignal App ID（可选，Median.co） | — |
 | `ONESIGNAL_REST_KEY` | OneSignal REST API Key（可选） | — |
 | `TELEGRAM_BOT_TOKEN` | Telegram Bot Token（可选，贴纸包代理） | — |

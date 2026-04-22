@@ -33,7 +33,7 @@ spec:
     - 👤 **User Profile** — contact profile page with Moments feed, bidirectional privacy controls (hide their / hide mine)
     - 📰 **Timeline** — Xiaohongshu-style public feed with masonry layout, up to 50 images/videos + 2000-char text, anonymous posting, likes & comments
     - ⏱️ **Auto-Delete Messages** — 5 tiers: never / 1 day / 3 days / 1 week / 1 month
-    - 🔔 **Push Notifications** — Web Push (VAPID) + OneSignal dual-channel
+    - 🔔 **Push Notifications** — Web Push (VAPID) + FCM + OneSignal triple-channel
     - 🌐 **Multi-language** — Chinese, English, Japanese, Korean, French, German, Russian, Spanish
     - 📱 **iOS PWA** — "Add to Home Screen" via Safari, no enterprise cert needed
     - 💬 Rich messaging: text, images, video, document files (PDF/DOCX/XLSX etc. with type icons), voice, 200+ emoji (8 categories), Telegram sticker packs, delivery receipts, typing indicators
@@ -50,7 +50,7 @@ spec:
     2. Register an account — cryptographic keys are generated locally on your device.
     3. (Optional) Configure Cloudflare R2 for image/voice/video uploads — set `R2_*` variables on the **server** service.
     4. (Optional) Configure Cloudflare TURN for cross-network video calls — set `CF_CALLS_APP_ID` and `CF_CALLS_APP_SECRET`.
-    5. (Optional) Enable push notifications — set `VAPID_*` variables for Web Push.
+    5. (Optional) Enable push notifications — set `VAPID_*` variables for Web Push, `FCM_*` for native Android (Capacitor).
     6. (Optional) Enable Telegram sticker packs — set `TELEGRAM_BOT_TOKEN` and optionally `STICKER_PACKS`.
 
     ## Tip: Zeabur + Vercel Hybrid
@@ -167,6 +167,35 @@ spec:
         Comma-separated list of Telegram sticker pack names with labels,
         in the format name:label (e.g. pack_name:My Pack,other_pack:Other Pack).
         No limit on quantity. Leave blank to use the 8 built-in defaults.
+
+    - key: FCM_PROJECT_ID
+      type: STRING
+      name: FCM Project ID (optional)
+      description: >-
+        Firebase project ID for native Android push (Capacitor). Found in
+        Firebase Console → Project Settings → General. Leave blank to disable FCM.
+
+    - key: FCM_CLIENT_EMAIL
+      type: STRING
+      name: FCM Client Email (optional)
+      description: >-
+        Firebase service account email from the service account JSON key file.
+        Found in Firebase Console → Project Settings → Service accounts.
+
+    - key: FCM_PRIVATE_KEY
+      type: STRING
+      name: FCM Private Key (optional)
+      description: >-
+        RSA private key from the Firebase service account JSON key file.
+        Copy the full "private_key" field value including BEGIN/END markers.
+
+    - key: METERED_TURN_API_KEY
+      type: STRING
+      name: Metered.ca TURN API Key (optional)
+      description: >-
+        API key for Metered.ca TURN service (free tier). Alternative to
+        Cloudflare TURN for NAT traversal in video/voice calls.
+        Leave blank to skip Metered.ca (falls back to STUN only).
 
   services:
     # ── MySQL 8 ───────────────────────────────────────────────────────
@@ -316,6 +345,14 @@ spec:
             default: ${ONESIGNAL_APP_ID}
           ONESIGNAL_REST_KEY:
             default: ${ONESIGNAL_REST_KEY}
+          FCM_PROJECT_ID:
+            default: ${FCM_PROJECT_ID}
+          FCM_CLIENT_EMAIL:
+            default: ${FCM_CLIENT_EMAIL}
+          FCM_PRIVATE_KEY:
+            default: ${FCM_PRIVATE_KEY}
+          METERED_TURN_API_KEY:
+            default: ${METERED_TURN_API_KEY}
           TELEGRAM_BOT_TOKEN:
             default: ${TELEGRAM_BOT_TOKEN}
           STICKER_PACKS:
@@ -366,7 +403,7 @@ localization:
       - 👤 **个人资料** — 联系人资料页（朋友圈动态 +「不看此人朋友圈」与「不让他看我的朋友圈」双向隐私控制）
       - 📰 **时间线** — 小红书风格公开发帖区，双列瀑布流布局，最多50个图片/视频+2000字文字，支持匿名发帖、点赞、评论
       - ⏱️ **消息自动删除** — 5 档可选（永不/1天/3天/1周/1月）
-      - 🔔 **消息推送** — Web Push (VAPID) + OneSignal 双通道
+      - 🔔 **消息推送** — Web Push (VAPID) + FCM + OneSignal 三通道
       - 🌐 **多语言** — 中文、英文、日语、韩语、法语、德语、俄语、西班牙语
       - 📱 **iOS 永久免签** — Safari「添加到主屏幕」，无需企业证书
       - 💬 富文本消息、图片、视频、文档文件（PDF/DOCX/XLSX 等带类型图标）、语音、Emoji（200+，8 分类）、Telegram 贴纸包、送达回执、打字状态
@@ -383,7 +420,7 @@ localization:
       2. 注册账号 — 密钥在本地设备生成。
       3. （可选）在 **server** 服务设置 `R2_*` 变量，启用图片/语音/视频上传功能。
       4. （可选）配置 Cloudflare TURN 以支持跨公网视频通话。
-      5. （可选）设置 `VAPID_*` 变量启用浏览器推送通知。
+      5. （可选）设置 `VAPID_*` 变量启用浏览器推送通知，`FCM_*` 启用原生 Android 推送（Capacitor）。
       6. （可选）设置 `TELEGRAM_BOT_TOKEN` 和 `STICKER_PACKS` 启用 Telegram 贴纸包功能。
 
       ## 进阶方案：Zeabur + Vercel 混合部署

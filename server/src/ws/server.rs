@@ -518,6 +518,8 @@ async fn push_offline_message(state: &Arc<AppState>, sender_id: &str, recipient_
     crate::services::push::push_to_user(&state.db, &state.config, recipient_id, &name, "sent you a message").await;
     // OneSignal
     crate::services::onesignal::push_to_user(&state.db, &state.config, recipient_id, &name, "sent you a message").await;
+    // FCM (Capacitor native)
+    crate::services::fcm::push_to_user(&state.db, &state.config, recipient_id, &name, "sent you a message").await;
 }
 
 async fn push_incoming_call(state: &Arc<AppState>, caller_id: &str, msg: &serde_json::Value) {
@@ -531,6 +533,7 @@ async fn push_incoming_call(state: &Arc<AppState>, caller_id: &str, msg: &serde_
     if let Some(to) = msg.get("to").and_then(|v| v.as_str()) {
         crate::services::push::push_to_user(&state.db, &state.config, to, "PaperPhone", &body).await;
         crate::services::onesignal::push_to_user(&state.db, &state.config, to, "PaperPhone", &body).await;
+        crate::services::fcm::push_to_user(&state.db, &state.config, to, "PaperPhone", &body).await;
     } else if let Some(group_id) = msg.get("group_id").and_then(|v| v.as_str()) {
         let members: Vec<(String,)> = sqlx::query_as(
             "SELECT user_id FROM group_members WHERE group_id = ? AND user_id != ?"
@@ -538,6 +541,7 @@ async fn push_incoming_call(state: &Arc<AppState>, caller_id: &str, msg: &serde_
         for (mid,) in members {
             crate::services::push::push_to_user(&state.db, &state.config, &mid, "PaperPhone", &body).await;
             crate::services::onesignal::push_to_user(&state.db, &state.config, &mid, "PaperPhone", &body).await;
+            crate::services::fcm::push_to_user(&state.db, &state.config, &mid, "PaperPhone", &body).await;
         }
     }
 }

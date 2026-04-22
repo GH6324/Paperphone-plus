@@ -13,6 +13,7 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/vapid-key", get(get_vapid_key))
         .route("/onesignal-app-id", get(get_onesignal_app_id))
         .route("/status", get(push_status))
+        .route("/fcm", post(register_fcm))
 }
 
 #[derive(Deserialize)]
@@ -108,6 +109,10 @@ async fn push_status(
         "SELECT COUNT(*) FROM onesignal_players WHERE user_id = ?"
     ).bind(&auth.0.id).fetch_one(&state.db).await.unwrap_or((0,));
 
+    let fcm_count: (i64,) = sqlx::query_as(
+        "SELECT COUNT(*) FROM fcm_tokens WHERE user_id = ?"
+    ).bind(&auth.0.id).fetch_one(&state.db).await.unwrap_or((0,));
+
     Json(serde_json::json!({
         "vapid_configured": state.config.vapid_public_key.is_some() && state.config.vapid_private_key.is_some(),
         "vapid_subject_configured": state.config.vapid_subject.is_some(),
@@ -115,5 +120,28 @@ async fn push_status(
         "cf_turn_configured": state.config.cf_calls_app_id.is_some() && state.config.cf_calls_app_secret.is_some(),
         "user_web_push_subscriptions": web_push_count.0,
         "user_onesignal_players": onesignal_count.0,
+        "user_fcm_tokens": fcm_count.0,
     }))
+}
+
+#[derive(Deserialize)]
+struct FcmReq {
+    fcm_token: String,
+    platform: Option<String>,
+}
+
+async fn register_fcm(
+    State(state): State<Arc<AppState>>,
+    auth: AuthUser,
+    Json(body): Json<FcmReq>,
+) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
+    sqlx::query(
+        "INSERT INTO fcm_tokens (user_id, fcm_token, platform) VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE platform = VALUES(platform), updated_at = NOW()"
+    )
+    .bind(&auth.0.id).bind(&body.fcm_token).bind(&body.platform)
+    .execute(&state.db).await.ok();
+
+    tracing::info!("[FCM] Token registered for user {}: {}...", &auth.0.id, &body.fcm_token[..20.min(body.fcm_token.len())]);
+    Ok(Json(serde_json::json!({ "ok": true })))
 }

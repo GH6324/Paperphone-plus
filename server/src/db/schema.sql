@@ -301,3 +301,16 @@ CREATE TABLE IF NOT EXISTS group_invites (
 -- the schema runner ignores such errors.
 ALTER TABLE friends ADD COLUMN remark VARCHAR(128) DEFAULT NULL AFTER auto_delete;
 ALTER TABLE friends ADD COLUMN message VARCHAR(512) DEFAULT NULL AFTER remark;
+
+-- ── FCM Tokens (Capacitor native push via Firebase Cloud Messaging) ──────
+CREATE TABLE IF NOT EXISTS fcm_tokens (
+  id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id     VARCHAR(36)     NOT NULL,
+  fcm_token   TEXT            NOT NULL,
+  platform    VARCHAR(16)     DEFAULT 'android',
+  created_at  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_fcm_token (user_id, fcm_token(512)),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_fcm_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

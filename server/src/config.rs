@@ -35,6 +35,11 @@ pub struct Config {
     pub vapid_private_key: Option<String>,
     pub vapid_subject: Option<String>,
 
+    // Firebase Cloud Messaging (FCM)
+    pub fcm_project_id: Option<String>,
+    pub fcm_client_email: Option<String>,
+    pub fcm_private_key: Option<String>,
+
     // OneSignal
     pub onesignal_app_id: Option<String>,
     pub onesignal_rest_key: Option<String>,
@@ -78,6 +83,10 @@ impl Config {
             vapid_public_key: env_opt("VAPID_PUBLIC_KEY"),
             vapid_private_key: env_opt("VAPID_PRIVATE_KEY"),
             vapid_subject: env_opt("VAPID_SUBJECT"),
+
+            fcm_project_id: env_opt("FCM_PROJECT_ID"),
+            fcm_client_email: env_opt("FCM_CLIENT_EMAIL"),
+            fcm_private_key: env_opt("FCM_PRIVATE_KEY"),
 
             onesignal_app_id: env_opt("ONESIGNAL_APP_ID"),
             onesignal_rest_key: env_opt("ONESIGNAL_REST_KEY"),

@@ -41,7 +41,7 @@ A WeChat-style end-to-end encrypted instant messaging app with stateless ECDH + 
 | 👥 Group Chat | Up to 2000 members, plain-text messages (no encryption), Do Not Disturb mode, member management |
 | 👫 Friend System | Friend requests require approval with up to 512-char message; custom nicknames; multi-tag grouping |
 | ⏱️ Auto-Delete Messages | 5 tiers (never / 1 day / 3 days / 1 week / 1 month), settable by either party in DMs, owner-only in groups |
-| 🔔 Push Notifications | Web Push (VAPID) + OneSignal dual-channel — reach users even when offline |
+| 🔔 Push Notifications | Web Push (VAPID) + FCM + OneSignal triple-channel — reach users even when offline |
 | 🌐 Multi-Language | Chinese, English, Japanese, Korean, French, German, Russian, Spanish — auto-detect + manual switch |
 | 📱 iOS — No Enterprise Cert | PWA via Safari "Add to Home Screen", works permanently without Apple signing |
 | 💬 Rich Messaging | Text, images, video, document files, voice messages, 200+ emoji, Telegram sticker packs, delivery receipts, typing indicators |
@@ -138,9 +138,13 @@ cd client && npm install && npm run dev
 | `R2_PUBLIC_URL` | R2 public base URL (optional) | — |
 | `CF_CALLS_APP_ID` | Cloudflare Calls App ID (optional) | — |
 | `CF_CALLS_APP_SECRET` | Cloudflare Calls App Secret (optional) | — |
+| `METERED_TURN_API_KEY` | Metered.ca TURN API Key (optional, free alternative) | — |
 | `VAPID_PUBLIC_KEY` | Web Push VAPID public key (optional) | — |
 | `VAPID_PRIVATE_KEY` | Web Push VAPID private key (optional) | — |
 | `VAPID_SUBJECT` | VAPID contact email (optional) | `mailto:admin@paperphone.app` |
+| `FCM_PROJECT_ID` | Firebase project ID (optional, Capacitor Android) | — |
+| `FCM_CLIENT_EMAIL` | Firebase service account email (optional) | — |
+| `FCM_PRIVATE_KEY` | Firebase service account private key (optional) | — |
 | `ONESIGNAL_APP_ID` | OneSignal App ID (optional) | — |
 | `ONESIGNAL_REST_KEY` | OneSignal REST API Key (optional) | — |
 | `TELEGRAM_BOT_TOKEN` | Telegram Bot Token (optional) | — |
