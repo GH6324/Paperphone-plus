@@ -235,10 +235,60 @@ ONESIGNAL_REST_KEY=your_onesignal_rest_api_key
 ```env
 FCM_PROJECT_ID=your_firebase_project_id
 FCM_CLIENT_EMAIL=firebase-adminsdk-xxx@your-project.iam.gserviceaccount.com
-FCM_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----\n"
+FCM_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvQ...base64...\n-----END PRIVATE KEY-----\n"
 ```
 
 > **未配置时**：推送功能静默禁用，不影响其他功能。
+
+#### ⚠️ FCM 私钥换行符问题
+
+Firebase 服务账号 JSON 文件中的 `private_key` 字段包含 RSA 私钥，其 PEM 格式要求每 64 个字符有一个**真实换行符**（`\n`）。但在不同部署环境中，换行符的处理方式各不相同，这是 FCM 推送配置中**最常见的失败原因**。
+
+**问题本质**：`from_rsa_pem()` 解析 PEM 格式时，要求私钥中的 `\n` 是**真实的换行符**（ASCII 0x0A），而不是字面上的两个字符 `\` 和 `n`。如果环境变量中的 `\n` 被当作普通字符串存储，PEM 解析会静默失败，导致 FCM 推送完全不工作，且**不会有任何报错日志**。
+
+**服务端已做兼容处理**：`fcm.rs` 会自动将字面量 `\n` 转换为真实换行符，因此以下两种格式都支持：
+
+<details>
+<summary><b>格式一：单行（推荐用于 Zeabur / Docker / CI 环境变量）</b></summary>
+
+直接从 JSON 文件中复制 `private_key` 的值（保留 `\n` 转义符），粘贴为一行：
+
+```env
+FCM_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQE...\n-----END PRIVATE KEY-----\n
+```
+
+服务端代码会自动将 `\n` 转换为真实换行符。
+
+</details>
+
+<details>
+<summary><b>格式二：多行（适用于 .env 文件或支持多行的平台）</b></summary>
+
+用引号包裹完整的 PEM 内容（每行一个真实换行）：
+
+```env
+FCM_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----
+MIIEvQIBADANBgkqhkiG9w0BAQE...
+...base64 encoded content...
+-----END PRIVATE KEY-----
+"
+```
+
+</details>
+
+**各平台配置指南**：
+
+| 部署平台 | 推荐格式 | 注意事项 |
+|----------|----------|----------|
+| **Zeabur** | 单行（`\n` 转义） | 在 Variables 面板直接粘贴 JSON 中的原始值即可 |
+| **Docker / docker-compose** | 单行或多行均可 | YAML 多行用 `\|` 语法；`.env` 文件建议用单行 |
+| **Vercel / Railway** | 单行（`\n` 转义） | 环境变量输入框通常不支持真实多行 |
+| **Linux .env 文件** | 多行（引号包裹） | 确保引号闭合，注意 shell 转义 |
+
+**排查方法**：如果配置了 FCM 环境变量但 Android 仍收不到推送，可检查服务端日志：
+- 日志出现 `[FCM] No access token available` → 私钥格式错误（换行符问题）
+- 日志出现 `[FCM] ✅ Push sent to user xxx` → FCM 发送成功，问题在客户端
+- 无任何 FCM 相关日志 → `FCM_PROJECT_ID` 未配置或 `fcm_tokens` 表中没有该用户的 token
 
 ---
 
@@ -441,7 +491,7 @@ paperphone-plus/
 | `VAPID_SUBJECT` | VAPID 联系邮箱（可选） | `mailto:admin@paperphone.app` |
 | `FCM_PROJECT_ID` | Firebase 项目 ID（可选，Capacitor Android） | — |
 | `FCM_CLIENT_EMAIL` | Firebase 服务账号邮箱（可选） | — |
-| `FCM_PRIVATE_KEY` | Firebase 服务账号私钥（可选） | — |
+| `FCM_PRIVATE_KEY` | Firebase 服务账号私钥（可选，支持 `\n` 转义和真实换行两种格式，详见[FCM 配置说明](#配置-fcmcapacitor-原生-android-app)） | — |
 | `ONESIGNAL_APP_ID` | OneSignal App ID（可选，Median.co） | — |
 | `ONESIGNAL_REST_KEY` | OneSignal REST API Key（可选） | — |
 | `TELEGRAM_BOT_TOKEN` | Telegram Bot Token（可选，贴纸包代理） | — |

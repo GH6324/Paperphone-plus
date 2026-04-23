@@ -144,11 +144,43 @@ cd client && npm install && npm run dev
 | `VAPID_SUBJECT` | VAPID contact email (optional) | `mailto:admin@paperphone.app` |
 | `FCM_PROJECT_ID` | Firebase project ID (optional, Capacitor Android) | — |
 | `FCM_CLIENT_EMAIL` | Firebase service account email (optional) | — |
-| `FCM_PRIVATE_KEY` | Firebase service account private key (optional) | — |
+| `FCM_PRIVATE_KEY` | Firebase service account private key (optional, supports both `\n` escape and real newlines; see below) | — |
 | `ONESIGNAL_APP_ID` | OneSignal App ID (optional) | — |
 | `ONESIGNAL_REST_KEY` | OneSignal REST API Key (optional) | — |
 | `TELEGRAM_BOT_TOKEN` | Telegram Bot Token (optional) | — |
 | `STICKER_PACKS` | Custom sticker packs (optional, `name:label`) | 8 built-in defaults |
+
+### FCM Private Key Newline Handling
+
+The `private_key` field in Firebase service account JSON contains an RSA private key in PEM format, which requires **real newline characters** (`\n`, ASCII 0x0A) between each 64-character line. However, many deployment platforms (Zeabur, Vercel, Railway, Docker) store environment variables as single-line strings, converting `\n` into the literal two-character sequence `\` + `n`.
+
+**This is the most common cause of FCM push notification failure** — the PEM parser silently fails and no push notifications are sent, with no error logs.
+
+**The server handles this automatically**: `fcm.rs` normalizes literal `\n` sequences back to real newlines before parsing. Both formats work:
+
+- **Single-line (recommended for cloud platforms)**: Paste the raw `private_key` value from the JSON file as-is, with `\n` escapes:
+  ```
+  FCM_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\nMIIEvQ...\n-----END PRIVATE KEY-----\n
+  ```
+
+- **Multi-line (for .env files)**: Wrap the full PEM content in quotes with real newlines:
+  ```
+  FCM_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----
+  MIIEvQ...
+  -----END PRIVATE KEY-----"
+  ```
+
+| Platform | Recommended Format | Notes |
+|----------|-------------------|-------|
+| **Zeabur** | Single-line (`\n` escaped) | Paste JSON value directly in Variables panel |
+| **Docker / docker-compose** | Either | Use YAML `\|` for multi-line; single-line in `.env` |
+| **Vercel / Railway** | Single-line (`\n` escaped) | Input fields typically don't support real newlines |
+| **Linux .env file** | Multi-line (quoted) | Ensure quotes are properly closed |
+
+**Troubleshooting**: If FCM variables are set but Android push isn't working, check server logs:
+- `[FCM] No access token available` → Private key format error (newline issue)
+- `[FCM] ✅ Push sent to user xxx` → FCM sending works, issue is client-side
+- No FCM logs at all → `FCM_PROJECT_ID` not set or no token in `fcm_tokens` table
 
 ---
 
