@@ -4,6 +4,12 @@ version = "1.0.0"
 edition = "2021"
 description = "PaperPhone IM Backend — Secure messaging server in Rust"
 
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
+opt-level = "z"
+
 [dependencies]
 # Web framework
 axum = { version = "0.8", features = ["ws", "multipart", "macros"] }
@@ -53,7 +59,7 @@ image = "0.25"
 base64 = "0.22"
 
 # HTTP client (for Telegram sticker proxy, OneSignal, CF TURN)
-reqwest = { version = "0.12", features = ["json", "multipart"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "multipart", "rustls-tls"] }
 
 # Logging
 tracing = "0.1"

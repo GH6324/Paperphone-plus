@@ -41,9 +41,22 @@ RUN if [ "$TARGETARCH" = "arm64" ]; then \
     fi
 
 # ── Stage 2: Runtime ───────────────────────────────────────────
-FROM debian:bookworm-slim
+# debian:bookworm-slim with only essential runtime libs.
+# Binary is already stripped + LTO'd via [profile.release].
+FROM debian:bookworm-slim AS runtime
 
-RUN apt-get update && apt-get install -y ca-certificates wget && rm -rf /var/lib/apt/lists/*
+# Install ONLY the minimal runtime libraries needed:
+#   - ca-certificates : TLS root certs
+#   - libssl3         : OpenSSL shared lib (required by web-push/ece)
+#   - libcurl4        : HTTP client lib   (required by web-push/isahc)
+#   - curl            : CLI for healthcheck (libcurl4 already present, adds ~200KB)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+         ca-certificates \
+         libssl3 \
+         libcurl4 \
+         curl \
+    && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
 WORKDIR /app
 COPY --from=builder /app/target/output/paperphone-server .
@@ -52,6 +65,6 @@ ENV PORT=3000
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=5 --start-period=15s \
-  CMD wget -qO- http://localhost:3000/health || exit 1
+  CMD curl -sf http://localhost:3000/health || exit 1
 
 CMD ["./paperphone-server"]
