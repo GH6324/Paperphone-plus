@@ -29,7 +29,7 @@ export default function PrivacyPolicy() {
 
         {/* Last updated */}
         <div className="privacy-updated">
-          {t('privacy.last_updated')}: 2026-04-22
+          {t('privacy.last_updated')}: 2026-04-24
         </div>
 
         {/* Introduction */}
@@ -163,14 +163,19 @@ export default function PrivacyPolicy() {
           </div>
           <div className="privacy-card">
             <p>{isZH
-              ? '如果您对本隐私政策有任何疑问或建议，请通过应用内的反馈功能联系我们，或访问我们的开源项目页面提交 Issue。'
-              : 'If you have any questions or suggestions about this Privacy Policy, please contact us through the in-app feedback feature, or submit an issue on our open-source project page.'}</p>
+              ? '如果您对本隐私政策有任何疑问或建议，请通过以下方式联系我们：'
+              : 'If you have any questions or suggestions about this Privacy Policy, please contact us:'}</p>
+            <ul>
+              <li>{isZH ? '应用名称：PaperPhone Plus' : 'App: PaperPhone Plus'}</li>
+              <li>{isZH ? '公司名称：FM619 Technolog LTD' : 'Company: FM619 Technolog LTD'}</li>
+              <li>{isZH ? '电子邮件：' : 'Email: '}<a href="mailto:4722522@gmail.com">4722522@gmail.com</a></li>
+            </ul>
           </div>
         </div>
 
         {/* Footer */}
         <div className="privacy-footer">
-          <p>© {new Date().getFullYear()} PaperPhone. {isZH ? '保留所有权利。' : 'All rights reserved.'}</p>
+          <p>© {new Date().getFullYear()} FM619 Technolog LTD. {isZH ? '保留所有权利。' : 'All rights reserved.'}</p>
         </div>
       </div>
     </div>
