@@ -6,8 +6,8 @@ description = "PaperPhone IM Backend — Secure messaging server in Rust"
 
 [profile.release]
 strip = true
-lto = true
-codegen-units = 1
+lto = "thin"
+codegen-units = 2
 opt-level = "z"
 
 [dependencies]

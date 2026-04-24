@@ -5,8 +5,8 @@ FROM --platform=$BUILDPLATFORM rust:slim-bookworm AS builder
 
 ARG TARGETARCH
 
-# Limit parallel jobs to avoid OOM on low-memory VPS (4GB)
-ENV CARGO_BUILD_JOBS=2
+# Limit parallel jobs to avoid OOM during LTO linking
+ENV CARGO_BUILD_JOBS=1
 
 # Install native build deps + cross-compile toolchain for arm64
 RUN apt-get update \
