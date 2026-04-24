@@ -5,6 +5,32 @@ import { useStore } from '../store'
 import { useI18n } from '../hooks/useI18n'
 import { ChevronLeft, ChevronRight, Film, Heart, ImageIcon, MessageCircle, Pencil, Trash2, VenetianMask, X, Play, FileText, User } from 'lucide-react'
 
+/** Capture the first frame of a video File as a JPEG Blob */
+const generateVideoThumbnail = (file: File): Promise<Blob | null> =>
+  new Promise(resolve => {
+    const video = document.createElement('video')
+    video.preload = 'auto'
+    video.muted = true
+    video.playsInline = true
+    const url = URL.createObjectURL(file)
+    video.src = url
+
+    video.onloadeddata = () => {
+      video.currentTime = 0.1
+    }
+    video.onseeked = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+      canvas.getContext('2d')!.drawImage(video, 0, 0)
+      canvas.toBlob(blob => {
+        URL.revokeObjectURL(url)
+        resolve(blob)
+      }, 'image/jpeg', 0.8)
+    }
+    video.onerror = () => { URL.revokeObjectURL(url); resolve(null) }
+  })
+
 const MAX_IMAGES = 50
 const MAX_TEXT = 2048
 const MAX_VIDEO_MINUTES = 10
@@ -79,8 +105,9 @@ export default function Timeline() {
                   <div style={{ position: 'relative' }}>
                     {isVideo && !cover.thumbnail ? (
                       <video
-                        src={normalizeFileUrl(cover.url)}
+                        src={normalizeFileUrl(cover.url) + '#t=0.1'}
                         muted
+                        playsInline
                         preload="metadata"
                         style={{ width: '100%', display: 'block' }}
                       />
@@ -394,6 +421,7 @@ function PostComposer({ t, onBack, onPublished }: {
   const [text, setText] = useState('')
   const [images, setImages] = useState<string[]>([])
   const [videoUrl, setVideoUrl] = useState('')
+  const [videoThumb, setVideoThumb] = useState('')
   const [videoDuration, setVideoDuration] = useState(0)
   const [mediaMode, setMediaMode] = useState<'none' | 'images' | 'video'>('none')
   const [isAnon, setIsAnon] = useState(false)
@@ -438,6 +466,14 @@ function PostComposer({ t, onBack, onPublished }: {
       setVideoUrl(url)
       setVideoDuration(Math.round(duration))
       setMediaMode('video')
+
+      // Generate and upload thumbnail from first frame
+      const thumbBlob = await generateVideoThumbnail(file)
+      if (thumbBlob) {
+        const thumbFile = new File([thumbBlob], 'thumb.jpg', { type: 'image/jpeg' })
+        const thumbUrl = await uploadOneFile(thumbFile)
+        setVideoThumb(thumbUrl)
+      }
     } catch { setError(t('timeline.upload_failed')) }
     e.target.value = ''
   }
@@ -457,7 +493,7 @@ function PostComposer({ t, onBack, onPublished }: {
     if (images.length <= 1) setMediaMode('none')
   }
 
-  const removeVideo = () => { setVideoUrl(''); setVideoDuration(0); setMediaMode('none') }
+  const removeVideo = () => { setVideoUrl(''); setVideoThumb(''); setVideoDuration(0); setMediaMode('none') }
 
   const handlePublish = async () => {
     if (!text.trim() && images.length === 0 && !videoUrl) return
@@ -470,7 +506,7 @@ function PostComposer({ t, onBack, onPublished }: {
       images.forEach(url => media.push({ url, media_type: 'image' }))
     }
     if (mediaMode === 'video' && videoUrl) {
-      media.push({ url: videoUrl, media_type: 'video', duration: videoDuration })
+      media.push({ url: videoUrl, media_type: 'video', duration: videoDuration, thumbnail: videoThumb || null })
     }
 
     try {

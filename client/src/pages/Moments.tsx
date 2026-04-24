@@ -9,6 +9,32 @@ const MAX_IMAGES = 9
 const MAX_TEXT = 1024
 const MAX_VIDEO_MINUTES = 10
 
+/** Capture the first frame of a video File as a JPEG Blob */
+const generateVideoThumbnail = (file: File): Promise<Blob | null> =>
+  new Promise(resolve => {
+    const video = document.createElement('video')
+    video.preload = 'auto'
+    video.muted = true
+    video.playsInline = true
+    const url = URL.createObjectURL(file)
+    video.src = url
+
+    video.onloadeddata = () => {
+      video.currentTime = 0.1
+    }
+    video.onseeked = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+      canvas.getContext('2d')!.drawImage(video, 0, 0)
+      canvas.toBlob(blob => {
+        URL.revokeObjectURL(url)
+        resolve(blob)
+      }, 'image/jpeg', 0.8)
+    }
+    video.onerror = () => { URL.revokeObjectURL(url); resolve(null) }
+  })
+
 interface Tag { id: number; name: string; color: string }
 
 export default function Moments() {
@@ -293,6 +319,14 @@ function MomentComposer({ t, friends, onBack, onPublished }: {
       setVideoUrl(url)
       setVideoDuration(Math.round(duration))
       setMediaMode('video')
+
+      // Generate and upload thumbnail from first frame
+      const thumbBlob = await generateVideoThumbnail(file)
+      if (thumbBlob) {
+        const thumbFile = new File([thumbBlob], 'thumb.jpg', { type: 'image/jpeg' })
+        const thumbUrl = await uploadOneFile(thumbFile)
+        setVideoThumb(thumbUrl)
+      }
     } catch {
       setError(t('moments.upload_failed'))
     }
