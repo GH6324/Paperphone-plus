@@ -2,3 +2,4 @@ target/
 .env
 *.local
 uploads/
+.DS_Store
