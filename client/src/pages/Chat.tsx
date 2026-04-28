@@ -116,6 +116,7 @@ export default function Chat() {
   // Voice recording
   const [isRecording, setIsRecording] = useState(false)
   const [recordDuration, setRecordDuration] = useState(0)
+  const [recordVoiceMode, setRecordVoiceMode] = useState<'normal'|'slow'|'fast'>('normal')
 
   const bottomRef = useRef<HTMLDivElement>(null)
   const typingTimer = useRef<any>(null)
@@ -127,6 +128,10 @@ export default function Chat() {
   const recChunksRef = useRef<Blob[]>([])
   const recStartRef = useRef<number>(0)
   const recIntervalRef = useRef<any>(null)
+  const audioCtxRef = useRef<AudioContext | null>(null)
+  const mediaStreamRef = useRef<MediaStream | null>(null)
+  const recordVoiceModeRef = useRef<'normal'|'slow'|'fast'>('normal')
+  recordVoiceModeRef.current = recordVoiceMode
 
   const friend = friends.find(f => f.id === id)
   const group = groups.find(g => g.id === id)
@@ -333,10 +338,59 @@ export default function Chat() {
   }
 
   // ── Voice recording ──
+  const applyVoiceEffect = (stream: MediaStream): MediaStream => {
+    try {
+      const audioCtx = new AudioContext()
+      audioCtxRef.current = audioCtx
+      const source = audioCtx.createMediaStreamSource(stream)
+      const destination = audioCtx.createMediaStreamDestination()
+
+      const bufferSize = 4096
+      const processor = audioCtx.createScriptProcessor(bufferSize, 1, 1)
+      let outputPhase = 0
+      const rates = { slow: 0.8, normal: 1.0, fast: 1.2 }
+
+      processor.onaudioprocess = (e) => {
+        const input = e.inputBuffer.getChannelData(0)
+        const output = e.outputBuffer.getChannelData(0)
+        const rate = rates[recordVoiceModeRef.current]
+
+        for (let i = 0; i < output.length; i++) {
+          const readIndex = outputPhase
+          const intIndex = Math.floor(readIndex)
+          const frac = readIndex - intIndex
+
+          if (intIndex < input.length - 1) {
+            output[i] = input[intIndex] * (1 - frac) + input[intIndex + 1] * frac
+          } else if (intIndex < input.length) {
+            output[i] = input[intIndex]
+          } else {
+            output[i] = 0
+          }
+          outputPhase += rate
+        }
+        outputPhase = outputPhase % input.length
+      }
+
+      source.connect(processor)
+      processor.connect(destination)
+
+      const processedStream = new MediaStream()
+      destination.stream.getAudioTracks().forEach(t => processedStream.addTrack(t))
+
+      return processedStream
+    } catch (err) {
+      console.warn('[Chat] Voice effect failed:', err)
+      return stream
+    }
+  }
+
   const startVoice = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const rec = new MediaRecorder(stream)
+      mediaStreamRef.current = stream
+      const processedStream = applyVoiceEffect(stream)
+      const rec = new MediaRecorder(processedStream)
       recChunksRef.current = []
       recStartRef.current = Date.now()
       setRecordDuration(0)
@@ -370,6 +424,15 @@ export default function Chat() {
       }
     }
     rec.stream.getTracks().forEach(t => t.stop())
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(t => t.stop())
+      mediaStreamRef.current = null
+    }
+    if (audioCtxRef.current) {
+      audioCtxRef.current.close().catch(() => {})
+      audioCtxRef.current = null
+    }
+    setRecordVoiceMode('normal')
   }
 
   const handleTyping = () => {
@@ -470,7 +533,12 @@ export default function Chat() {
       return <img src={normalizeFileUrl(displayText)} alt="sticker" style={{ maxWidth: 160, maxHeight: 160, display: 'block', background: 'transparent' }} loading="lazy" />
     }
     if (msg.msg_type === 'voice') {
-      return <VoiceBubble src={normalizeFileUrl(displayText)} t={t} />
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 20 }}><Mic size={20} /></span>
+          <audio src={normalizeFileUrl(displayText)} controls style={{ height: 32, maxWidth: 200 }} />
+        </div>
+      )
     }
     if (msg.msg_type === 'video') {
       const meta = parseFileMeta(displayText)
@@ -576,6 +644,29 @@ export default function Chat() {
               {Math.floor(recordDuration / 60).toString().padStart(2, '0')}:{(recordDuration % 60).toString().padStart(2, '0')}
             </div>
             <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('chat.recording')}</div>
+
+            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+              {(['slow', 'normal', 'fast'] as const).map(mode => (
+                <button
+                  key={mode}
+                  onClick={() => setRecordVoiceMode(mode)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: 16,
+                    border: 'none',
+                    background: recordVoiceMode === mode ? 'linear-gradient(135deg, #667eea, #764ba2)' : 'rgba(128,128,128,0.2)',
+                    color: recordVoiceMode === mode ? '#fff' : 'var(--text-secondary)',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    boxShadow: recordVoiceMode === mode ? '0 2px 8px rgba(102,126,234,0.4)' : 'none',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  {mode === 'slow' ? '🐢 ' + (t('call.voice_slow') || '0.8x') : mode === 'fast' ? '🐇 ' + (t('call.voice_fast') || '1.2x') : '🔊 ' + (t('call.voice_normal') || '1.0x')}
+                </button>
+              ))}
+            </div>
             <button onClick={stopVoice} style={{
               marginTop: 8, padding: '10px 36px', borderRadius: 12, border: 'none',
               background: 'var(--accent)', color: '#fff', fontWeight: 600, fontSize: 14, cursor: 'pointer',
@@ -852,54 +943,6 @@ export default function Chat() {
   )
 }
 
-const VOICE_SPEEDS = [1.0, 0.8, 1.2]
-const VOICE_SPEED_LABELS = ['1.0x', '0.8x', '1.2x']
-
-function VoiceBubble({ src, t }: { src: string; t: (key: string) => string }) {
-  const audioRef = useRef<HTMLAudioElement>(null)
-  const [speedIdx, setSpeedIdx] = useState(0)
-
-  const cycleSpeed = () => {
-    const next = (speedIdx + 1) % VOICE_SPEEDS.length
-    setSpeedIdx(next)
-    if (audioRef.current) {
-      audioRef.current.playbackRate = VOICE_SPEEDS[next]
-    }
-  }
-
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <span style={{ fontSize: 20 }}><Mic size={20} /></span>
-      <audio
-        ref={audioRef}
-        src={src}
-        controls
-        style={{ height: 32, maxWidth: 180 }}
-        onPlay={() => {
-          if (audioRef.current) audioRef.current.playbackRate = VOICE_SPEEDS[speedIdx]
-        }}
-      />
-      <button
-        onClick={cycleSpeed}
-        style={{
-          minWidth: 42, height: 26, borderRadius: 13, border: 'none',
-          background: speedIdx === 0
-            ? 'var(--bg-card, rgba(0,0,0,0.08))'
-            : 'linear-gradient(135deg, #667eea, #764ba2)',
-          color: speedIdx === 0 ? 'var(--text-secondary, #666)' : '#fff',
-          fontSize: 11, fontWeight: 700, cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          transition: 'all 0.2s ease',
-          boxShadow: speedIdx !== 0 ? '0 2px 8px rgba(102,126,234,0.4)' : 'none',
-          flexShrink: 0,
-        }}
-        title={t('chat.voice_speed') || 'Speed'}
-      >
-        {VOICE_SPEED_LABELS[speedIdx]}
-      </button>
-    </div>
-  )
-}
 
 function getFileIcon(fileType: string): ReactNode {
   if (fileType.startsWith('image/')) return <LucideImage size={22} />
