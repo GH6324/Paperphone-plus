@@ -60,6 +60,7 @@ export const en: Record<string, string> = {
   'chat.file': 'File',
   'chat.recording': 'Recording...',
   'chat.stop_recording': 'Stop',
+  'chat.voice_speed': 'Speed',
   'chat.mic_failed': 'Cannot access microphone',
   'chat.group_unencrypted_warning': 'Group chats are not encrypted. Avoid sharing private information.',
 
@@ -231,6 +232,10 @@ export const en: Record<string, string> = {
   'call.participants': 'participants',
   'call.joining': 'Joining...',
   'call.group_ended': 'Group call ended',
+  'call.voice_change': 'Voice',
+  'call.voice_slow': 'Slow 0.8x',
+  'call.voice_normal': 'Normal',
+  'call.voice_fast': 'Fast 1.2x',
 
   'common.ok': 'OK',
   'common.cancel': 'Cancel',

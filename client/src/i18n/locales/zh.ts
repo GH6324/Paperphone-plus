@@ -64,6 +64,7 @@ export const zh: Record<string, string> = {
   'chat.file': '文件',
   'chat.recording': '正在录音...',
   'chat.stop_recording': '停止录音',
+  'chat.voice_speed': '倍速',
   'chat.mic_failed': '无法访问麦克风',
   'chat.group_unencrypted_warning': '群聊会话不加密，请不要谈论隐私信息。',
 
@@ -242,6 +243,10 @@ export const zh: Record<string, string> = {
   'call.participants': '位参与者',
   'call.joining': '加入中...',
   'call.group_ended': '群通话已结束',
+  'call.voice_change': '变声',
+  'call.voice_slow': '慢速 0.8x',
+  'call.voice_normal': '正常',
+  'call.voice_fast': '快速 1.2x',
 
   // Common
   'common.ok': '确定',

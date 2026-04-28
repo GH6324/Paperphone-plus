@@ -8,7 +8,7 @@ import { useRef, useEffect } from 'react'
 import { useGroupCallContext, formatDuration } from '../contexts/GroupCallContext'
 import { useStore } from '../store'
 import { useI18n } from '../hooks/useI18n'
-import { Phone, PhoneOff, PhoneIncoming, Mic, MicOff, CameraOff, Video as VideoIcon, Users } from 'lucide-react'
+import { Phone, PhoneOff, PhoneIncoming, Mic, MicOff, CameraOff, Video as VideoIcon, Users, AudioLines } from 'lucide-react'
 
 export default function GroupCallOverlay() {
   const gc = useGroupCallContext()
@@ -125,6 +125,15 @@ export default function GroupCallOverlay() {
               {gc.isCameraOff ? <CameraOff size={22} /> : <VideoIcon size={22} />}
             </button>
           )}
+          <button onClick={gc.toggleVoiceMode}
+            style={voiceBtnStyle(gc.voiceMode)}>
+            <span style={{ fontSize: 14, fontWeight: 700 }}>
+              {gc.voiceMode === 'slow' ? '🐢' : gc.voiceMode === 'fast' ? '🐇' : '🔊'}
+            </span>
+            <span style={{ fontSize: 10, marginTop: 1 }}>
+              {gc.voiceMode === 'slow' ? '0.8x' : gc.voiceMode === 'fast' ? '1.2x' : '1.0x'}
+            </span>
+          </button>
           <button onClick={gc.leaveGroupCall} style={btnStyle('#ef4444')}>
             <PhoneOff size={28} />
           </button>
@@ -307,5 +316,20 @@ function smallBtnStyle(active: boolean): React.CSSProperties {
     color: '#fff', cursor: 'pointer',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     backdropFilter: 'blur(10px)',
+  }
+}
+
+function voiceBtnStyle(mode: string): React.CSSProperties {
+  const isActive = mode !== 'normal'
+  return {
+    width: 52, height: 52, borderRadius: '50%', border: 'none',
+    background: isActive
+      ? 'linear-gradient(135deg, #667eea, #764ba2)'
+      : 'rgba(255,255,255,0.2)',
+    color: '#fff', cursor: 'pointer',
+    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+    backdropFilter: 'blur(10px)',
+    transition: 'all 0.2s ease',
+    boxShadow: isActive ? '0 2px 12px rgba(102,126,234,0.5)' : 'none',
   }
 }

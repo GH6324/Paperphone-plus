@@ -5,7 +5,7 @@
  * can be received from any page, not just the Chat page.
  */
 import { createContext, useContext, ReactNode } from 'react'
-import { useGroupCall, GroupCallStatus, formatDuration } from '../hooks/useGroupCall'
+import { useGroupCall, GroupCallStatus, VoiceMode, formatDuration } from '../hooks/useGroupCall'
 import { useStore } from '../store'
 
 type GroupCallContextType = ReturnType<typeof useGroupCall>
@@ -30,4 +30,4 @@ export function useGroupCallContext(): GroupCallContextType {
 }
 
 export { formatDuration }
-export type { GroupCallStatus }
+export type { GroupCallStatus, VoiceMode }

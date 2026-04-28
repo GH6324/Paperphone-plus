@@ -470,12 +470,7 @@ export default function Chat() {
       return <img src={normalizeFileUrl(displayText)} alt="sticker" style={{ maxWidth: 160, maxHeight: 160, display: 'block', background: 'transparent' }} loading="lazy" />
     }
     if (msg.msg_type === 'voice') {
-      return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 20 }}><Mic size={20} /></span>
-          <audio src={normalizeFileUrl(displayText)} controls style={{ height: 32, maxWidth: 200 }} />
-        </div>
-      )
+      return <VoiceBubble src={normalizeFileUrl(displayText)} t={t} />
     }
     if (msg.msg_type === 'video') {
       const meta = parseFileMeta(displayText)
@@ -853,6 +848,55 @@ export default function Chat() {
           style={{ fontSize: 18, color: isRecording ? '#ef4444' : undefined }}><Mic size={18} /></button>
         <button className="send-btn" id="send-btn" onClick={() => sendMessage()} disabled={sending}><SendHorizonal size={18} /></button>
       </div>
+    </div>
+  )
+}
+
+const VOICE_SPEEDS = [1.0, 0.8, 1.2]
+const VOICE_SPEED_LABELS = ['1.0x', '0.8x', '1.2x']
+
+function VoiceBubble({ src, t }: { src: string; t: (key: string) => string }) {
+  const audioRef = useRef<HTMLAudioElement>(null)
+  const [speedIdx, setSpeedIdx] = useState(0)
+
+  const cycleSpeed = () => {
+    const next = (speedIdx + 1) % VOICE_SPEEDS.length
+    setSpeedIdx(next)
+    if (audioRef.current) {
+      audioRef.current.playbackRate = VOICE_SPEEDS[next]
+    }
+  }
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <span style={{ fontSize: 20 }}><Mic size={20} /></span>
+      <audio
+        ref={audioRef}
+        src={src}
+        controls
+        style={{ height: 32, maxWidth: 180 }}
+        onPlay={() => {
+          if (audioRef.current) audioRef.current.playbackRate = VOICE_SPEEDS[speedIdx]
+        }}
+      />
+      <button
+        onClick={cycleSpeed}
+        style={{
+          minWidth: 42, height: 26, borderRadius: 13, border: 'none',
+          background: speedIdx === 0
+            ? 'var(--bg-card, rgba(0,0,0,0.08))'
+            : 'linear-gradient(135deg, #667eea, #764ba2)',
+          color: speedIdx === 0 ? 'var(--text-secondary, #666)' : '#fff',
+          fontSize: 11, fontWeight: 700, cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'all 0.2s ease',
+          boxShadow: speedIdx !== 0 ? '0 2px 8px rgba(102,126,234,0.4)' : 'none',
+          flexShrink: 0,
+        }}
+        title={t('chat.voice_speed') || 'Speed'}
+      >
+        {VOICE_SPEED_LABELS[speedIdx]}
+      </button>
     </div>
   )
 }

@@ -21,7 +21,7 @@ export const de: Record<string, string> = {
   'chat.no_recent_emoji': 'Keine kürzlichen Emojis', 'chat.loading_stickers': 'Laden...', 'chat.no_stickers': 'Keine statischen Sticker in diesem Pack',
   'chat.uploading_image': 'Bild wird hochgeladen...', 'chat.uploading_video': 'Video wird hochgeladen...', 'chat.uploading_file': 'Datei wird hochgeladen...', 'chat.uploading_voice': 'Sprachnachricht wird hochgeladen...', 'chat.upload_failed': 'Hochladen fehlgeschlagen',
   'chat.attach_image': 'Bild senden', 'chat.attach_video': 'Video', 'chat.attach_file': 'Datei', 'chat.attach_voice': 'Sprache', 'chat.attach_more': 'Mehr', 'chat.file': 'Datei',
-  'chat.recording': 'Aufnahme...', 'chat.stop_recording': 'Stopp', 'chat.mic_failed': 'Kein Zugriff auf Mikrofon',
+  'chat.recording': 'Aufnahme...', 'chat.stop_recording': 'Stopp', 'chat.voice_speed': 'Tempo', 'chat.mic_failed': 'Kein Zugriff auf Mikrofon',
   'chat.group_unencrypted_warning': 'Gruppenchats sind nicht verschlüsselt. Teilen Sie keine privaten Informationen.',
 
   'contacts.title': 'Kontakte', 'contacts.friends': 'Freunde', 'contacts.groups': 'Gruppen',
@@ -71,6 +71,7 @@ export const de: Record<string, string> = {
   'call.mute': 'Stumm', 'call.camera': 'Kamera',
   'call.group_incoming': 'Gruppenanruf-Einladung', 'call.group_voice': 'Gruppen-Sprachanruf', 'call.group_video': 'Gruppen-Videoanruf',
   'call.participants': 'Teilnehmer', 'call.joining': 'Beitreten...', 'call.group_ended': 'Gruppenanruf beendet',
+  'call.voice_change': 'Stimme', 'call.voice_slow': 'Langsam 0.8x', 'call.voice_normal': 'Normal', 'call.voice_fast': 'Schnell 1.2x',
 
   'common.ok': 'OK', 'common.cancel': 'Abbrechen', 'common.save': 'Speichern', 'common.delete': 'Löschen',
   'common.edit': 'Bearbeiten', 'common.loading': 'Laden...', 'common.error': 'Fehler',

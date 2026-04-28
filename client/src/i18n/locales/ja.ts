@@ -20,7 +20,7 @@ export const ja: Record<string, string> = {
   'chat.no_recent_emoji': '最近の絵文字なし', 'chat.loading_stickers': '読み込み中...', 'chat.no_stickers': 'このパックに静的スタンプはありません',
   'chat.uploading_image': '画像をアップロード中...', 'chat.uploading_video': '動画をアップロード中...', 'chat.uploading_file': 'ファイルをアップロード中...', 'chat.uploading_voice': '音声をアップロード中...', 'chat.upload_failed': 'アップロードに失敗しました',
   'chat.attach_image': '画像を送信', 'chat.attach_video': '動画', 'chat.attach_file': 'ファイル', 'chat.attach_voice': '音声', 'chat.attach_more': 'その他', 'chat.file': 'ファイル',
-  'chat.recording': '録音中...', 'chat.stop_recording': '停止', 'chat.mic_failed': 'マイクにアクセスできません',
+  'chat.recording': '録音中...', 'chat.stop_recording': '停止', 'chat.voice_speed': '倍速', 'chat.mic_failed': 'マイクにアクセスできません',
   'chat.group_unencrypted_warning': 'グループチャットは暗号化されていません。プライバシー情報の共有は避けてください。',
 
   'contacts.title': '連絡先', 'contacts.friends': '友達', 'contacts.groups': 'グループ',
@@ -68,6 +68,7 @@ export const ja: Record<string, string> = {
   'call.mute': 'ミュート', 'call.camera': 'カメラ',
   'call.group_incoming': 'グループ通話の招待', 'call.group_voice': 'グループ音声通話', 'call.group_video': 'グループビデオ通話',
   'call.participants': '人の参加者', 'call.joining': '参加中...', 'call.group_ended': 'グループ通話が終了しました',
+  'call.voice_change': 'ボイスチェンジ', 'call.voice_slow': '低速 0.8x', 'call.voice_normal': '通常', 'call.voice_fast': '高速 1.2x',
 
   'common.ok': 'OK', 'common.cancel': 'キャンセル', 'common.save': '保存', 'common.delete': '削除',
   'common.edit': '編集', 'common.loading': '読み込み中...', 'common.error': 'エラー',

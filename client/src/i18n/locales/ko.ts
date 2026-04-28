@@ -20,7 +20,7 @@ export const ko: Record<string, string> = {
   'chat.no_recent_emoji': '최근 이모지 없음', 'chat.loading_stickers': '로딩 중...', 'chat.no_stickers': '이 팩에 정적 스티커가 없습니다',
   'chat.uploading_image': '이미지 업로드 중...', 'chat.uploading_video': '동영상 업로드 중...', 'chat.uploading_file': '파일 업로드 중...', 'chat.uploading_voice': '음성 업로드 중...', 'chat.upload_failed': '업로드 실패',
   'chat.attach_image': '이미지 전송', 'chat.attach_video': '동영상', 'chat.attach_file': '파일', 'chat.attach_voice': '음성', 'chat.attach_more': '더보기', 'chat.file': '파일',
-  'chat.recording': '녹음 중...', 'chat.stop_recording': '중지', 'chat.mic_failed': '마이크에 접근할 수 없습니다',
+  'chat.recording': '녹음 중...', 'chat.stop_recording': '중지', 'chat.voice_speed': '배속', 'chat.mic_failed': '마이크에 접근할 수 없습니다',
   'chat.group_unencrypted_warning': '그룹 채팅은 암호화되지 않습니다. 개인정보를 공유하지 마세요.',
 
   'contacts.title': '연락처', 'contacts.friends': '친구', 'contacts.groups': '그룹',
@@ -69,6 +69,7 @@ export const ko: Record<string, string> = {
   'call.mute': '음소거', 'call.camera': '카메라',
   'call.group_incoming': '그룹 통화 초대', 'call.group_voice': '그룹 음성 통화', 'call.group_video': '그룹 영상 통화',
   'call.participants': '명 참여', 'call.joining': '참여 중...', 'call.group_ended': '그룹 통화가 종료되었습니다',
+  'call.voice_change': '변성', 'call.voice_slow': '느림 0.8x', 'call.voice_normal': '보통', 'call.voice_fast': '빠름 1.2x',
 
   'common.ok': '확인', 'common.cancel': '취소', 'common.save': '저장', 'common.delete': '삭제',
   'common.edit': '편집', 'common.loading': '로딩 중...', 'common.error': '오류',

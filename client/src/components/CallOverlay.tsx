@@ -7,7 +7,7 @@
 import { useCallContext, formatDuration } from '../contexts/CallContext'
 import { useStore } from '../store'
 import { useI18n } from '../hooks/useI18n'
-import { Phone, PhoneOff, PhoneIncoming, Mic, MicOff, CameraOff, Video as VideoIcon } from 'lucide-react'
+import { Phone, PhoneOff, PhoneIncoming, Mic, MicOff, CameraOff, Video as VideoIcon, AudioLines } from 'lucide-react'
 
 export default function CallOverlay() {
   const call = useCallContext()
@@ -113,6 +113,15 @@ export default function CallOverlay() {
                 {call.isCameraOff ? <CameraOff size={22} /> : <VideoIcon size={22} />}
               </button>
             )}
+            <button onClick={call.toggleVoiceMode}
+              style={voiceBtnStyle(call.voiceMode)}>
+              <span style={{ fontSize: 14, fontWeight: 700 }}>
+                {call.voiceMode === 'slow' ? '🐢' : call.voiceMode === 'fast' ? '🐇' : '🔊'}
+              </span>
+              <span style={{ fontSize: 10, marginTop: 1 }}>
+                {call.voiceMode === 'slow' ? '0.8x' : call.voiceMode === 'fast' ? '1.2x' : t('call.voice_normal') || '1.0x'}
+              </span>
+            </button>
             <button onClick={call.hangUp} style={btnStyle('#ef4444')}>
               <PhoneOff size={28} />
             </button>
@@ -147,5 +156,20 @@ function smallBtnStyle(active: boolean): React.CSSProperties {
     color: '#fff', cursor: 'pointer',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     backdropFilter: 'blur(10px)',
+  }
+}
+
+function voiceBtnStyle(mode: string): React.CSSProperties {
+  const isActive = mode !== 'normal'
+  return {
+    width: 52, height: 52, borderRadius: '50%', border: 'none',
+    background: isActive
+      ? 'linear-gradient(135deg, #667eea, #764ba2)'
+      : 'rgba(255,255,255,0.2)',
+    color: '#fff', cursor: 'pointer',
+    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+    backdropFilter: 'blur(10px)',
+    transition: 'all 0.2s ease',
+    boxShadow: isActive ? '0 2px 12px rgba(102,126,234,0.5)' : 'none',
   }
 }

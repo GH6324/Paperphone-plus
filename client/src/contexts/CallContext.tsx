@@ -5,7 +5,7 @@
  * received from any page, not just the Chat page.
  */
 import { createContext, useContext, ReactNode } from 'react'
-import { useCall, CallState, formatDuration } from '../hooks/useCall'
+import { useCall, CallState, VoiceMode, formatDuration } from '../hooks/useCall'
 import { useStore } from '../store'
 
 type CallContextType = ReturnType<typeof useCall>
@@ -30,4 +30,4 @@ export function useCallContext(): CallContextType {
 }
 
 export { formatDuration }
-export type { CallState }
+export type { CallState, VoiceMode }

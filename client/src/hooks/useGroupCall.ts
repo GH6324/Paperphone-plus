@@ -18,6 +18,9 @@ import { get } from '../api/http'
 import { playCallRingtone, stopRingtone, showBrowserNotification } from '../utils/notification'
 
 export type GroupCallStatus = 'idle' | 'ringing' | 'connecting' | 'connected'
+export type VoiceMode = 'normal' | 'slow' | 'fast'
+
+const VOICE_RATES: Record<VoiceMode, number> = { slow: 0.8, normal: 1.0, fast: 1.2 }
 
 export interface PeerInfo {
   peerId: string
@@ -39,6 +42,7 @@ export function useGroupCall(userId: string | undefined) {
   const [isVideo, setIsVideo] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
   const [isCameraOff, setIsCameraOff] = useState(false)
+  const [voiceMode, setVoiceMode] = useState<VoiceMode>('normal')
   const [duration, setDuration] = useState(0)
   const [peers, setPeers] = useState<Map<string, PeerInfo>>(new Map())
   const [inviterName, setInviterName] = useState('')
@@ -53,11 +57,14 @@ export function useGroupCall(userId: string | undefined) {
   const groupIdRef = useRef<string | null>(null)
   const isVideoRef = useRef(false)
   const iceCandidateQueues = useRef<Map<string, RTCIceCandidateInit[]>>(new Map())
+  const audioCtxRef = useRef<AudioContext | null>(null)
+  const voiceModeRef = useRef<VoiceMode>('normal')
 
   statusRef.current = status
   callIdRef.current = callId
   groupIdRef.current = groupId
   isVideoRef.current = isVideo
+  voiceModeRef.current = voiceMode
 
   // ── Fetch TURN credentials ──
   const getIceServers = async (): Promise<RTCIceServer[]> => {
@@ -90,6 +97,54 @@ export function useGroupCall(userId: string | undefined) {
     } catch (err) {
       console.error('[GroupCall] getUserMedia failed:', err)
       return null
+    }
+  }
+
+  // ── Voice changer: process local audio through AudioContext ──
+  const applyVoiceEffect = (stream: MediaStream): MediaStream => {
+    try {
+      const audioCtx = new AudioContext()
+      audioCtxRef.current = audioCtx
+      const source = audioCtx.createMediaStreamSource(stream)
+      const destination = audioCtx.createMediaStreamDestination()
+
+      const bufferSize = 4096
+      const processor = audioCtx.createScriptProcessor(bufferSize, 1, 1)
+      let outputPhase = 0
+
+      processor.onaudioprocess = (e) => {
+        const input = e.inputBuffer.getChannelData(0)
+        const output = e.outputBuffer.getChannelData(0)
+        const rate = VOICE_RATES[voiceModeRef.current]
+
+        for (let i = 0; i < output.length; i++) {
+          const readIndex = outputPhase
+          const intIndex = Math.floor(readIndex)
+          const frac = readIndex - intIndex
+
+          if (intIndex < input.length - 1) {
+            output[i] = input[intIndex] * (1 - frac) + input[intIndex + 1] * frac
+          } else if (intIndex < input.length) {
+            output[i] = input[intIndex]
+          } else {
+            output[i] = 0
+          }
+          outputPhase += rate
+        }
+        outputPhase = outputPhase % input.length
+      }
+
+      source.connect(processor)
+      processor.connect(destination)
+
+      const processedStream = new MediaStream()
+      destination.stream.getAudioTracks().forEach(t => processedStream.addTrack(t))
+      stream.getVideoTracks().forEach(t => processedStream.addTrack(t))
+
+      return processedStream
+    } catch (err) {
+      console.warn('[GroupCall] Voice effect failed, using original stream:', err)
+      return stream
     }
   }
 
@@ -131,10 +186,11 @@ export function useGroupCall(userId: string | undefined) {
       }
     }
 
-    // Add local tracks
+    // Add local tracks (use voice-processed stream for audio)
     if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach(track => {
-        pc.addTrack(track, localStreamRef.current!)
+      const processedStream = applyVoiceEffect(localStreamRef.current)
+      processedStream.getTracks().forEach(track => {
+        pc.addTrack(track, processedStream)
       })
     }
 
@@ -191,6 +247,12 @@ export function useGroupCall(userId: string | undefined) {
     localStreamRef.current?.getTracks().forEach(t => t.stop())
     localStreamRef.current = null
 
+    // Close AudioContext for voice effect
+    if (audioCtxRef.current) {
+      audioCtxRef.current.close().catch(() => {})
+      audioCtxRef.current = null
+    }
+
     if (durationTimer.current) clearInterval(durationTimer.current)
     durationTimer.current = null
 
@@ -204,6 +266,7 @@ export function useGroupCall(userId: string | undefined) {
     setInviterName('')
     setInviterAvatar('')
     setGroupName('')
+    setVoiceMode('normal')
   }, [])
 
   // ── Start group call (initiator) ──
@@ -278,6 +341,14 @@ export function useGroupCall(userId: string | undefined) {
   const toggleCamera = useCallback(() => {
     localStreamRef.current?.getVideoTracks().forEach(t => { t.enabled = !t.enabled })
     setIsCameraOff(c => !c)
+  }, [])
+
+  const toggleVoiceMode = useCallback(() => {
+    setVoiceMode(m => {
+      const modes: VoiceMode[] = ['normal', 'slow', 'fast']
+      const idx = modes.indexOf(m)
+      return modes[(idx + 1) % modes.length]
+    })
   }, [])
 
   // ── WebSocket signaling listeners ──
@@ -458,12 +529,14 @@ export function useGroupCall(userId: string | undefined) {
     inviterName,
     inviterAvatar,
     groupName,
+    voiceMode,
     startGroupCall,
     acceptGroupCall,
     rejectGroupCall,
     leaveGroupCall,
     toggleMute,
     toggleCamera,
+    toggleVoiceMode,
     cleanup,
   }
 }

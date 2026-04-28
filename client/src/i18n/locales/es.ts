@@ -21,7 +21,7 @@ export const es: Record<string, string> = {
   'chat.no_recent_emoji': 'Sin emojis recientes', 'chat.loading_stickers': 'Cargando...', 'chat.no_stickers': 'No hay stickers estáticos en este paquete',
   'chat.uploading_image': 'Subiendo imagen...', 'chat.uploading_video': 'Subiendo vídeo...', 'chat.uploading_file': 'Subiendo archivo...', 'chat.uploading_voice': 'Subiendo nota de voz...', 'chat.upload_failed': 'Error al subir',
   'chat.attach_image': 'Enviar imagen', 'chat.attach_video': 'Vídeo', 'chat.attach_file': 'Archivo', 'chat.attach_voice': 'Voz', 'chat.attach_more': 'Más', 'chat.file': 'Archivo',
-  'chat.recording': 'Grabando...', 'chat.stop_recording': 'Detener', 'chat.mic_failed': 'No se puede acceder al micrófono',
+  'chat.recording': 'Grabando...', 'chat.stop_recording': 'Detener', 'chat.voice_speed': 'Velocidad', 'chat.mic_failed': 'No se puede acceder al micrófono',
   'chat.group_unencrypted_warning': 'Los chats grupales no están cifrados. Evita compartir información privada.',
 
   'contacts.title': 'Contactos', 'contacts.friends': 'Amigos', 'contacts.groups': 'Grupos',
@@ -71,6 +71,7 @@ export const es: Record<string, string> = {
   'call.mute': 'Silenciar', 'call.camera': 'Cámara',
   'call.group_incoming': 'Invitación a llamada grupal', 'call.group_voice': 'Llamada de voz grupal', 'call.group_video': 'Videollamada grupal',
   'call.participants': 'participantes', 'call.joining': 'Uniendo...', 'call.group_ended': 'Llamada grupal finalizada',
+  'call.voice_change': 'Voz', 'call.voice_slow': 'Lento 0.8x', 'call.voice_normal': 'Normal', 'call.voice_fast': 'Rápido 1.2x',
 
   'common.ok': 'Aceptar', 'common.cancel': 'Cancelar', 'common.save': 'Guardar', 'common.delete': 'Eliminar',
   'common.edit': 'Editar', 'common.loading': 'Cargando...', 'common.error': 'Error',

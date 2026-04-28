@@ -21,7 +21,7 @@ export const ru: Record<string, string> = {
   'chat.no_recent_emoji': 'Нет недавних эмодзи', 'chat.loading_stickers': 'Загрузка...', 'chat.no_stickers': 'Нет статических стикеров в этом наборе',
   'chat.uploading_image': 'Загрузка изображения...', 'chat.uploading_video': 'Загрузка видео...', 'chat.uploading_file': 'Загрузка файла...', 'chat.uploading_voice': 'Загрузка голосового сообщения...', 'chat.upload_failed': 'Ошибка загрузки',
   'chat.attach_image': 'Отправить изображение', 'chat.attach_video': 'Видео', 'chat.attach_file': 'Файл', 'chat.attach_voice': 'Голос', 'chat.attach_more': 'Ещё', 'chat.file': 'Файл',
-  'chat.recording': 'Запись...', 'chat.stop_recording': 'Остановить', 'chat.mic_failed': 'Нет доступа к микрофону',
+  'chat.recording': 'Запись...', 'chat.stop_recording': 'Остановить', 'chat.voice_speed': 'Скорость', 'chat.mic_failed': 'Нет доступа к микрофону',
   'chat.group_unencrypted_warning': 'Групповые чаты не зашифрованы. Не делитесь конфиденциальной информацией.',
 
   'contacts.title': 'Контакты', 'contacts.friends': 'Друзья', 'contacts.groups': 'Группы',
@@ -71,6 +71,7 @@ export const ru: Record<string, string> = {
   'call.mute': 'Без звука', 'call.camera': 'Камера',
   'call.group_incoming': 'Приглашение в групповой звонок', 'call.group_voice': 'Групповой голосовой звонок', 'call.group_video': 'Групповой видеозвонок',
   'call.participants': 'участников', 'call.joining': 'Подключение...', 'call.group_ended': 'Групповой звонок завершён',
+  'call.voice_change': 'Голос', 'call.voice_slow': 'Медл. 0.8x', 'call.voice_normal': 'Обычн.', 'call.voice_fast': 'Быстр. 1.2x',
 
   'common.ok': 'ОК', 'common.cancel': 'Отмена', 'common.save': 'Сохранить', 'common.delete': 'Удалить',
   'common.edit': 'Редактировать', 'common.loading': 'Загрузка...', 'common.error': 'Ошибка',

@@ -13,6 +13,9 @@ import { get } from '../api/http'
 import { playCallRingtone, stopRingtone, showBrowserNotification } from '../utils/notification'
 
 export type CallState = 'idle' | 'outgoing' | 'incoming' | 'connecting' | 'connected' | 'error'
+export type VoiceMode = 'normal' | 'slow' | 'fast'
+
+const VOICE_RATES: Record<VoiceMode, number> = { slow: 0.8, normal: 1.0, fast: 1.2 }
 
 interface CallInfo {
   peerId: string
@@ -33,6 +36,7 @@ export function useCall(userId: string | undefined) {
   const [isMuted, setIsMuted] = useState(false)
   const [isCameraOff, setIsCameraOff] = useState(false)
   const [callError, setCallError] = useState<string>('')
+  const [voiceMode, setVoiceMode] = useState<VoiceMode>('normal')
 
   const pcRef = useRef<RTCPeerConnection | null>(null)
   const localStreamRef = useRef<MediaStream | null>(null)
@@ -42,7 +46,10 @@ export function useCall(userId: string | undefined) {
   const durationTimer = useRef<ReturnType<typeof setInterval> | null>(null)
   const iceCandidateQueue = useRef<RTCIceCandidateInit[]>([])
   const callStateRef = useRef<CallState>('idle')
+  const audioCtxRef = useRef<AudioContext | null>(null)
+  const voiceModeRef = useRef<VoiceMode>('normal')
   callStateRef.current = callState
+  voiceModeRef.current = voiceMode
 
   // ── Fetch & normalize TURN credentials ──
   const getIceServers = async (): Promise<RTCIceServer[]> => {
@@ -130,6 +137,17 @@ export function useCall(userId: string | undefined) {
         localVideoRef.current.srcObject = stream
       }
       stream.getTracks().forEach(track => pc.addTrack(track, stream))
+
+      // Apply voice effect processing chain
+      const processedStream = applyVoiceEffect(stream)
+      const senders = pc.getSenders()
+      processedStream.getAudioTracks().forEach(newTrack => {
+        const audioSender = senders.find(s => s.track?.kind === 'audio')
+        if (audioSender) {
+          audioSender.replaceTrack(newTrack).catch(() => {})
+        }
+      })
+
       return true
     } catch (err: any) {
       console.error('[Call] getUserMedia failed:', err)
@@ -144,6 +162,61 @@ export function useCall(userId: string | undefined) {
     }
   }
 
+  // ── Voice changer: process local audio through AudioContext ──
+  const applyVoiceEffect = (stream: MediaStream): MediaStream => {
+    try {
+      const audioCtx = new AudioContext()
+      audioCtxRef.current = audioCtx
+      const source = audioCtx.createMediaStreamSource(stream)
+      const destination = audioCtx.createMediaStreamDestination()
+
+      // Use a BiquadFilter to shift pitch characteristics
+      // Combined with a playback rate ScriptProcessor for real-time pitch shifting
+      const bufferSize = 4096
+      const processor = audioCtx.createScriptProcessor(bufferSize, 1, 1)
+      let inputBuffer: Float32Array[] = []
+      let outputPhase = 0
+
+      processor.onaudioprocess = (e) => {
+        const input = e.inputBuffer.getChannelData(0)
+        const output = e.outputBuffer.getChannelData(0)
+        const rate = VOICE_RATES[voiceModeRef.current]
+
+        // Simple resampling for pitch shift
+        for (let i = 0; i < output.length; i++) {
+          const readIndex = outputPhase
+          const intIndex = Math.floor(readIndex)
+          const frac = readIndex - intIndex
+
+          // Linear interpolation from input buffer
+          if (intIndex < input.length - 1) {
+            output[i] = input[intIndex] * (1 - frac) + input[intIndex + 1] * frac
+          } else if (intIndex < input.length) {
+            output[i] = input[intIndex]
+          } else {
+            output[i] = 0
+          }
+          outputPhase += rate
+        }
+        // Reset phase relative to processed samples
+        outputPhase = outputPhase % input.length
+      }
+
+      source.connect(processor)
+      processor.connect(destination)
+
+      // Merge: replace audio tracks with processed audio, keep video tracks
+      const processedStream = new MediaStream()
+      destination.stream.getAudioTracks().forEach(t => processedStream.addTrack(t))
+      stream.getVideoTracks().forEach(t => processedStream.addTrack(t))
+
+      return processedStream
+    } catch (err) {
+      console.warn('[Call] Voice effect failed, using original stream:', err)
+      return stream
+    }
+  }
+
   // ── Internal cleanup ──
   const cleanup = useCallback(() => {
     // Stop ringtone
@@ -151,6 +224,12 @@ export function useCall(userId: string | undefined) {
 
     pcRef.current?.close()
     pcRef.current = null
+
+    // Close AudioContext for voice effect
+    if (audioCtxRef.current) {
+      audioCtxRef.current.close().catch(() => {})
+      audioCtxRef.current = null
+    }
 
     localStreamRef.current?.getTracks().forEach(t => t.stop())
     localStreamRef.current = null
@@ -169,6 +248,7 @@ export function useCall(userId: string | undefined) {
     setIsMuted(false)
     setIsCameraOff(false)
     setCallError('')
+    setVoiceMode('normal')
   }, [])
 
   // ── Start outgoing call ──
@@ -285,6 +365,14 @@ export function useCall(userId: string | undefined) {
     setIsCameraOff(c => !c)
   }, [])
 
+  const toggleVoiceMode = useCallback(() => {
+    setVoiceMode(m => {
+      const modes: VoiceMode[] = ['normal', 'slow', 'fast']
+      const idx = modes.indexOf(m)
+      return modes[(idx + 1) % modes.length]
+    })
+  }, [])
+
   const startDurationTimer = () => {
     if (durationTimer.current) clearInterval(durationTimer.current)
     setCallDuration(0)
@@ -384,6 +472,7 @@ export function useCall(userId: string | undefined) {
     callError,
     isMuted,
     isCameraOff,
+    voiceMode,
     localVideoRef,
     remoteVideoRef,
     startCall,
@@ -393,6 +482,7 @@ export function useCall(userId: string | undefined) {
     hangUp,
     toggleMute,
     toggleCamera,
+    toggleVoiceMode,
     cleanup,
   }
 }
