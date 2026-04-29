@@ -45,8 +45,19 @@ Frontend (client/)
   Zustand gestión de estado
   libsodium-wrappers-sumo (WebAssembly)
   WebRTC API — Videollamadas/llamadas de voz
+  Web Audio API — Modificador de voz en tiempo real
   Compatible con PWA
 ```
+
+## Funcionalidades principales
+- 🔐 Cifrado de extremo a extremo (ECDH + XSalsa20-Poly1305)
+- 📹 Videollamadas/llamadas de voz (WebRTC P2P + Mesh)
+- 🎙️ Modificador de voz — Mensajes de voz, llamadas 1v1 y llamadas grupales con 3 modos (0.8x grave / 1.0x normal / 1.2x agudo), procesamiento en tiempo real con Web Audio API
+- 👥 Chat grupal (hasta 2000 miembros)
+- 💬 Mensajes enriquecidos (texto, imágenes, videos, documentos, audio, emoji, stickers)
+- 🌐 8 idiomas (detección automática + cambio manual)
+- 📱 PWA iOS (instalación permanente)
+- 🔑 Autenticación de dos factores (TOTP)
 
 ## Despliegue
 ```bash

@@ -38,6 +38,7 @@ A WeChat-style end-to-end encrypted instant messaging app with stateless ECDH + 
 | 🔐 End-to-End Encryption | Stateless ECDH + XSalsa20-Poly1305 — ephemeral keys per message, forward secrecy, Signal-style safety number verification |
 | 🗝️ Zero-Knowledge Server | Server stores only ciphertext; private keys never leave the device |
 | 📹 Video & Voice Calls | WebRTC P2P (1:1) + Mesh (group), Cloudflare TURN for NAT traversal |
+| 🎙️ Voice Changer | Real-time voice effects for voice messages, 1:1 calls, and group calls — 3 modes (0.8x deep / 1.0x normal / 1.2x high-pitched), powered by Web Audio API |
 | 👥 Group Chat | Up to 2000 members, plain-text messages (no encryption), Do Not Disturb mode, member management |
 | 👫 Friend System | Friend requests require approval with up to 512-char message; custom nicknames; multi-tag grouping |
 | ⏱️ Auto-Delete Messages | 5 tiers (never / 1 day / 3 days / 1 week / 1 month), settable by either party in DMs, owner-only in groups |
@@ -71,6 +72,7 @@ Frontend (client/)
   Zustand state management
   libsodium-wrappers-sumo (WebAssembly — Curve25519 / XSalsa20-Poly1305)
   WebRTC API — video / voice calls
+  Web Audio API — real-time voice changer (ScriptProcessorNode audio chain)
   PWA: manifest.json + Service Worker
 
 Cryptographic Layer
@@ -121,6 +123,25 @@ cd server && cp .env.example .env && cargo run --release
 # Frontend (React)
 cd client && npm install && npm run dev
 ```
+
+---
+
+## Voice Changer
+
+Voice messages, 1:1 calls, and group calls all support real-time voice changing with 3 selectable modes:
+
+| Mode | Speed | Effect |
+|------|-------|--------|
+| 🐢 Slow | 0.8x | Deeper, lower-pitched voice — ideal for anonymity |
+| 🔊 Normal | 1.0x | Original voice, no processing |
+| 🐇 Fast | 1.2x | Higher-pitched voice — fun and playful |
+
+**How it works**: Uses the Web Audio API to build an audio processing chain (AudioContext → MediaStreamSource → ScriptProcessorNode → MediaStreamDestination) that adjusts pitch/speed of the microphone input in real-time.
+
+- **Voice messages**: Select voice mode during recording. The exported `.webm` file already contains the voice effect — recipients cannot restore the original voice, enabling true anonymous messaging
+- **1:1 / Group calls**: Tap the voice changer button during a call to cycle through modes. The processed audio track replaces the original via `RTCRtpSender.replaceTrack()`
+
+> No server-side configuration is required. The voice changer runs entirely on the client side.
 
 ---
 

@@ -45,8 +45,19 @@ WeChat 스타일의 종단간 암호화 메신저. 무상태 ECDH + XSalsa20-Pol
   Zustand 상태 관리
   libsodium-wrappers-sumo (WebAssembly)
   WebRTC API — 영상/음성 통화
+  Web Audio API — 실시간 음성 변조
   PWA 지원
 ```
+
+## 주요 기능
+- 🔐 종단간 암호화 (ECDH + XSalsa20-Poly1305)
+- 📹 영상/음성 통화 (WebRTC P2P + Mesh)
+- 🎙️ 음성 변조 — 음성 메시지·1v1 통화·그룹 통화에서 3단계 변조 (0.8x 저음 / 1.0x 일반 / 1.2x 고음), Web Audio API 실시간 처리
+- 👥 그룹 채팅 (최대 2000명)
+- 💬 리치 메시지 (텍스트, 이미지, 영상, 문서, 음성, 이모지, 스티커)
+- 🌐 8개 언어 지원 (자동 감지 + 수동 전환)
+- 📱 iOS PWA 지원 (영구 설치)
+- 🔑 2단계 인증 (TOTP)
 
 ## 배포
 ```bash

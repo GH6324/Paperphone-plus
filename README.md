@@ -38,6 +38,7 @@
 | 🔐 端对端加密 | 无状态 ECDH + XSalsa20-Poly1305，逐消息临时密钥，前向保密，Signal 风格安全号码验证 |
 | 🗝️ 零知识服务器 | 服务器只存储密文，私钥仅在设备本地（四层持久化） |
 | 📹 视频/语音通话 | WebRTC P2P（1:1）+ Mesh（多人），Cloudflare TURN 穿透 |
+| 🎙️ 变声功能 | 语音消息 / 1v1 通话 / 群组通话均支持实时变声，3 档可选（0.8x 低沉 / 1.0x 正常 / 1.2x 尖锐），基于 Web Audio API 音频处理链 |
 | 👥 群聊 | 最多 2000 人群组，纯文本消息（无加密），免打扰模式，成员管理 |
 | 👫 好友系统 | 添加好友需对方审核，支持 512 字验证消息；备注名称；好友标签分组 |
 | ⏱️ 消息自动删除 | 5 档可选（永不/1天/3天/1周/1月），私聊双方均可设置，群聊群主专属 |
@@ -71,6 +72,7 @@
   Zustand 状态管理
   libsodium-wrappers-sumo (WebAssembly, Curve25519 / XSalsa20-Poly1305)
   WebRTC API — 视频/语音通话
+  Web Audio API — 实时变声处理（ScriptProcessorNode 音频链）
   PWA: manifest.json + Service Worker
 
 加密层
@@ -187,6 +189,21 @@ METERED_TURN_API_KEY=your_metered_api_key_here
 | 私聊 1:1 视频 | WebRTC P2P + TURN | 所有场景 |
 | 私聊 1:1 语音 | WebRTC P2P + TURN | 所有场景 |
 | 群组多人语音/视频 | WebRTC Mesh（全连接） | ≤ 6 人 |
+
+### 变声功能说明
+
+语音消息、1v1 通话、群组通话均支持实时变声，3 档模式可选：
+
+| 模式 | 倍速 | 效果说明 |
+|------|------|----------|
+| 🐢 慢速 | 0.8x | 声音变低沉，适合匿名 |
+| 🔊 正常 | 1.0x | 原声，无处理 |
+| 🐇 快速 | 1.2x | 声音变尖锐，适合趣味聊天 |
+
+**技术实现**：使用 Web Audio API 构建音频处理链（AudioContext → MediaStreamSource → ScriptProcessorNode → MediaStreamDestination），对麦克风采集的音频流进行实时音高/速度调整，处理后的音频流替换原始流发送给对方。
+
+- **语音消息**：录音时选择变声模式，发出的 `.webm` 音频文件已包含变声效果，接收方无法还原原声，实现真正的匿名发送
+- **1v1 / 群组通话**：通话中点击变声按钮循环切换模式，通过 `RTCRtpSender.replaceTrack()` 实时替换音频轨道
 
 ---
 

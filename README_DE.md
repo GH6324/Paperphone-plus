@@ -45,8 +45,19 @@ Frontend (client/)
   Zustand Zustandsverwaltung
   libsodium-wrappers-sumo (WebAssembly)
   WebRTC API — Video-/Sprachanrufe
+  Web Audio API — Echtzeit-Stimmverzerrer
   PWA-kompatibel
 ```
+
+## Hauptfunktionen
+- 🔐 Ende-zu-Ende-Verschlüsselung (ECDH + XSalsa20-Poly1305)
+- 📹 Video-/Sprachanrufe (WebRTC P2P + Mesh)
+- 🎙️ Stimmverzerrer — Sprachnachrichten, 1v1-Anrufe und Gruppenanrufe mit 3 Modi (0.8x tief / 1.0x normal / 1.2x hoch), Echtzeit-Verarbeitung über Web Audio API
+- 👥 Gruppenchat (bis zu 2000 Mitglieder)
+- 💬 Rich-Nachrichten (Text, Bilder, Videos, Dokumente, Sprache, Emoji, Sticker)
+- 🌐 8 Sprachen (automatische Erkennung + manuelle Umschaltung)
+- 📱 iOS PWA (permanente Installation)
+- 🔑 Zwei-Faktor-Authentifizierung (TOTP)
 
 ## Bereitstellung
 ```bash
