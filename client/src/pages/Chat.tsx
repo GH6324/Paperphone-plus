@@ -170,9 +170,18 @@ export default function Chat() {
     const path = isGroup ? `/api/messages/group/${id}?limit=50000` : `/api/messages/private/${id}?limit=50000`
     get(path).then(async (msgs: any[]) => {
       if (!Array.isArray(msgs)) return
+
+      // Client-side defense: filter out expired messages based on auto_delete
+      const autoDeleteSec = isGroup ? (group?.auto_delete ?? 604800) : (friend?.auto_delete ?? 604800)
+      let filtered = msgs
+      if (autoDeleteSec > 0) {
+        const cutoff = Date.now() - autoDeleteSec * 1000
+        filtered = msgs.filter(m => m.ts > cutoff)
+      }
+
       if (!isGroup) {
         const keys = getKeys()
-        const decrypted = await Promise.all(msgs.map(async (msg) => {
+        const decrypted = await Promise.all(filtered.map(async (msg) => {
           try {
             const isMe = msg.from === user?.id
             if (isMe && msg.self_ciphertext && msg.self_header) {
@@ -187,7 +196,7 @@ export default function Chat() {
         }))
         setMessages(id, decrypted)
       } else {
-        setMessages(id, msgs.map(m => ({ ...m, decrypted: m.ciphertext })))
+        setMessages(id, filtered.map(m => ({ ...m, decrypted: m.ciphertext })))
       }
     }).catch(() => {})
   }, [id])

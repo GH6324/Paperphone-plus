@@ -80,6 +80,9 @@ async fn main() {
         ])
         .max_age(std::time::Duration::from_secs(86400));
 
+    // ── Background task: periodically delete expired messages ──────────
+    let cleanup_state = state.clone();
+
     let app = Router::new()
         // Health check
         .route("/health", get(|| async {
@@ -92,6 +95,32 @@ async fn main() {
         .layer(DefaultBodyLimit::max(500 * 1024 * 1024)) // 500 MB upload limit
         .layer(cors)
         .with_state(state);
+
+    tokio::spawn(async move {
+        let mut interval = tokio::time::interval(std::time::Duration::from_secs(60));
+        loop {
+            interval.tick().await;
+            // Delete expired private messages based on auto_delete settings
+            let r1 = sqlx::query(
+                "DELETE m FROM messages m
+                 JOIN friends f ON (f.user_id = m.from_id AND f.friend_id = m.to_id)
+                 WHERE m.type = 'private' AND f.auto_delete > 0
+                   AND m.created_at < DATE_SUB(NOW(), INTERVAL f.auto_delete SECOND)"
+            ).execute(&cleanup_state.db).await;
+            // Delete expired group messages
+            let r2 = sqlx::query(
+                "DELETE m FROM messages m
+                 JOIN `groups` g ON g.id = m.to_id
+                 WHERE m.type = 'group' AND g.auto_delete > 0
+                   AND m.created_at < DATE_SUB(NOW(), INTERVAL g.auto_delete SECOND)"
+            ).execute(&cleanup_state.db).await;
+            let c1 = r1.as_ref().map(|r| r.rows_affected()).unwrap_or(0);
+            let c2 = r2.as_ref().map(|r| r.rows_affected()).unwrap_or(0);
+            if c1 > 0 || c2 > 0 {
+                tracing::info!("🧹 Auto-delete cleanup: {} private, {} group messages purged", c1, c2);
+            }
+        }
+    });
 
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", port))
         .await

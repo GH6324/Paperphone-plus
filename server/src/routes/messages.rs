@@ -26,6 +26,18 @@ async fn get_private_messages(
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
     let limit = params.limit.unwrap_or(50).min(50000);
 
+    // First, delete any expired private messages for this conversation
+    sqlx::query(
+        "DELETE m FROM messages m
+         JOIN friends f ON (f.user_id = m.from_id AND f.friend_id = m.to_id)
+         WHERE m.type = 'private'
+           AND ((m.from_id = ? AND m.to_id = ?) OR (m.from_id = ? AND m.to_id = ?))
+           AND f.auto_delete > 0
+           AND m.created_at < DATE_SUB(NOW(), INTERVAL f.auto_delete SECOND)"
+    )
+    .bind(&auth.0.id).bind(&user_id).bind(&user_id).bind(&auth.0.id)
+    .execute(&state.db).await.ok();
+
     let rows: Vec<(String, String, String, String, Option<String>, Option<String>, Option<String>, String, chrono::NaiveDateTime, Option<chrono::NaiveDateTime>)> = if let Some(before) = &params.before {
         sqlx::query_as(
             "SELECT id, from_id, to_id, ciphertext, header, self_ciphertext, self_header, msg_type, created_at, read_at
@@ -78,6 +90,17 @@ async fn get_group_messages(
     Query(params): Query<PaginationQuery>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
     let limit = params.limit.unwrap_or(50).min(50000);
+
+    // First, delete any expired group messages for this group
+    sqlx::query(
+        "DELETE m FROM messages m
+         JOIN `groups` g ON g.id = m.to_id
+         WHERE m.type = 'group' AND m.to_id = ?
+           AND g.auto_delete > 0
+           AND m.created_at < DATE_SUB(NOW(), INTERVAL g.auto_delete SECOND)"
+    )
+    .bind(&group_id)
+    .execute(&state.db).await.ok();
 
     let rows: Vec<(String, String, String, Option<String>, String, chrono::NaiveDateTime, String, Option<String>)> = if let Some(before) = &params.before {
         sqlx::query_as(

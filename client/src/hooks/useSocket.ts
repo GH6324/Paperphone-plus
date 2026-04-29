@@ -17,6 +17,24 @@ export function useSocket() {
       const myId = useStore.getState().user?.id
       const chatId = data.group_id || (data.from === myId ? data.to : data.from)
       if (chatId) {
+        // Filter out expired offline messages based on auto_delete settings
+        if (data.offline && data.ts) {
+          const friends = useStore.getState().friends
+          const groups = useStore.getState().groups
+          let autoDeleteSec = 0
+          if (data.group_id) {
+            const group = groups.find(g => g.id === data.group_id)
+            autoDeleteSec = group?.auto_delete ?? 604800
+          } else {
+            const friend = friends.find(f => f.id === (data.from === myId ? data.to : data.from))
+            autoDeleteSec = friend?.auto_delete ?? 604800
+          }
+          if (autoDeleteSec > 0) {
+            const cutoff = Date.now() - autoDeleteSec * 1000
+            if (data.ts < cutoff) return // Skip expired message
+          }
+        }
+
         useStore.getState().addMessage(chatId, data)
 
         // If not on that chat page AND message is not from me, trigger notification
