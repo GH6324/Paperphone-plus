@@ -452,10 +452,15 @@ async fn flush_pending_call(state: &Arc<AppState>, user_id: &str, tx: &mpsc::Unb
 }
 
 async fn flush_offline_messages(state: &Arc<AppState>, user_id: &str, tx: &mpsc::UnboundedSender<String>) {
-    // Private messages
+    // Private messages — filter out expired messages based on auto_delete settings
     let rows: Vec<(String, String, String, String, Option<String>, Option<String>, Option<String>, String, chrono::NaiveDateTime, Option<chrono::NaiveDateTime>)> = sqlx::query_as(
-        "SELECT id, from_id, to_id, ciphertext, header, self_ciphertext, self_header, msg_type, created_at, read_at
-         FROM messages WHERE to_id = ? AND delivered = 0 AND type = 'private' ORDER BY created_at ASC"
+        "SELECT m.id, m.from_id, m.to_id, m.ciphertext, m.header, m.self_ciphertext, m.self_header, m.msg_type, m.created_at, m.read_at
+         FROM messages m
+         LEFT JOIN friends f ON (f.user_id = m.from_id AND f.friend_id = m.to_id)
+         WHERE m.to_id = ? AND m.delivered = 0 AND m.type = 'private'
+           AND (f.auto_delete IS NULL OR f.auto_delete = 0
+                OR m.created_at >= DATE_SUB(NOW(), INTERVAL f.auto_delete SECOND))
+         ORDER BY m.created_at ASC"
     ).bind(user_id).fetch_all(&state.db).await.unwrap_or_default();
 
     for (id, from_id, to_id, ct, hdr, _self_ct, _self_hdr, msg_type, created, read_at) in &rows {
@@ -470,16 +475,20 @@ async fn flush_offline_messages(state: &Arc<AppState>, user_id: &str, tx: &mpsc:
         sqlx::query("UPDATE messages SET delivered = 1 WHERE id = ?").bind(id).execute(&state.db).await.ok();
     }
 
-    // Group messages
+    // Group messages — filter out expired messages based on auto_delete settings
     let group_rows: Vec<(String, String, String, String, Option<String>, String, chrono::NaiveDateTime, String, Option<String>)> = sqlx::query_as(
         "SELECT m.id, m.from_id, m.to_id, m.ciphertext, m.header, m.msg_type, m.created_at, u.nickname, u.avatar
-         FROM messages m LEFT JOIN users u ON u.id = m.from_id
+         FROM messages m
+         LEFT JOIN users u ON u.id = m.from_id
+         LEFT JOIN `groups` g ON g.id = m.to_id
          WHERE m.type = 'group' AND m.to_id IN (SELECT group_id FROM group_members WHERE user_id = ?)
            AND m.from_id != ?
            AND m.created_at > COALESCE(
              (SELECT last_active FROM sessions WHERE user_id = ? AND revoked = 0 ORDER BY last_active DESC LIMIT 1),
              DATE_SUB(NOW(), INTERVAL 7 DAY)
            )
+           AND (g.auto_delete IS NULL OR g.auto_delete = 0
+                OR m.created_at >= DATE_SUB(NOW(), INTERVAL g.auto_delete SECOND))
          ORDER BY m.created_at ASC LIMIT 50000"
     ).bind(user_id).bind(user_id).bind(user_id).fetch_all(&state.db).await.unwrap_or_default();
 
