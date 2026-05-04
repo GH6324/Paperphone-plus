@@ -59,6 +59,7 @@ Frontend (client/)
 - 🌐 8 Sprachen (automatische Erkennung + manuelle Umschaltung)
 - 📱 iOS PWA (permanente Installation)
 - 🔑 Zwei-Faktor-Authentifizierung (TOTP)
+- 🌐 Proxy-Einstellungen — SOCKS5 / HTTP / HTTPS Proxy-Unterstützung, konfigurierbar auf Login- und Einstellungsseiten (Adresse, Port, Benutzername, Passwort)
 
 ## Bereitstellung
 ```bash

@@ -8,7 +8,7 @@ spec:
   description: >-
     A WeChat-style, end-to-end encrypted IM app built with React + Rust (Axum),
     featuring stateless ECDH E2EE, WebRTC video/voice calls, real-time voice changer,
-    Cloudflare R2 file storage, 8-language i18n, and iOS PWA support — fully self-hostable.
+    SOCKS5/HTTP/HTTPS proxy support, Cloudflare R2 file storage, 8-language i18n, and iOS PWA support — fully self-hostable.
   icon: https://raw.githubusercontent.com/619dev/Paperphone-plus/main/client/public/icons/icon-512.png
   tags:
     - Chat
@@ -45,6 +45,7 @@ spec:
     - 📷 **QR Code Scan & Share** — scan QR to add friends or join groups; group QR codes with configurable expiry (1 week / 1 month / 3 months)
     - 👫 **Friend System** — friend requests require approval with up to 512-char message; custom nicknames; multi-tag grouping
     - 📤 **File Upload** — up to 500MB per file, Cloudflare R2 or local storage, with progress animation
+    - 🌐 **Proxy Settings** — SOCKS5 / HTTP / HTTPS proxy support, configurable on login and settings pages (address, port, username, password)
 
     ## After Deployment
     1. Open the domain assigned to the **client** service.
@@ -403,7 +404,7 @@ localization:
   zh-CN:
     description: >-
       微信风格的端对端加密即时通讯 App（React + Rust），支持无状态 ECDH 加密、WebRTC 视频/语音通话、
-      实时变声、Cloudflare R2 文件存储、8 种语言与 iOS PWA 部署，完全可自建。
+      实时变声、SOCKS5/HTTP/HTTPS 代理、Cloudflare R2 文件存储、8 种语言与 iOS PWA 部署，完全可自建。
     readme: |-
       # PaperPhone Plus
 
@@ -435,6 +436,7 @@ localization:
       - 📷 **扫码加好友/入群** — 扫一扫二维码添加好友、加入群聊，群二维码可设置有效期（1周/1月/3月）
       - 👫 **好友系统** — 添加好友需对方审核，支持 512 字验证消息；备注名称；好友标签分组
       - 📤 **文件上传** — 单文件最大 500MB，支持 Cloudflare R2 或本地存储，带进度条动画
+      - 🌐 **代理设置** — 支持 SOCKS5 / HTTP / HTTPS 代理协议，登录页和设置页均可配置（地址、端口、用户名、密码）
 
       ## 部署后操作
       1. 打开分配给 **client** 服务的域名。

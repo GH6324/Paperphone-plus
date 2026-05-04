@@ -56,6 +56,7 @@ A WeChat-style end-to-end encrypted instant messaging app with stateless ECDH + 
 | 🔑 Two-Factor Auth (2FA) | Google Authenticator–compatible TOTP, 8 recovery codes, enforced at login |
 | 📷 QR Code Scan & Share | Scan QR codes to add friends or join groups with configurable expiry |
 | 🏗️ Self-Hostable | Docker Compose, Zeabur one-click, or frontend on Vercel |
+| 🌐 Proxy Settings | SOCKS5 / HTTP / HTTPS proxy support — configurable on both login and settings pages with server address, port, username and password for restricted network environments |
 
 ---
 
