@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { applyNativeProxy, clearNativeProxy } from '../api/proxy-bridge'
 
 export interface User {
   id: string
@@ -62,7 +63,8 @@ export interface GroupMember {
 }
 
 export interface ProxyConfig {
-  enabled: boolean
+  id: string
+  name: string
   type: 'socks5' | 'http' | 'https'
   host: string
   port: string
@@ -75,10 +77,13 @@ interface AppStore {
   serverUrl: string
   setServerUrl: (url: string) => void
 
-  // Proxy
-  proxy: ProxyConfig
-  setProxy: (proxy: ProxyConfig) => void
-  clearProxy: () => void
+  // Proxy (list of up to 5, with one active)
+  proxyList: ProxyConfig[]
+  activeProxyId: string | null
+  addProxy: (proxy: ProxyConfig) => void
+  updateProxy: (proxy: ProxyConfig) => void
+  removeProxy: (id: string) => void
+  setActiveProxy: (id: string | null) => void
 
   // Auth
   token: string | null
@@ -129,18 +134,63 @@ export const useStore = create<AppStore>((set, get) => ({
     set({ serverUrl: trimmed })
   },
 
-  // Proxy
-  proxy: JSON.parse(localStorage.getItem('proxyConfig') || 'null') || {
-    enabled: false, type: 'http' as const, host: '', port: '', username: '', password: '',
+  // Proxy list (up to 5) + active selection
+  proxyList: (() => {
+    // Migration: convert old single-proxy format to list
+    const oldProxy = JSON.parse(localStorage.getItem('proxyConfig') || 'null')
+    let list: ProxyConfig[] = JSON.parse(localStorage.getItem('proxyList') || '[]')
+    if (oldProxy && oldProxy.host && list.length === 0) {
+      const migrated: ProxyConfig = {
+        id: Date.now().toString(),
+        name: `${oldProxy.type.toUpperCase()} ${oldProxy.host}`,
+        type: oldProxy.type, host: oldProxy.host, port: oldProxy.port,
+        username: oldProxy.username || '', password: oldProxy.password || '',
+      }
+      list = [migrated]
+      localStorage.setItem('proxyList', JSON.stringify(list))
+      if (oldProxy.enabled) localStorage.setItem('activeProxyId', migrated.id)
+      localStorage.removeItem('proxyConfig')
+    }
+    return list
+  })(),
+  activeProxyId: localStorage.getItem('activeProxyId') || null,
+  addProxy: (proxy) => {
+    const list = [...get().proxyList, proxy].slice(0, 5)
+    localStorage.setItem('proxyList', JSON.stringify(list))
+    set({ proxyList: list })
   },
-  setProxy: (proxy) => {
-    localStorage.setItem('proxyConfig', JSON.stringify(proxy))
-    set({ proxy })
+  updateProxy: (proxy) => {
+    const list = get().proxyList.map(p => p.id === proxy.id ? proxy : p)
+    localStorage.setItem('proxyList', JSON.stringify(list))
+    set({ proxyList: list })
+    // Re-apply if this is the active proxy
+    if (get().activeProxyId === proxy.id) {
+      applyNativeProxy(proxy)
+    }
   },
-  clearProxy: () => {
-    const empty: ProxyConfig = { enabled: false, type: 'http', host: '', port: '', username: '', password: '' }
-    localStorage.removeItem('proxyConfig')
-    set({ proxy: empty })
+  removeProxy: (id) => {
+    const list = get().proxyList.filter(p => p.id !== id)
+    localStorage.setItem('proxyList', JSON.stringify(list))
+    // If removing the active proxy, deactivate
+    if (get().activeProxyId === id) {
+      localStorage.removeItem('activeProxyId')
+      set({ proxyList: list, activeProxyId: null })
+      clearNativeProxy()
+    } else {
+      set({ proxyList: list })
+    }
+  },
+  setActiveProxy: (id) => {
+    if (id) {
+      localStorage.setItem('activeProxyId', id)
+      set({ activeProxyId: id })
+      const proxy = get().proxyList.find(p => p.id === id)
+      if (proxy) applyNativeProxy(proxy)
+    } else {
+      localStorage.removeItem('activeProxyId')
+      set({ activeProxyId: null })
+      clearNativeProxy()
+    }
   },
 
   // Auth
