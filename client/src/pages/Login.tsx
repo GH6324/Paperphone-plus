@@ -28,7 +28,53 @@ export default function Login() {
   const proxyList = useStore(s => s.proxyList)
   const activeProxyId = useStore(s => s.activeProxyId)
   const setActiveProxy = useStore(s => s.setActiveProxy)
+  const addProxy = useStore(s => s.addProxy)
+  const removeProxy = useStore(s => s.removeProxy)
   const [showProxy, setShowProxy] = useState(false)
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [latency, setLatency] = useState<Record<string, number | 'testing'>>({})
+
+  // Add-proxy form state
+  const [formName, setFormName] = useState('')
+  const [formType, setFormType] = useState<'socks5' | 'http' | 'https'>('http')
+  const [formHost, setFormHost] = useState('')
+  const [formPort, setFormPort] = useState('')
+  const [formUser, setFormUser] = useState('')
+  const [formPass, setFormPass] = useState('')
+
+  const resetProxyForm = () => {
+    setFormName(''); setFormType('http'); setFormHost(''); setFormPort('')
+    setFormUser(''); setFormPass('')
+  }
+
+  const handleAddProxy = () => {
+    if (!formHost || !formPort) return
+    const name = formName || `${formType.toUpperCase()} ${formHost}:${formPort}`
+    addProxy({ id: Date.now().toString(), name, type: formType, host: formHost, port: formPort, username: formUser, password: formPass })
+    setShowAddForm(false)
+    resetProxyForm()
+  }
+
+  const handleActivateProxy = async (id: string) => {
+    if (activeProxyId === id) {
+      setActiveProxy(null)
+      setLatency(prev => { const n = { ...prev }; delete n[id]; return n })
+    } else {
+      setActiveProxy(id)
+      setLatency(prev => ({ ...prev, [id]: 'testing' }))
+      await new Promise(r => setTimeout(r, 300))
+      const { testProxyLatency } = await import('../api/proxy-bridge')
+      const ms = await testProxyLatency(serverUrl)
+      setLatency(prev => ({ ...prev, [id]: ms }))
+    }
+  }
+
+  const handleRetestLatency = async (id: string) => {
+    setLatency(prev => ({ ...prev, [id]: 'testing' }))
+    const { testProxyLatency } = await import('../api/proxy-bridge')
+    const ms = await testProxyLatency(serverUrl)
+    setLatency(prev => ({ ...prev, [id]: ms }))
+  }
 
   // 2FA state
   const [needs2fa, setNeeds2fa] = useState(false)
@@ -293,42 +339,177 @@ export default function Login() {
               {/* Saved proxies */}
               {proxyList.map(p => {
                 const isActive = activeProxyId === p.id
+                const lat = latency[p.id]
                 return (
                   <div
                     key={p.id}
-                    onClick={() => setActiveProxy(isActive ? null : p.id)}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 8,
-                      padding: '8px 10px', borderRadius: 8, cursor: 'pointer',
+                      padding: '8px 10px', borderRadius: 8,
                       background: isActive ? 'rgba(99,102,241,0.08)' : 'transparent',
                       transition: 'background 0.2s',
                     }}
                   >
-                    <div style={{
-                      width: 18, height: 18, borderRadius: 9,
-                      border: isActive ? '2px solid var(--accent)' : '2px solid var(--border)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      flexShrink: 0,
-                    }}>
-                      {isActive && <div style={{ width: 10, height: 10, borderRadius: 5, background: 'var(--accent)' }} />}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: isActive ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {p.name}
+                    {/* Radio + info (tap to activate) */}
+                    <div
+                      onClick={() => handleActivateProxy(p.id)}
+                      style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', minWidth: 0 }}
+                    >
+                      <div style={{
+                        width: 18, height: 18, borderRadius: 9,
+                        border: isActive ? '2px solid var(--accent)' : '2px solid var(--border)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0,
+                      }}>
+                        {isActive && <div style={{ width: 10, height: 10, borderRadius: 5, background: 'var(--accent)' }} />}
                       </div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {p.type.toUpperCase()} · {p.host}:{p.port}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: isActive ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {p.name}
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {p.type.toUpperCase()} · {p.host}:{p.port}
+                        </div>
                       </div>
                     </div>
-                    {isActive && <Check size={14} style={{ color: 'var(--accent)', flexShrink: 0 }} />}
+
+                    {/* Latency badge (active only) */}
+                    {isActive && (
+                      <div
+                        onClick={(e) => { e.stopPropagation(); handleRetestLatency(p.id) }}
+                        style={{
+                          padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600,
+                          cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
+                          background: lat === 'testing'
+                            ? 'rgba(250,204,21,0.15)'
+                            : lat === -1
+                              ? 'rgba(239,68,68,0.15)'
+                              : typeof lat === 'number'
+                                ? lat < 200 ? 'rgba(34,197,94,0.15)' : lat < 500 ? 'rgba(250,204,21,0.15)' : 'rgba(239,68,68,0.15)'
+                                : 'rgba(99,102,241,0.15)',
+                          color: lat === 'testing'
+                            ? '#eab308'
+                            : lat === -1
+                              ? '#ef4444'
+                              : typeof lat === 'number'
+                                ? lat < 200 ? '#22c55e' : lat < 500 ? '#eab308' : '#ef4444'
+                                : 'var(--accent)',
+                          transition: 'all 0.3s ease',
+                        }}
+                      >
+                        {lat === 'testing'
+                          ? t('proxy.testing')
+                          : lat === -1
+                            ? t('proxy.timeout')
+                            : typeof lat === 'number'
+                              ? `${lat}ms`
+                              : t('proxy.test')}
+                      </div>
+                    )}
+
+                    {/* Delete button */}
+                    <div
+                      onClick={(e) => { e.stopPropagation(); removeProxy(p.id) }}
+                      style={{ cursor: 'pointer', fontSize: 12, padding: '2px 4px', opacity: 0.5, flexShrink: 0 }}
+                      title={t('common.delete')}
+                    >🗑️</div>
                   </div>
                 )
               })}
 
-              {/* Hint to manage proxies */}
-              {proxyList.length === 0 && (
-                <div style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', padding: '6px 0' }}>
-                  {t('proxy.manage_hint')}
+              {/* Add proxy button / form */}
+              {!showAddForm && proxyList.length < 5 && (
+                <div
+                  onClick={() => setShowAddForm(true)}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    padding: '8px 10px', borderRadius: 8, cursor: 'pointer',
+                    border: '1.5px dashed var(--border)', marginTop: 2,
+                    fontSize: 12, color: 'var(--text-muted)', fontWeight: 500,
+                    transition: 'background 0.2s',
+                  }}
+                >
+                  <span style={{ fontSize: 15 }}>+</span> {t('proxy.add')}
+                </div>
+              )}
+
+              {/* Inline add form */}
+              {showAddForm && (
+                <div style={{
+                  display: 'flex', flexDirection: 'column', gap: 8,
+                  padding: '10px', borderRadius: 10,
+                  border: '1px solid var(--border)', marginTop: 2,
+                  background: 'var(--bg-secondary)',
+                }}>
+                  {/* Name */}
+                  <input
+                    className="input" type="text" placeholder={t('proxy.name_placeholder')}
+                    value={formName} onChange={e => setFormName(e.target.value)}
+                    style={{ fontSize: 13 }}
+                  />
+
+                  {/* Type selector */}
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    {(['http', 'https', 'socks5'] as const).map(tp => (
+                      <button
+                        key={tp} type="button"
+                        className={`btn btn-sm ${formType === tp ? 'btn-primary' : ''}`}
+                        onClick={() => setFormType(tp)}
+                        style={{ flex: 1, borderRadius: 8, fontSize: 11, padding: '6px 0' }}
+                      >{tp.toUpperCase()}</button>
+                    ))}
+                  </div>
+
+                  {/* Host + Port */}
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    <input
+                      className="input" type="text" placeholder={t('proxy.host')}
+                      value={formHost} onChange={e => setFormHost(e.target.value)}
+                      style={{ flex: 3, fontSize: 13 }}
+                    />
+                    <input
+                      className="input" type="text" inputMode="numeric" placeholder={t('proxy.port')}
+                      value={formPort} onChange={e => setFormPort(e.target.value.replace(/\D/g, ''))}
+                      style={{ flex: 1, fontSize: 13 }}
+                    />
+                  </div>
+
+                  {/* Auth */}
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    <input
+                      className="input" type="text" autoComplete="off"
+                      placeholder={`${t('proxy.username')} (${t('proxy.optional')})`}
+                      value={formUser} onChange={e => setFormUser(e.target.value)}
+                      style={{ flex: 1, fontSize: 12 }}
+                    />
+                    <input
+                      className="input" type="password" autoComplete="off"
+                      placeholder={`${t('proxy.password')} (${t('proxy.optional')})`}
+                      value={formPass} onChange={e => setFormPass(e.target.value)}
+                      style={{ flex: 1, fontSize: 12 }}
+                    />
+                  </div>
+
+                  {/* Buttons */}
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button
+                      type="button" className="btn btn-primary btn-full btn-sm"
+                      onClick={handleAddProxy}
+                      disabled={!formHost || !formPort}
+                      style={{ flex: 2, borderRadius: 8, fontSize: 12 }}
+                    >{t('common.save')}</button>
+                    <button
+                      type="button" className="btn btn-full btn-sm"
+                      onClick={() => { setShowAddForm(false); resetProxyForm() }}
+                      style={{ flex: 1, borderRadius: 8, fontSize: 12 }}
+                    >{t('common.cancel')}</button>
+                  </div>
+                </div>
+              )}
+
+              {proxyList.length >= 5 && !showAddForm && (
+                <div style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', padding: '4px 0', opacity: 0.6 }}>
+                  {t('proxy.max_reached')}
                 </div>
               )}
             </div>
