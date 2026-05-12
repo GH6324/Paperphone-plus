@@ -91,17 +91,11 @@ Cryptographic Layer
 ### Option 0: Zeabur One-Click Cloud Deploy
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
-> [!NOTE]
-> One manual step is required after deploy:
-> 1. Go to Zeabur Console → **server service** → Environment Variables → copy `ZEABUR_WEB_URL`
-> 2. Go to **client service** → Environment Variables → add `VITE_API_URL` = the value copied above
-> 3. Restart the client service
-
 > [!TIP]
 > **Advanced: Zeabur + Vercel Hybrid Deployment**
 > After deploying on Zeabur, you can manually delete the **client** service and deploy the frontend on Vercel instead (see Option 2 below).
 > This way server/MySQL/Redis are hosted on Zeabur while the frontend is accelerated by Vercel's global CDN.
-> Set `VITE_API_URL` in Vercel to the public domain of your Zeabur server service.
+> The frontend auto-discovers the backend address — no additional environment variables needed.
 
 ### Option 1: Docker Compose (Recommended)
 ```bash
@@ -116,8 +110,8 @@ open http://localhost
 ```bash
 # 1. Fork this repo
 # 2. Import in Vercel: Root Directory = client/, Build = npm run build, Output = dist/
-# 3. Set env var: VITE_API_URL = https://your-server-domain.com
-# 4. Deploy backend via Docker or Zeabur
+# 3. Deploy backend via Docker or Zeabur
+#    The frontend auto-discovers the backend address — no need to set VITE_API_URL
 ```
 
 ### Option 3: Local Development

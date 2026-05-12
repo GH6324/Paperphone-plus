@@ -91,17 +91,11 @@
 ### 方式零：Zeabur 一键云部署
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
-> [!NOTE]
-> 部署完成后需手动完成一步配置，否则注册/登录无法使用：
-> 1. 进入 Zeabur 控制台 → **server 服务** → Environment Variables → 复制 `ZEABUR_WEB_URL` 的值（如 `http://10.43.x.x:3000`）
-> 2. 进入 **client 服务** → Environment Variables → 添加变量 `VITE_API_URL` = 上一步复制的值
-> 3. Restart client 服务
-
 > [!TIP]
 > **进阶方案：Zeabur + Vercel 混合部署**
 > 可以在 Zeabur 部署完成后，手动删除 Zeabur 上的 **client** 服务，改用 Vercel 部署前端（参见下方“方式二”）。
 > 这样 server/MySQL/Redis 由 Zeabur 托管，前端由 Vercel CDN 加速，全球访问更快。
-> Vercel 中设置环境变量 `VITE_API_URL` 指向 Zeabur 上 server 服务的公网域名即可。
+> 前端会自动发现后端地址，无需额外配置环境变量。
 
 **已知注意事项：**
 - 首次启动 server 会自动创建数据库表（`CREATE TABLE IF NOT EXISTS`），无需手动导入 schema
@@ -139,9 +133,9 @@ open http://localhost
 #    - Root Directory: client/
 #    - Build Command: npm run build
 #    - Output Directory: dist/
-#    - 环境变量: VITE_API_URL = https://your-server-domain.com
 
 # 3. 后端使用 Docker 部署或 Zeabur 部署
+#    前端会自动发现后端地址，无需设置 VITE_API_URL 环境变量
 ```
 
 ### 方式三：本地手动启动
