@@ -24,7 +24,14 @@ export async function api<T = any>(
     throw new Error('Unauthorized')
   }
 
-  const data = await res.json()
+  const text = await res.text()
+  let data: any
+  try {
+    data = text ? JSON.parse(text) : {}
+  } catch {
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return {} as T
+  }
 
   if (!res.ok) {
     throw new Error(data.error || `HTTP ${res.status}`)
