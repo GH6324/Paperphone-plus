@@ -17,7 +17,7 @@ export const ko: Record<string, string> = {
 
   'chat.typing': '입력 중...', 'chat.placeholder': '메시지를 입력하세요...', 'chat.send': '전송',
   'chat.encrypted': '메시지는 종단간 암호화되어 있습니다',
-  'chat.no_recent_emoji': '최근 이모지 없음', 'chat.loading_stickers': '로딩 중...', 'chat.no_stickers': '이 팩에 정적 스티커가 없습니다',
+  'chat.no_recent_emoji': '최근 이모지 없음', 'chat.loading_stickers': '로딩 중...', 'chat.no_stickers': '이 팩에 스티커가 없습니다',
   'chat.uploading_image': '이미지 업로드 중...', 'chat.uploading_video': '동영상 업로드 중...', 'chat.uploading_file': '파일 업로드 중...', 'chat.uploading_voice': '음성 업로드 중...', 'chat.upload_failed': '업로드 실패',
   'chat.attach_image': '이미지 전송', 'chat.attach_video': '동영상', 'chat.attach_file': '파일', 'chat.attach_voice': '음성', 'chat.attach_more': '더보기', 'chat.file': '파일',
   'chat.recording': '녹음 중...', 'chat.stop_recording': '중지', 'chat.voice_speed': '배속', 'chat.mic_failed': '마이크에 접근할 수 없습니다',

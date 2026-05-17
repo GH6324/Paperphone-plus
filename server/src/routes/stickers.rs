@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use std::collections::HashMap;
 use axum::{Router, routing::get, extract::{State, Path}, Json};
+use axum::response::IntoResponse;
 use tokio::sync::RwLock;
 
 use crate::AppState;
@@ -16,6 +17,7 @@ pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/packs", get(list_packs))
         .route("/pack/{name}", get(get_pack))
+        .route("/proxy/{file_id}", get(proxy_file))
 }
 
 async fn list_packs(
@@ -102,12 +104,16 @@ async fn get_pack(
                 let file_body: serde_json::Value = fr.json().await.unwrap_or_default();
                 if let Some(path) = file_body.pointer("/result/file_path").and_then(|v| v.as_str()) {
                     let url = format!("https://api.telegram.org/file/bot{}/{}", token, path);
+                    let is_animated = sticker.get("is_animated").and_then(|v| v.as_bool()).unwrap_or(false);
+                    let is_video = sticker.get("is_video").and_then(|v| v.as_bool()).unwrap_or(false);
+                    let sticker_type = if is_video { "video" } else if is_animated { "animated" } else { "static" };
                     resolved.push(serde_json::json!({
                         "file_id": file_id,
                         "url": url,
                         "emoji": sticker.get("emoji"),
-                        "is_animated": sticker.get("is_animated"),
-                        "is_video": sticker.get("is_video"),
+                        "is_animated": is_animated,
+                        "is_video": is_video,
+                        "type": sticker_type,
                     }));
                 }
             }
@@ -124,3 +130,54 @@ async fn get_pack(
 
     Ok(Json(result))
 }
+
+/// Proxy endpoint to fetch Telegram sticker files, avoiding CORS issues.
+/// GET /api/stickers/proxy/{file_id}
+async fn proxy_file(
+    State(state): State<Arc<AppState>>,
+    _auth: AuthUser,
+    Path(file_id): Path<String>,
+) -> Result<impl IntoResponse, (axum::http::StatusCode, Json<serde_json::Value>)> {
+    let token = state.config.telegram_bot_token.as_ref()
+        .ok_or_else(|| (axum::http::StatusCode::SERVICE_UNAVAILABLE, Json(serde_json::json!({ "error": "Telegram bot token not configured" }))))?;
+
+    let client = reqwest::Client::new();
+
+    // Get file path from Telegram
+    let file_resp = client
+        .get(format!("https://api.telegram.org/bot{}/getFile?file_id={}", token, file_id))
+        .send()
+        .await
+        .map_err(|e| (axum::http::StatusCode::BAD_GATEWAY, Json(serde_json::json!({ "error": e.to_string() }))))?;
+
+    let file_body: serde_json::Value = file_resp.json().await
+        .map_err(|e| (axum::http::StatusCode::BAD_GATEWAY, Json(serde_json::json!({ "error": e.to_string() }))))?;
+
+    let file_path = file_body.pointer("/result/file_path").and_then(|v| v.as_str())
+        .ok_or_else(|| (axum::http::StatusCode::NOT_FOUND, Json(serde_json::json!({ "error": "File not found" }))))?;
+
+    // Download the actual file
+    let download_url = format!("https://api.telegram.org/file/bot{}/{}", token, file_path);
+    let download_resp = client.get(&download_url).send().await
+        .map_err(|e| (axum::http::StatusCode::BAD_GATEWAY, Json(serde_json::json!({ "error": e.to_string() }))))?;
+
+    let content_type = download_resp.headers()
+        .get(reqwest::header::CONTENT_TYPE)
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("application/octet-stream")
+        .to_string();
+
+    let bytes = download_resp.bytes().await
+        .map_err(|e| (axum::http::StatusCode::BAD_GATEWAY, Json(serde_json::json!({ "error": e.to_string() }))))?;
+
+    Ok((
+        axum::http::StatusCode::OK,
+        [
+            (axum::http::header::CONTENT_TYPE, content_type),
+            (axum::http::header::CACHE_CONTROL, "public, max-age=86400".to_string()),
+            (axum::http::header::ACCESS_CONTROL_ALLOW_ORIGIN, "*".to_string()),
+        ],
+        bytes,
+    ))
+}
+

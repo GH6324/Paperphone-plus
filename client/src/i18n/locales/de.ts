@@ -18,7 +18,7 @@ export const de: Record<string, string> = {
 
   'chat.typing': 'tippt...', 'chat.placeholder': 'Nachricht eingeben...', 'chat.send': 'Senden',
   'chat.encrypted': 'Nachrichten sind Ende-zu-Ende verschlüsselt',
-  'chat.no_recent_emoji': 'Keine kürzlichen Emojis', 'chat.loading_stickers': 'Laden...', 'chat.no_stickers': 'Keine statischen Sticker in diesem Pack',
+  'chat.no_recent_emoji': 'Keine kürzlichen Emojis', 'chat.loading_stickers': 'Laden...', 'chat.no_stickers': 'Keine Sticker in diesem Pack',
   'chat.uploading_image': 'Bild wird hochgeladen...', 'chat.uploading_video': 'Video wird hochgeladen...', 'chat.uploading_file': 'Datei wird hochgeladen...', 'chat.uploading_voice': 'Sprachnachricht wird hochgeladen...', 'chat.upload_failed': 'Hochladen fehlgeschlagen',
   'chat.attach_image': 'Bild senden', 'chat.attach_video': 'Video', 'chat.attach_file': 'Datei', 'chat.attach_voice': 'Sprache', 'chat.attach_more': 'Mehr', 'chat.file': 'Datei',
   'chat.recording': 'Aufnahme...', 'chat.stop_recording': 'Stopp', 'chat.voice_speed': 'Tempo', 'chat.mic_failed': 'Kein Zugriff auf Mikrofon',

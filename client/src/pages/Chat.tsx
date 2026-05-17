@@ -9,6 +9,7 @@ import { sendWs, onWs } from '../api/socket'
 import { getKeys } from '../crypto/keystore'
 import { encryptHybrid, decryptHybrid } from '../crypto/ratchet'
 import { ChevronLeft, Lock, Settings, Timer, ImageIcon, Film, Plus, Mic, Download, Paperclip, AlertTriangle, Clock, Package as PackageIcon, FileText, File as FileIcon, Image as LucideImage, Music, Video, Check, CheckCheck, Phone, VideoIcon, SendHorizonal, Smile, WifiOff } from 'lucide-react'
+import TgsPlayer from '../components/TgsPlayer'
 
 // Auto-delete options (seconds)
 const AUTO_DELETE_OPTIONS = [
@@ -510,8 +511,20 @@ export default function Chat() {
     }
   }, [stickerPacks, currentPack, emojiTab])
 
-  const sendSticker = (url: string) => {
-    sendMessage(url, 'sticker', { url })
+  const sendSticker = (sticker: any) => {
+    const stickerType = sticker.type || 'static'
+    if (stickerType === 'static') {
+      // Backward compatible: static stickers send plain URL
+      sendMessage(sticker.url, 'sticker', { url: sticker.url })
+    } else {
+      // Animated/video stickers send JSON with type and file_id for proxy
+      const payload = JSON.stringify({
+        url: sticker.url,
+        stickerType,
+        fileId: sticker.file_id || '',
+      })
+      sendMessage(payload, 'sticker', { url: sticker.url })
+    }
     setShowEmojiPanel(false)
   }
 
@@ -539,7 +552,34 @@ export default function Chat() {
       return <img className="msg-image" src={normalizeFileUrl(displayText)} alt="" style={{ maxWidth: 240, borderRadius: 8, cursor: 'pointer' }} />
     }
     if (msg.msg_type === 'sticker') {
-      return <img src={normalizeFileUrl(displayText)} alt="sticker" style={{ maxWidth: 160, maxHeight: 160, display: 'block', background: 'transparent' }} loading="lazy" />
+      // Try to parse as JSON for animated/video stickers
+      let stickerUrl = displayText
+      let stickerType = 'static'
+      let fileId = ''
+      try {
+        const parsed = JSON.parse(displayText)
+        if (parsed.url) {
+          stickerUrl = parsed.url
+          stickerType = parsed.stickerType || 'static'
+          fileId = parsed.fileId || ''
+        }
+      } catch {
+        // Plain URL = static sticker (backward compatible)
+      }
+
+      if (stickerType === 'animated' && fileId) {
+        return <TgsPlayer src={`/api/stickers/proxy/${fileId}`} width={160} height={160} alt="sticker" />
+      }
+      if (stickerType === 'video') {
+        return (
+          <video
+            src={normalizeFileUrl(stickerUrl)}
+            autoPlay loop muted playsInline
+            style={{ maxWidth: 160, maxHeight: 160, display: 'block', background: 'transparent' }}
+          />
+        )
+      }
+      return <img src={normalizeFileUrl(stickerUrl)} alt="sticker" style={{ maxWidth: 160, maxHeight: 160, display: 'block', background: 'transparent' }} loading="lazy" />
     }
     if (msg.msg_type === 'voice') {
       return (
@@ -843,18 +883,28 @@ export default function Chat() {
                   ) : (() => {
                     const packName = stickerPacks[currentPack]?.name
                     const stickers = stickerCache[packName] || []
-                    const staticStickers = stickers.filter((s: any) => !s.is_animated && !s.is_video)
-                    if (staticStickers.length === 0) return <div style={{ width: '100%', textAlign: 'center', color: 'var(--text-muted)', padding: 32 }}>{t('chat.no_stickers')}</div>
-                    return staticStickers.map((sticker: any, i: number) => (
-                      <div key={sticker.file_id || i} onClick={() => sendSticker(sticker.url)} title={sticker.emoji || 'sticker'}
-                        style={{ width: 72, height: 72, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, transition: 'background .15s' }}
-                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-card)')}
-                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                        <img src={sticker.url} alt={sticker.emoji || ''} loading="lazy"
-                          style={{ maxWidth: 64, maxHeight: 64, objectFit: 'contain' }}
-                          onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
-                      </div>
-                    ))
+                    if (stickers.length === 0) return <div style={{ width: '100%', textAlign: 'center', color: 'var(--text-muted)', padding: 32 }}>{t('chat.no_stickers')}</div>
+                    return stickers.map((sticker: any, i: number) => {
+                      const sType = sticker.type || (sticker.is_video ? 'video' : sticker.is_animated ? 'animated' : 'static')
+                      return (
+                        <div key={sticker.file_id || i} onClick={() => sendSticker(sticker)} title={sticker.emoji || 'sticker'}
+                          style={{ width: 72, height: 72, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, transition: 'background .15s' }}
+                          onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-card)')}
+                          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                          {sType === 'animated' ? (
+                            <TgsPlayer src={`/api/stickers/proxy/${sticker.file_id}`} width={64} height={64} alt={sticker.emoji || ''} hoverPlay />
+                          ) : sType === 'video' ? (
+                            <video src={sticker.url} autoPlay loop muted playsInline
+                              style={{ maxWidth: 64, maxHeight: 64, objectFit: 'contain' }}
+                              onError={e => { (e.target as HTMLVideoElement).style.display = 'none' }} />
+                          ) : (
+                            <img src={sticker.url} alt={sticker.emoji || ''} loading="lazy"
+                              style={{ maxWidth: 64, maxHeight: 64, objectFit: 'contain' }}
+                              onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                          )}
+                        </div>
+                      )
+                    })
                   })()}
                 </div>
               </>

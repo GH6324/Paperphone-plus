@@ -45,7 +45,7 @@ export const en: Record<string, string> = {
   'chat.encrypted': 'Messages are end-to-end encrypted',
   'chat.no_recent_emoji': 'No recent emojis',
   'chat.loading_stickers': 'Loading...',
-  'chat.no_stickers': 'No static stickers in this pack',
+  'chat.no_stickers': 'No stickers in this pack',
   'chat.uploading_image': 'Uploading image...',
   'chat.uploading_video': 'Uploading video...',
   'chat.uploading_file': 'Uploading file...',

@@ -555,7 +555,7 @@ export default function Login() {
 
           {error && <div style={{ color: 'var(--danger)', fontSize: 13, textAlign: 'center' }}>{error}</div>}
 
-          <button className="btn btn-primary btn-full" type="submit" id="submit-btn" disabled={loading || !agreedToTerms}>
+          <button className="btn btn-primary btn-full" type="submit" id="submit-btn" disabled={loading}>
             {loading
               ? (isRegister ? t('auth.registering') : t('auth.logging_in'))
               : (isRegister ? t('auth.register') : t('auth.login'))

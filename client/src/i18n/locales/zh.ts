@@ -49,7 +49,7 @@ export const zh: Record<string, string> = {
   'chat.encrypted': '消息已端到端加密',
   'chat.no_recent_emoji': '没有最近使用的表情',
   'chat.loading_stickers': '加载中...',
-  'chat.no_stickers': '该贴纸包暂无静态贴纸',
+  'chat.no_stickers': '该贴纸包暂无贴纸',
   'chat.uploading_image': '正在上传图片...',
   'chat.uploading_video': '正在上传视频...',
   'chat.uploading_file': '正在上传文件...',
