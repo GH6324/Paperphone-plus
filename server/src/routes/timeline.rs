@@ -87,7 +87,7 @@ async fn list_posts(
     _auth: AuthUser,
     Query(params): Query<ListQuery>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    let limit = params.limit.unwrap_or(20).min(50);
+    let limit = params.limit.unwrap_or(999999);
 
     let posts: Vec<(u64, String, String, i8, chrono::NaiveDateTime, String, Option<String>)> = if let Some(before) = params.before {
         sqlx::query_as(
