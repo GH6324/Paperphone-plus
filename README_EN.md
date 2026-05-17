@@ -169,8 +169,14 @@ Voice messages, 1:1 calls, and group calls all support real-time voice changing 
 | `FCM_PROJECT_ID` | Firebase project ID (optional, Capacitor Android) | — |
 | `FCM_CLIENT_EMAIL` | Firebase service account email (optional) | — |
 | `FCM_PRIVATE_KEY` | Firebase service account private key (optional, supports both `\n` escape and real newlines; see below) | — |
+| `FCM_RELAY_SECRET` | FCM push relay secret (optional, set on relay host to enable endpoint) | — |
+| `FCM_RELAY_URL` | FCM push relay URL (optional, self-hosted servers point to relay host) | — |
+| `FCM_RELAY_KEY` | FCM push relay auth key (optional, must match relay host's `FCM_RELAY_SECRET`) | — |
 | `ONESIGNAL_APP_ID` | OneSignal App ID (optional) | — |
 | `ONESIGNAL_REST_KEY` | OneSignal REST API Key (optional) | — |
+| `ONESIGNAL_RELAY_SECRET` | OneSignal push relay secret (optional, set on relay host to enable endpoint) | — |
+| `ONESIGNAL_RELAY_URL` | OneSignal push relay URL (optional, self-hosted servers point to relay host) | — |
+| `ONESIGNAL_RELAY_KEY` | OneSignal push relay auth key (optional, must match relay host's `ONESIGNAL_RELAY_SECRET`) | — |
 | `NTFY_BASE_URL` | ntfy server URL (optional, uses public ntfy.sh by default) | `https://ntfy.sh` |
 | `NTFY_TOKEN` | ntfy auth token (optional, for self-hosted servers) | — |
 | `APNS_TEAM_ID` | Apple Developer Team ID (optional, iOS native push) | — |
@@ -308,19 +314,57 @@ APNS_RELAY_KEY=the_shared_secret_from_step_1
 
 > **Security note**: The relay only transmits push notification titles and summaries (e.g. "Someone sent you a message"), not actual message content. Device tokens cannot be used to read user data.
 
+### Push Relay (All Channels)
+
+For self-hosted server operators using someone else's published app (e.g. from the App Store/Google Play), you don't have the developer's push credentials (Apple .p8 Key / Firebase service account / OneSignal API Key).
+
+The Push Relay system provides relay capability for **APNS, FCM, and OneSignal** channels:
+
+**App developer** enables relay endpoints on their server:
+
+```env
+# App developer's server .env
+APNS_RELAY_SECRET=a_long_random_string
+FCM_RELAY_SECRET=a_long_random_string
+ONESIGNAL_RELAY_SECRET=a_long_random_string
+```
+
+**Self-hosted users** only need relay URL and key — **no push service credentials required**:
+
+```env
+# Self-hosted server .env
+# APNS (iOS native push)
+APNS_RELAY_URL=https://app-developer-server.com
+APNS_RELAY_KEY=shared_secret
+
+# FCM (Android native push)
+FCM_RELAY_URL=https://app-developer-server.com
+FCM_RELAY_KEY=shared_secret
+
+# OneSignal (Median.co-wrapped apps)
+ONESIGNAL_RELAY_URL=https://app-developer-server.com
+ONESIGNAL_RELAY_KEY=shared_secret
+```
+
+> **Priority**: Local credentials → Push Relay → skip (silent). If both are configured, local direct connection takes priority.
+
 ---
 
-## Official APNS Push Relay
+## Official Push Relay
 
-Self-hosted server operators can use the official APNS push relay to enable iOS push notifications without configuring Apple credentials:
+Self-hosted server operators can use the official push relay to enable iOS/Android push notifications without configuring any push credentials:
 
 ```env
 # 2026-05-18
 APNS_RELAY_URL=https://619.chat
 APNS_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
+FCM_RELAY_URL=https://619.chat
+FCM_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
+ONESIGNAL_RELAY_URL=https://619.chat
+ONESIGNAL_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
 ```
 
-Add these two lines to your self-hosted server's `.env` file.
+Add these lines to your self-hosted server's `.env` file.
 
 ---
 

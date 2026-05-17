@@ -158,6 +158,29 @@ spec:
       description: >-
         OneSignal REST API key paired with the App ID above.
 
+    - key: ONESIGNAL_RELAY_SECRET
+      type: STRING
+      name: OneSignal Relay Secret (optional)
+      description: >-
+        Set this on the app developer's server to enable the OneSignal push relay
+        endpoint. Self-hosted servers use this secret to authenticate.
+        Generate a long random string. Leave blank to disable the relay.
+
+    - key: ONESIGNAL_RELAY_URL
+      type: STRING
+      name: OneSignal Relay URL (optional)
+      description: >-
+        For self-hosted servers only. URL of the push relay service
+        (the app developer's server), e.g. https://api.paperphone.app.
+        Leave blank if you have local OneSignal credentials configured.
+
+    - key: ONESIGNAL_RELAY_KEY
+      type: STRING
+      name: OneSignal Relay Key (optional)
+      description: >-
+        For self-hosted servers only. The shared secret to authenticate
+        with the push relay. Must match the relay server's ONESIGNAL_RELAY_SECRET.
+
     - key: TELEGRAM_BOT_TOKEN
       type: STRING
       name: Telegram Bot Token (optional)
@@ -193,6 +216,29 @@ spec:
       description: >-
         RSA private key from the Firebase service account JSON key file.
         Copy the full "private_key" field value including BEGIN/END markers.
+
+    - key: FCM_RELAY_SECRET
+      type: STRING
+      name: FCM Relay Secret (optional)
+      description: >-
+        Set this on the app developer's server to enable the FCM push relay
+        endpoint. Self-hosted servers use this secret to authenticate.
+        Generate a long random string. Leave blank to disable the relay.
+
+    - key: FCM_RELAY_URL
+      type: STRING
+      name: FCM Relay URL (optional)
+      description: >-
+        For self-hosted servers only. URL of the push relay service
+        (the app developer's server), e.g. https://api.paperphone.app.
+        Leave blank if you have local FCM credentials configured.
+
+    - key: FCM_RELAY_KEY
+      type: STRING
+      name: FCM Relay Key (optional)
+      description: >-
+        For self-hosted servers only. The shared secret to authenticate
+        with the push relay. Must match the relay server's FCM_RELAY_SECRET.
 
     - key: METERED_TURN_API_KEY
       type: STRING
@@ -440,12 +486,24 @@ spec:
             default: ${ONESIGNAL_APP_ID}
           ONESIGNAL_REST_KEY:
             default: ${ONESIGNAL_REST_KEY}
+          ONESIGNAL_RELAY_SECRET:
+            default: ${ONESIGNAL_RELAY_SECRET}
+          ONESIGNAL_RELAY_URL:
+            default: ${ONESIGNAL_RELAY_URL}
+          ONESIGNAL_RELAY_KEY:
+            default: ${ONESIGNAL_RELAY_KEY}
           FCM_PROJECT_ID:
             default: ${FCM_PROJECT_ID}
           FCM_CLIENT_EMAIL:
             default: ${FCM_CLIENT_EMAIL}
           FCM_PRIVATE_KEY:
             default: ${FCM_PRIVATE_KEY}
+          FCM_RELAY_SECRET:
+            default: ${FCM_RELAY_SECRET}
+          FCM_RELAY_URL:
+            default: ${FCM_RELAY_URL}
+          FCM_RELAY_KEY:
+            default: ${FCM_RELAY_KEY}
           METERED_TURN_API_KEY:
             default: ${METERED_TURN_API_KEY}
           NTFY_BASE_URL:

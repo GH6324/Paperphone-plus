@@ -263,6 +263,8 @@ FCM_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvQ...base64...\n-----END PRIVA
 
 > **未配置时**：推送功能静默禁用，不影响其他功能。
 
+> **自建服务器用户**：如果你没有 Firebase 凭据（使用别人发布的 Android App），可以通过 [Push Relay](#push-relay-推送中继) 来实现 FCM 推送。
+
 #### ⚠️ FCM 私钥换行符问题
 
 Firebase 服务账号 JSON 文件中的 `private_key` 字段包含 RSA 私钥，其 PEM 格式要求每 64 个字符有一个**真实换行符**（`\n`）。但在不同部署环境中，换行符的处理方式各不相同，这是 FCM 推送配置中**最常见的失败原因**。
@@ -403,6 +405,52 @@ APNS_RELAY_KEY=与开发者约定的共享密钥
 
 > **安全说明**：Relay 仅传输推送通知标题和摘要（如「某某发来一条消息」），不包含消息原文。设备 token 本身无法用于读取用户数据。
 
+### Push Relay 推送中继
+
+对于自建服务器用户，如果你使用别人发布的 App（如从 App Store/Google Play 下载），你没有 App 开发者的推送凭据（Apple .p8 Key / Firebase 服务账号 / OneSignal API Key），无法直接发送推送通知。
+
+Push Relay 系统为 **APNS、FCM、OneSignal** 三个通道统一提供了推送中继能力：
+
+```
+┌──────────────────────┐       ┌─────────────────────────┐       ┌──────────────┐
+│  自建服务器            │  HTTP  │  App 开发者的服务器       │       │  推送服务      │
+│  (无推送凭据)          │──────→│  (有凭据 + Relay)        │──────→│  Apple/Google │
+│                      │       │                         │       │  OneSignal    │
+│  *_RELAY_URL=...     │       │  *_RELAY_SECRET=...     │       └──────────────┘
+│  *_RELAY_KEY=...     │       │                         │
+└──────────────────────┘       └─────────────────────────┘
+```
+
+**App 开发者**在自己的服务器上设置 Relay Secret 以启用中继端点：
+
+```env
+# App 开发者的服务器 .env
+APNS_RELAY_SECRET=一个长随机字符串
+FCM_RELAY_SECRET=一个长随机字符串
+ONESIGNAL_RELAY_SECRET=一个长随机字符串
+```
+
+**自建用户**只需配置指向 Relay 的 URL 和密钥，**无需任何推送服务凭据**：
+
+```env
+# 自建服务器 .env
+# APNS (iOS 原生推送)
+APNS_RELAY_URL=https://app-developer-server.com
+APNS_RELAY_KEY=与开发者约定的共享密钥
+
+# FCM (Android 原生推送)
+FCM_RELAY_URL=https://app-developer-server.com
+FCM_RELAY_KEY=与开发者约定的共享密钥
+
+# OneSignal (Median.co 打包的 App)
+ONESIGNAL_RELAY_URL=https://app-developer-server.com
+ONESIGNAL_RELAY_KEY=与开发者约定的共享密钥
+```
+
+> **优先级**：本地凭据 → Push Relay → 跳过（静默）。如果同时配置了本地凭据和 Relay，优先使用本地直连。
+
+> **安全说明**：Relay 仅传输推送通知标题和摘要（如「某某发来一条消息」），不包含消息原文。
+
 ---
 
 ## iOS 永久免签部署
@@ -479,7 +527,7 @@ paperphone-plus/
 │       │   ├── timeline.rs          # 时间线（公开发帖/点赞/评论/匿名）
 │       │   ├── calls.rs             # TURN 凭据派发
 │       │   ├── push.rs              # 推送订阅管理
-│       │   ├── push_relay.rs        # APNS 推送中继端点
+│       │   ├── push_relay.rs        # APNS / FCM / OneSignal 推送中继端点
 │       │   ├── stickers.rs          # Telegram 贴纸包代理（缓存）
 │       │   ├── totp.rs              # TOTP 两步验证
 │       │   ├── sessions.rs          # 会话管理（多设备登录）
@@ -488,8 +536,8 @@ paperphone-plus/
 │       │   └── admin/               # 管理后台（内嵌 HTML SPA + API）
 │       ├── services/
 │       │   ├── push.rs              # Web Push VAPID 服务
-│       │   ├── fcm.rs               # Firebase Cloud Messaging 服务
-│       │   ├── onesignal.rs         # OneSignal REST API 服务
+│       │   ├── fcm.rs               # Firebase Cloud Messaging 服务（直连 + Relay）
+│       │   ├── onesignal.rs         # OneSignal REST API 服务（直连 + Relay）
 │       │   ├── ntfy.rs              # ntfy 推送服务（国产安卓）
 │       │   └── apns.rs              # APNS 推送服务（iOS 原生 + Relay）
 │       └── ws/
@@ -614,8 +662,14 @@ paperphone-plus/
 | `FCM_PROJECT_ID` | Firebase 项目 ID（可选，Capacitor Android） | — |
 | `FCM_CLIENT_EMAIL` | Firebase 服务账号邮箱（可选） | — |
 | `FCM_PRIVATE_KEY` | Firebase 服务账号私钥（可选，支持 `\n` 转义和真实换行两种格式，详见[FCM 配置说明](#配置-fcmcapacitor-原生-android-app)） | — |
+| `FCM_RELAY_SECRET` | FCM 推送中继密钥（可选，在 Relay 主机上设置以启用中继端点） | — |
+| `FCM_RELAY_URL` | FCM 推送中继 URL（可选，自建服务器指向 Relay 主机） | — |
+| `FCM_RELAY_KEY` | FCM 推送中继认证密钥（可选，与 Relay 主机的 `FCM_RELAY_SECRET` 一致） | — |
 | `ONESIGNAL_APP_ID` | OneSignal App ID（可选，Median.co） | — |
 | `ONESIGNAL_REST_KEY` | OneSignal REST API Key（可选） | — |
+| `ONESIGNAL_RELAY_SECRET` | OneSignal 推送中继密钥（可选，在 Relay 主机上设置以启用中继端点） | — |
+| `ONESIGNAL_RELAY_URL` | OneSignal 推送中继 URL（可选，自建服务器指向 Relay 主机） | — |
+| `ONESIGNAL_RELAY_KEY` | OneSignal 推送中继认证密钥（可选，与 Relay 主机的 `ONESIGNAL_RELAY_SECRET` 一致） | — |
 | `NTFY_BASE_URL` | ntfy 服务器地址（可选，默认使用 ntfy.sh 公共服务） | `https://ntfy.sh` |
 | `NTFY_TOKEN` | ntfy 认证 Token（可选，自建服务器时使用） | — |
 | `APNS_TEAM_ID` | Apple Developer Team ID（可选，iOS 原生推送） | — |
@@ -633,17 +687,21 @@ paperphone-plus/
 
 ---
 
-## APNS Push Relay 官方中继服务
+## 官方推送中继服务
 
-自建服务器用户可使用以下官方 APNS 推送中继，无需自行配置 Apple 凭据即可让 iOS 用户收到推送通知：
+自建服务器用户可使用以下官方推送中继，无需自行配置推送凭据即可让 iOS/Android 用户收到推送通知：
 
 ```env
 # 2026-05-18
 APNS_RELAY_URL=https://619.chat
 APNS_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
+FCM_RELAY_URL=https://619.chat
+FCM_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
+ONESIGNAL_RELAY_URL=https://619.chat
+ONESIGNAL_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
 ```
 
-将以上两行添加到自建服务器的 `.env` 文件中即可。
+将以上内容添加到自建服务器的 `.env` 文件中即可。
 
 ---
 如果这个项目对你有用的话，请我喝罐可乐吧。
