@@ -34,7 +34,7 @@ spec:
     - 👤 **User Profile** — contact profile page with Moments feed, bidirectional privacy controls (hide their / hide mine)
     - 📰 **Timeline** — Xiaohongshu-style public feed with masonry layout, up to 50 images/videos + 2000-char text, anonymous posting, likes & comments
     - ⏱️ **Auto-Delete Messages** — 5 tiers: never / 1 day / 3 days / 1 week / 1 month
-    - 🔔 **Push Notifications** — Web Push (VAPID) + FCM + OneSignal + ntfy quad-channel (Chinese Android without Google Services supported)
+    - 🔔 **Push Notifications** — Web Push (VAPID) + FCM + OneSignal + ntfy + APNS five-channel (iOS native + Chinese Android without Google Services supported)
     - 🌐 **Multi-language** — Chinese, English, Japanese, Korean, French, German, Russian, Spanish
     - 📱 **iOS PWA** — "Add to Home Screen" via Safari, no enterprise cert needed
     - 💬 Rich messaging: text, images, video, document files (PDF/DOCX/XLSX etc. with type icons), voice, 200+ emoji (8 categories), Telegram sticker packs, delivery receipts, typing indicators
@@ -54,7 +54,7 @@ spec:
     2. Register an account — cryptographic keys are generated locally on your device.
     3. (Optional) Configure Cloudflare R2 for image/voice/video uploads — set `R2_*` variables on the **server** service.
     4. (Optional) Configure Cloudflare TURN for cross-network video calls — set `CF_CALLS_APP_ID` and `CF_CALLS_APP_SECRET`.
-    5. (Optional) Enable push notifications — set `VAPID_*` variables for Web Push, `FCM_*` for native Android (Capacitor).
+    5. (Optional) Enable push notifications — set `VAPID_*` variables for Web Push, `FCM_*` for native Android (Capacitor), `APNS_*` for native iOS.
     6. (Optional) Enable Telegram sticker packs — set `TELEGRAM_BOT_TOKEN` and optionally `STICKER_PACKS`.
     7. (Optional) Access the admin panel at `/admin` (or custom `ADMIN_PATH`) to moderate user reports. Set `ADMIN_PASSWORD` for production security.
 
@@ -216,6 +216,67 @@ spec:
       description: >-
         Authentication token for self-hosted ntfy servers.
         Leave blank when using the public ntfy.sh service.
+
+    - key: APNS_TEAM_ID
+      type: STRING
+      name: APNS Team ID (optional)
+      description: >-
+        Apple Developer Team ID for iOS native push notifications.
+        Found in Apple Developer account → Membership page (10-char alphanumeric).
+        Leave blank to disable APNS.
+
+    - key: APNS_KEY_ID
+      type: STRING
+      name: APNS Key ID (optional)
+      description: >-
+        Key ID of the APNS authentication key (.p8 file).
+        Found in Apple Developer → Keys → your key (10-char alphanumeric).
+
+    - key: APNS_PRIVATE_KEY
+      type: STRING
+      name: APNS Private Key (optional)
+      description: >-
+        Contents of the .p8 private key file from Apple Developer → Keys.
+        Include the full PEM content (BEGIN/END markers). Replace real newlines
+        with \n when pasting into environment variables.
+
+    - key: APNS_BUNDLE_ID
+      type: STRING
+      name: APNS Bundle ID (optional)
+      description: >-
+        The iOS app Bundle Identifier, e.g. com.paperphone.app.
+        Must match the Bundle ID configured in your Xcode project and
+        Apple Developer portal.
+
+    - key: APNS_SANDBOX
+      type: STRING
+      name: APNS Sandbox Mode (optional)
+      description: >-
+        Set to "true" for development/TestFlight builds, "false" for
+        App Store production builds. Defaults to "false".
+
+    - key: APNS_RELAY_SECRET
+      type: STRING
+      name: APNS Relay Secret (optional)
+      description: >-
+        Set this on the app developer's server to enable the push relay
+        endpoint. Self-hosted servers use this secret to authenticate.
+        Generate a long random string. Leave blank to disable the relay.
+
+    - key: APNS_RELAY_URL
+      type: STRING
+      name: APNS Relay URL (optional)
+      description: >-
+        For self-hosted servers only. URL of the push relay service
+        (the app developer's server), e.g. https://api.paperphone.app.
+        Leave blank if you have local APNS credentials configured.
+
+    - key: APNS_RELAY_KEY
+      type: STRING
+      name: APNS Relay Key (optional)
+      description: >-
+        For self-hosted servers only. The shared secret to authenticate
+        with the push relay. Must match the relay server's APNS_RELAY_SECRET.
 
     - key: ADMIN_PASSWORD
       type: STRING
@@ -391,6 +452,22 @@ spec:
             default: ${NTFY_BASE_URL}
           NTFY_TOKEN:
             default: ${NTFY_TOKEN}
+          APNS_TEAM_ID:
+            default: ${APNS_TEAM_ID}
+          APNS_KEY_ID:
+            default: ${APNS_KEY_ID}
+          APNS_PRIVATE_KEY:
+            default: ${APNS_PRIVATE_KEY}
+          APNS_BUNDLE_ID:
+            default: ${APNS_BUNDLE_ID}
+          APNS_SANDBOX:
+            default: ${APNS_SANDBOX}
+          APNS_RELAY_SECRET:
+            default: ${APNS_RELAY_SECRET}
+          APNS_RELAY_URL:
+            default: ${APNS_RELAY_URL}
+          APNS_RELAY_KEY:
+            default: ${APNS_RELAY_KEY}
           TELEGRAM_BOT_TOKEN:
             default: ${TELEGRAM_BOT_TOKEN}
           STICKER_PACKS:
@@ -446,7 +523,7 @@ localization:
       - 👤 **个人资料** — 联系人资料页（朋友圈动态 +「不看此人朋友圈」与「不让他看我的朋友圈」双向隐私控制）
       - 📰 **时间线** — 小红书风格公开发帖区，双列瀑布流布局，最多50个图片/视频+2000字文字，支持匿名发帖、点赞、评论
       - ⏱️ **消息自动删除** — 5 档可选（永不/1天/3天/1周/1月）
-      - 🔔 **消息推送** — Web Push (VAPID) + FCM + OneSignal + ntfy 四通道（国产安卓免 Google 服务）
+      - 🔔 **消息推送** — Web Push (VAPID) + FCM + OneSignal + ntfy + APNS 五通道（iOS 原生 + 国产安卓免 Google 服务）
       - 🌐 **多语言** — 中文、英文、日语、韩语、法语、德语、俄语、西班牙语
       - 📱 **iOS 永久免签** — Safari「添加到主屏幕」，无需企业证书
       - 💬 富文本消息、图片、视频、文档文件（PDF/DOCX/XLSX 等带类型图标）、语音、Emoji（200+，8 分类）、Telegram 贴纸包、送达回执、打字状态
@@ -466,7 +543,7 @@ localization:
       2. 注册账号 — 密钥在本地设备生成。
       3. （可选）在 **server** 服务设置 `R2_*` 变量，启用图片/语音/视频上传功能。
       4. （可选）配置 Cloudflare TURN 以支持跨公网视频通话。
-      5. （可选）设置 `VAPID_*` 变量启用浏览器推送通知，`FCM_*` 启用原生 Android 推送（Capacitor）。
+      5. （可选）设置 `VAPID_*` 变量启用浏览器推送通知，`FCM_*` 启用原生 Android 推送（Capacitor），`APNS_*` 启用 iOS 原生推送。
       6. （可选）设置 `TELEGRAM_BOT_TOKEN` 和 `STICKER_PACKS` 启用 Telegram 贴纸包功能。
       7. （可选）访问 `/admin`（或自定义 `ADMIN_PATH`）进入管理后台审核举报。生产环境请设置 `ADMIN_PASSWORD`。
 

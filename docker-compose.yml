@@ -48,8 +48,18 @@ services:
       METERED_TURN_API_KEY: ${METERED_TURN_API_KEY:-}
       NTFY_BASE_URL: ${NTFY_BASE_URL:-https://ntfy.sh}
       NTFY_TOKEN: ${NTFY_TOKEN:-}
+      APNS_TEAM_ID: ${APNS_TEAM_ID:-}
+      APNS_KEY_ID: ${APNS_KEY_ID:-}
+      APNS_PRIVATE_KEY: ${APNS_PRIVATE_KEY:-}
+      APNS_BUNDLE_ID: ${APNS_BUNDLE_ID:-}
+      APNS_SANDBOX: ${APNS_SANDBOX:-false}
+      APNS_RELAY_SECRET: ${APNS_RELAY_SECRET:-}
+      APNS_RELAY_URL: ${APNS_RELAY_URL:-}
+      APNS_RELAY_KEY: ${APNS_RELAY_KEY:-}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       STICKER_PACKS: ${STICKER_PACKS:-}
+      ADMIN_PATH: ${ADMIN_PATH:-/admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
     depends_on:
       mysql:
         condition: service_healthy

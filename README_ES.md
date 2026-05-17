@@ -62,6 +62,8 @@ Frontend (client/)
 - 🌐 8 idiomas (detección automática + cambio manual)
 - 📱 PWA iOS (instalación permanente)
 - 📱 Aplicación Android nativa — Disponible en [Google Play](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus), con soporte de notificaciones push FCM
+- 📱 Aplicación iOS nativa — Disponible en App Store, con soporte de notificaciones push APNS
+- 🔔 Notificaciones push — Web Push (VAPID) + FCM + OneSignal + ntfy + APNS cinco canales (iOS nativo + Android chino sin Google Services)
 - 🔑 Autenticación de dos factores (TOTP)
 - 🛡️ Moderación de contenido — Reportes de usuarios (6 categorías) + bloqueo de usuarios (ocultación instantánea) + Términos de uso (EULA)
 - 🔧 Panel de administración — Dashboard web integrado (`/admin`, ruta configurable), protegido por contraseña, revisar reportes, eliminar contenido, banear usuarios — 8 idiomas

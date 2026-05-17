@@ -18,6 +18,7 @@ pub mod sessions;
 pub mod tags;
 pub mod report;
 pub mod admin;
+pub mod push_relay;
 
 use crate::AppState;
 
@@ -39,4 +40,5 @@ pub fn api_router() -> Router<Arc<AppState>> {
         .nest("/sessions", sessions::router())
         .nest("/tags", tags::router())
         .nest("/report", report::router())
+        .nest("/push-relay", push_relay::router())
 }

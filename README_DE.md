@@ -62,6 +62,8 @@ Frontend (client/)
 - 🌐 8 Sprachen (automatische Erkennung + manuelle Umschaltung)
 - 📱 iOS PWA (permanente Installation)
 - 📱 Native Android-App — Verfügbar im [Google Play](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus), mit FCM-Push-Benachrichtigungen
+- 📱 Native iOS-App — Verfügbar im App Store, mit APNS-Push-Benachrichtigungen
+- 🔔 Push-Benachrichtigungen — Web Push (VAPID) + FCM + OneSignal + ntfy + APNS Fünf-Kanal (iOS nativ + chinesische Android-Geräte ohne Google-Dienste)
 - 🔑 Zwei-Faktor-Authentifizierung (TOTP)
 - 🌐 Proxy-Einstellungen — SOCKS5 / HTTP / HTTPS Proxy-Unterstützung, konfigurierbar auf Login- und Einstellungsseiten (Adresse, Port, Benutzername, Passwort)
 - 🛡️ Inhaltsmoderation — Benutzermeldungen (6 Kategorien) + Benutzer blockieren (sofortige Ausblendung) + Nutzungsbedingungen (EULA)

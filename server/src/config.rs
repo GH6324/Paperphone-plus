@@ -48,6 +48,17 @@ pub struct Config {
     pub ntfy_base_url: String,
     pub ntfy_token: Option<String>,
 
+    // Apple Push Notification Service (APNS) for iOS native push
+    pub apns_team_id: Option<String>,
+    pub apns_key_id: Option<String>,
+    pub apns_private_key: Option<String>,
+    pub apns_bundle_id: Option<String>,
+    pub apns_sandbox: bool,
+    // APNS Push Relay (for self-hosted servers without Apple credentials)
+    pub apns_relay_secret: Option<String>,  // Set on the relay host to enable the relay endpoint
+    pub apns_relay_url: Option<String>,     // Set on self-hosted servers: URL of the relay
+    pub apns_relay_key: Option<String>,     // Set on self-hosted servers: shared key to auth with relay
+
     // Telegram stickers
     pub telegram_bot_token: Option<String>,
     pub sticker_packs: Option<String>,
@@ -101,6 +112,15 @@ impl Config {
 
             ntfy_base_url: env_or("NTFY_BASE_URL", "https://ntfy.sh"),
             ntfy_token: env_opt("NTFY_TOKEN"),
+
+            apns_team_id: env_opt("APNS_TEAM_ID"),
+            apns_key_id: env_opt("APNS_KEY_ID"),
+            apns_private_key: env_opt("APNS_PRIVATE_KEY"),
+            apns_bundle_id: env_opt("APNS_BUNDLE_ID"),
+            apns_sandbox: env_or("APNS_SANDBOX", "false") == "true",
+            apns_relay_secret: env_opt("APNS_RELAY_SECRET"),
+            apns_relay_url: env_opt("APNS_RELAY_URL"),
+            apns_relay_key: env_opt("APNS_RELAY_KEY"),
 
             telegram_bot_token: env_opt("TELEGRAM_BOT_TOKEN"),
             sticker_packs: env_opt("STICKER_PACKS"),

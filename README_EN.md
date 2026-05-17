@@ -45,7 +45,7 @@ A WeChat-style end-to-end encrypted instant messaging app with stateless ECDH + 
 | 👥 Group Chat | Up to 2000 members, plain-text messages (no encryption), Do Not Disturb mode, member management |
 | 👫 Friend System | Friend requests require approval with up to 512-char message; custom nicknames; multi-tag grouping |
 | ⏱️ Auto-Delete Messages | 5 tiers (never / 1 day / 3 days / 1 week / 1 month), settable by either party in DMs, owner-only in groups |
-| 🔔 Push Notifications | Web Push (VAPID) + FCM + OneSignal + ntfy quad-channel — reach users even when offline (Chinese Android without Google Services supported) |
+| 🔔 Push Notifications | Web Push (VAPID) + FCM + OneSignal + ntfy + APNS five-channel — reach users even when offline (iOS native + Chinese Android without Google Services supported) |
 | 🌐 Multi-Language | Chinese, English, Japanese, Korean, French, German, Russian, Spanish — auto-detect + manual switch |
 | 📱 iOS — No Enterprise Cert | PWA via Safari "Add to Home Screen", works permanently without Apple signing |
 | 📱 Android Native App | Available on [Google Play](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus), with FCM push notification support |
@@ -173,6 +173,14 @@ Voice messages, 1:1 calls, and group calls all support real-time voice changing 
 | `ONESIGNAL_REST_KEY` | OneSignal REST API Key (optional) | — |
 | `NTFY_BASE_URL` | ntfy server URL (optional, uses public ntfy.sh by default) | `https://ntfy.sh` |
 | `NTFY_TOKEN` | ntfy auth token (optional, for self-hosted servers) | — |
+| `APNS_TEAM_ID` | Apple Developer Team ID (optional, iOS native push) | — |
+| `APNS_KEY_ID` | APNS auth key ID (optional) | — |
+| `APNS_PRIVATE_KEY` | APNS .p8 private key content (optional, supports `\n` escaping) | — |
+| `APNS_BUNDLE_ID` | iOS App Bundle Identifier (optional) | — |
+| `APNS_SANDBOX` | APNS sandbox mode (optional, `true` for dev/TestFlight) | `false` |
+| `APNS_RELAY_SECRET` | Push relay secret (optional, set on relay host to enable endpoint) | — |
+| `APNS_RELAY_URL` | Push relay URL (optional, self-hosted servers point to relay host) | — |
+| `APNS_RELAY_KEY` | Push relay auth key (optional, must match relay host's `APNS_RELAY_SECRET`) | — |
 | `TELEGRAM_BOT_TOKEN` | Telegram Bot Token (optional) | — |
 | `STICKER_PACKS` | Custom sticker packs (optional, `name:label`) | 9 built-in defaults |
 | `ADMIN_PATH` | Admin panel URL path | `/admin` |
@@ -230,6 +238,75 @@ NTFY_TOKEN=your_optional_auth_token
 4. Tap "Register Push" to complete registration
 
 > **Security note**: ntfy notifications contain notification titles and summaries in plaintext (not the actual message content). For higher security, consider self-hosting an ntfy server.
+
+### APNS Push (Native iOS App)
+
+APNS (Apple Push Notification Service) sends push notifications to native iOS apps built with Capacitor. There are two configuration options:
+
+#### Option A: Direct Configuration (App Developer's Server)
+
+1. Log in to [Apple Developer](https://developer.apple.com/account) → **Certificates, Identifiers & Profiles** → **Keys**
+2. Click **+** to create a new Key → check **Apple Push Notifications service (APNs)** → Register
+3. **Download the `.p8` file** (⚠️ can only be downloaded once!) and note the **Key ID**
+4. Note your **Team ID** from the Apple Developer Membership page (10-char alphanumeric)
+5. Add to `server/.env`:
+
+```env
+APNS_TEAM_ID=AB12CD34EF
+APNS_KEY_ID=LH4Z9YN3P7
+APNS_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIGTAgEA...(.p8 file content)...\n-----END PRIVATE KEY-----"
+APNS_BUNDLE_ID=com.yourcompany.paperphone
+APNS_SANDBOX=false
+```
+
+> `APNS_SANDBOX`: Set to `true` for development/TestFlight builds, `false` for App Store production.
+
+#### Option B: Via Push Relay (Self-Hosted Servers)
+
+If you're using someone else's iOS app (e.g. downloaded from the App Store), you don't have the developer's Apple credentials and cannot send APNS pushes directly. Use the **Push Relay** instead.
+
+**How it works:**
+
+```
+┌──────────────────────┐       ┌─────────────────────────┐       ┌─────────┐
+│  Self-hosted server   │  HTTP  │  App developer's server  │  APNS  │  Apple  │
+│  (no Apple creds)     │──────→│  (has .p8 Key + Relay)   │──────→│  ──→ 📱 │
+│                       │       │                          │       └─────────┘
+│  APNS_RELAY_URL=...   │       │  APNS_TEAM_ID=...        │
+│  APNS_RELAY_KEY=...   │       │  APNS_RELAY_SECRET=...   │
+└──────────────────────┘       └─────────────────────────┘
+```
+
+**Step 1: App developer enables the Relay endpoint**
+
+On the app developer's server (which already has APNS credentials), set a relay secret:
+
+```env
+# App developer's server .env (already has APNS_TEAM_ID etc.)
+APNS_RELAY_SECRET=a_long_random_shared_secret
+```
+
+This automatically enables the push relay endpoint at `POST /api/push-relay/apns`.
+
+**Step 2: Self-hosted user configures the Relay**
+
+Self-hosted servers only need two variables — **no Apple credentials required**:
+
+```env
+# Self-hosted server .env
+APNS_RELAY_URL=https://app-developer-server.com
+APNS_RELAY_KEY=the_shared_secret_from_step_1
+```
+
+**How it works:**
+1. Self-hosted server receives an offline message → queries local `apns_tokens` table for user's iOS device tokens
+2. Sends device tokens + push title/body via HTTP POST to the Relay
+3. Relay validates the key, then sends to Apple using its own APNS credentials
+4. Relay returns a list of stale tokens; the self-hosted server automatically cleans its local database
+
+> **Priority**: Local APNS credentials → Push Relay → skip (silent). If both are configured, local direct connection takes priority.
+
+> **Security note**: The relay only transmits push notification titles and summaries (e.g. "Someone sent you a message"), not actual message content. Device tokens cannot be used to read user data.
 
 
 ---

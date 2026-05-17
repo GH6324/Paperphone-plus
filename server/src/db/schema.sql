@@ -353,3 +353,16 @@ CREATE TABLE IF NOT EXISTS user_blocks (
   FOREIGN KEY (blocked_id) REFERENCES users(id) ON DELETE CASCADE,
   INDEX idx_block_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ── APNS Tokens (iOS native push via Apple Push Notification Service) ────
+CREATE TABLE IF NOT EXISTS apns_tokens (
+  id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id     VARCHAR(36)     NOT NULL,
+  apns_token  VARCHAR(255)    NOT NULL,
+  platform    VARCHAR(16)     DEFAULT 'ios',
+  created_at  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_apns_token (user_id, apns_token),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_apns_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -45,7 +45,7 @@
 | 👥 群聊 | 最多 2000 人群组，纯文本消息（无加密），免打扰模式，成员管理 |
 | 👫 好友系统 | 添加好友需对方审核，支持 512 字验证消息；备注名称；好友标签分组 |
 | ⏱️ 消息自动删除 | 5 档可选（永不/1天/3天/1周/1月），私聊双方均可设置，群聊群主专属 |
-| 🔔 消息推送 | Web Push (VAPID) + FCM + OneSignal + ntfy 四通道，离线也能收到通知（国产安卓免 Google 服务） |
+| 🔔 消息推送 | Web Push (VAPID) + FCM + OneSignal + ntfy + APNS 五通道，离线也能收到通知（iOS 原生 + 国产安卓免 Google 服务） |
 | 🌐 多语言 | 中文、英文、日语、韩语、法语、德语、俄语、西班牙语（自动检测 + 手动切换） |
 | 📱 iOS 永久免签 | PWA H5 → Safari「添加到主屏幕」，无需企业证书 |
 | 📱 Android 原生 App | 已上架 [Google Play](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus)，支持 FCM 推送通知 |
@@ -211,7 +211,7 @@ METERED_TURN_API_KEY=your_metered_api_key_here
 
 ---
 
-离线消息通知通过**四通道**推送，最大化消息送达率：
+离线消息通知通过**五通道**推送，最大化消息送达率：
 
 | 通道 | 适用场景 | 配置 |
 |------|----------|------|
@@ -219,6 +219,7 @@ METERED_TURN_API_KEY=your_metered_api_key_here
 | FCM (Firebase) | Capacitor 打包的原生 Android App | Firebase 服务账号 JSON |
 | OneSignal | Median.co 打包的原生 Android/iOS App | OneSignal App ID + REST Key |
 | ntfy | 国产安卓设备（华为/小米/OPPO/vivo 等无 Google 服务） | 无需配置（默认使用 ntfy.sh 公共服务） |
+| APNS | Capacitor 打包的原生 iOS App | Apple .p8 Key 或 Push Relay |
 
 ### 配置 Web Push
 1. 生成 VAPID 密钥（仅需一次）：
@@ -333,6 +334,75 @@ NTFY_TOKEN=your_optional_auth_token
 
 > **安全说明**：ntfy 通知内容为明文（通知标题和摘要），不包含消息原文内容。如需更高安全性，可自建 ntfy 服务器。
 
+### 配置 APNS（Capacitor 原生 iOS App）
+
+APNS (Apple Push Notification Service) 用于向原生 iOS App 发送推送通知。有两种配置方式：
+
+#### 方式 A：直接配置（适用于 App 开发者自己的服务器）
+
+1. 登录 [Apple Developer](https://developer.apple.com/account) → **Certificates, Identifiers & Profiles** → **Keys**
+2. 点击 **+** 创建新 Key → 勾选 **Apple Push Notifications service (APNs)** → Register
+3. **下载 `.p8` 文件**（⚠️ 只能下载一次！），记录页面上的 **Key ID**
+4. 在 Apple Developer 账号页面记录你的 **Team ID**（10 位字母数字）
+5. 填入 `server/.env`：
+
+```env
+APNS_TEAM_ID=AB12CD34EF
+APNS_KEY_ID=LH4Z9YN3P7
+APNS_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIGTAgEA...（.p8 文件内容）...\n-----END PRIVATE KEY-----"
+APNS_BUNDLE_ID=com.yourcompany.paperphone
+APNS_SANDBOX=false
+```
+
+> `APNS_SANDBOX`：开发/TestFlight 构建设为 `true`，App Store 生产包设为 `false`。
+
+#### 方式 B：通过 Push Relay（适用于自建服务器用户）
+
+如果你使用别人发布的 iOS App（如从 App Store 下载），你没有 App 开发者的 Apple 凭据，无法直接发送 APNS 推送。此时需要通过 **Push Relay（推送中继）** 来实现。
+
+**工作原理：**
+
+```
+┌──────────────────────┐       ┌─────────────────────────┐       ┌─────────┐
+│  自建服务器            │  HTTP  │  App 开发者的服务器       │  APNS  │  Apple  │
+│  (无 Apple 凭据)      │──────→│  (有 .p8 Key + Relay)   │──────→│  ──→ 📱 │
+│                      │       │                         │       └─────────┘
+│  APNS_RELAY_URL=...  │       │  APNS_TEAM_ID=...       │
+│  APNS_RELAY_KEY=...  │       │  APNS_RELAY_SECRET=...  │
+└──────────────────────┘       └─────────────────────────┘
+```
+
+**步骤 1：App 开发者启用 Relay 端点**
+
+App 开发者在**自己的服务器**上，除了配置 APNS 凭据外，还需设置一个 Relay 密钥：
+
+```env
+# App 开发者的服务器 .env（已有 APNS_TEAM_ID 等凭据）
+APNS_RELAY_SECRET=生成一个长随机字符串作为共享密钥
+```
+
+设置后，服务器会自动在 `POST /api/push-relay/apns` 开启推送中继端点。
+
+**步骤 2：自建用户配置 Relay**
+
+自建服务器用户只需设置两个变量，**无需任何 Apple 凭据**：
+
+```env
+# 自建服务器 .env
+APNS_RELAY_URL=https://app-developer-server.com
+APNS_RELAY_KEY=与开发者约定的共享密钥
+```
+
+**工作流程：**
+1. 自建服务器收到离线消息 → 查询本地 `apns_tokens` 表获取用户的 iOS 设备 token
+2. 将设备 token + 推送标题/内容通过 HTTP POST 发送到 Relay
+3. Relay 验证密钥后，使用自己的 APNS 凭据发送到 Apple
+4. Relay 返回过期 token 列表，自建服务器自动清理本地数据库
+
+> **优先级**：本地 APNS 凭据 → Push Relay → 跳过（静默）。如果同时配置了本地 APNS 和 Relay，优先使用本地直连。
+
+> **安全说明**：Relay 仅传输推送通知标题和摘要（如「某某发来一条消息」），不包含消息原文。设备 token 本身无法用于读取用户数据。
+
 ---
 
 ## iOS 永久免签部署
@@ -409,6 +479,7 @@ paperphone-plus/
 │       │   ├── timeline.rs          # 时间线（公开发帖/点赞/评论/匿名）
 │       │   ├── calls.rs             # TURN 凭据派发
 │       │   ├── push.rs              # 推送订阅管理
+│       │   ├── push_relay.rs        # APNS 推送中继端点
 │       │   ├── stickers.rs          # Telegram 贴纸包代理（缓存）
 │       │   ├── totp.rs              # TOTP 两步验证
 │       │   ├── sessions.rs          # 会话管理（多设备登录）
@@ -419,7 +490,8 @@ paperphone-plus/
 │       │   ├── push.rs              # Web Push VAPID 服务
 │       │   ├── fcm.rs               # Firebase Cloud Messaging 服务
 │       │   ├── onesignal.rs         # OneSignal REST API 服务
-│       │   └── ntfy.rs              # ntfy 推送服务（国产安卓）
+│       │   ├── ntfy.rs              # ntfy 推送服务（国产安卓）
+│       │   └── apns.rs              # APNS 推送服务（iOS 原生 + Relay）
 │       └── ws/
 │           └── server.rs            # WebSocket 路由（消息/通话信令/已读/推送）
 │
@@ -488,6 +560,7 @@ paperphone-plus/
 | `fcm_tokens` | FCM 设备令牌（Capacitor Android） |
 | `onesignal_players` | OneSignal 设备注册（Median.co） |
 | `ntfy_subscriptions` | ntfy 推送订阅（国产安卓设备） |
+| `apns_tokens` | APNS 设备令牌（Capacitor iOS） |
 | `user_totp` | TOTP 两步验证密钥与恢复码 |
 | `sessions` | 多设备会话管理 |
 | `friend_tags` / `friend_tag_assignments` | 好友标签系统 |
@@ -545,6 +618,14 @@ paperphone-plus/
 | `ONESIGNAL_REST_KEY` | OneSignal REST API Key（可选） | — |
 | `NTFY_BASE_URL` | ntfy 服务器地址（可选，默认使用 ntfy.sh 公共服务） | `https://ntfy.sh` |
 | `NTFY_TOKEN` | ntfy 认证 Token（可选，自建服务器时使用） | — |
+| `APNS_TEAM_ID` | Apple Developer Team ID（可选，iOS 原生推送） | — |
+| `APNS_KEY_ID` | APNS 认证密钥 ID（可选） | — |
+| `APNS_PRIVATE_KEY` | APNS .p8 私钥内容（可选，支持 `\n` 转义） | — |
+| `APNS_BUNDLE_ID` | iOS App Bundle Identifier（可选） | — |
+| `APNS_SANDBOX` | APNS 沙盒模式（可选，开发/TestFlight 用 `true`） | `false` |
+| `APNS_RELAY_SECRET` | 推送中继密钥（可选，在 Relay 主机上设置以启用中继端点） | — |
+| `APNS_RELAY_URL` | 推送中继 URL（可选，自建服务器指向 Relay 主机） | — |
+| `APNS_RELAY_KEY` | 推送中继认证密钥（可选，与 Relay 主机的 `APNS_RELAY_SECRET` 一致） | — |
 | `TELEGRAM_BOT_TOKEN` | Telegram Bot Token（可选，贴纸包代理） | — |
 | `STICKER_PACKS` | 自定义贴纸包列表（可选，逗号分隔 `包名:显示名`） | 内置 9 个默认包 |
 | `ADMIN_PATH` | 管理后台 URL 路径 | `/admin` |

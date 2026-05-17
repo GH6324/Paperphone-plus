@@ -17,6 +17,7 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/fcm", post(register_fcm))
         .route("/ntfy", post(register_ntfy))
         .route("/ntfy-topic", get(get_ntfy_topic))
+        .route("/apns", post(register_apns))
 }
 
 #[derive(Deserialize)]
@@ -120,17 +121,24 @@ async fn push_status(
         "SELECT COUNT(*) FROM ntfy_subscriptions WHERE user_id = ?"
     ).bind(&auth.0.id).fetch_one(&state.db).await.unwrap_or((0,));
 
+    let apns_count: (i64,) = sqlx::query_as(
+        "SELECT COUNT(*) FROM apns_tokens WHERE user_id = ?"
+    ).bind(&auth.0.id).fetch_one(&state.db).await.unwrap_or((0,));
+
     Json(serde_json::json!({
         "vapid_configured": state.config.vapid_public_key.is_some() && state.config.vapid_private_key.is_some(),
         "vapid_subject_configured": state.config.vapid_subject.is_some(),
         "onesignal_configured": state.config.onesignal_app_id.is_some() && state.config.onesignal_rest_key.is_some(),
         "cf_turn_configured": state.config.cf_calls_app_id.is_some() && state.config.cf_calls_app_secret.is_some(),
+        "apns_configured": state.config.apns_team_id.is_some() && state.config.apns_key_id.is_some() && state.config.apns_private_key.is_some(),
+        "apns_relay_configured": state.config.apns_relay_url.is_some() && state.config.apns_relay_key.is_some(),
         "ntfy_configured": true,
         "ntfy_base_url": &state.config.ntfy_base_url,
         "user_web_push_subscriptions": web_push_count.0,
         "user_onesignal_players": onesignal_count.0,
         "user_fcm_tokens": fcm_count.0,
         "user_ntfy_subscriptions": ntfy_count.0,
+        "user_apns_tokens": apns_count.0,
     }))
 }
 
@@ -199,4 +207,27 @@ fn generate_ntfy_topic(user_id: &str) -> String {
     hasher.update(user_id.as_bytes());
     let hash = hasher.finalize();
     format!("pp-{}", hex::encode(&hash[..8]))
+}
+
+#[derive(Deserialize)]
+struct ApnsReq {
+    apns_token: String,
+    platform: Option<String>,
+}
+
+/// Register an iOS APNS device token for push notifications.
+async fn register_apns(
+    State(state): State<Arc<AppState>>,
+    auth: AuthUser,
+    Json(body): Json<ApnsReq>,
+) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
+    sqlx::query(
+        "INSERT INTO apns_tokens (user_id, apns_token, platform) VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE platform = VALUES(platform), updated_at = NOW()"
+    )
+    .bind(&auth.0.id).bind(&body.apns_token).bind(&body.platform)
+    .execute(&state.db).await.ok();
+
+    tracing::info!("[APNS] Token registered for user {}: {}...", &auth.0.id, &body.apns_token[..20.min(body.apns_token.len())]);
+    Ok(Json(serde_json::json!({ "ok": true })))
 }
