@@ -19,6 +19,7 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/api/reports/{id}/review", post(review_report))
         .route("/api/reports/{id}/dismiss", post(dismiss_report))
         .route("/api/content/{content_type}/{id}", delete(delete_content))
+        .route("/api/content/{content_type}/{id}/preview", get(preview_content))
         .route("/api/users/{id}/ban", post(ban_user))
 }
 
@@ -154,6 +155,69 @@ async fn delete_content(
         _ => return Err((axum::http::StatusCode::BAD_REQUEST, Json(serde_json::json!({"error":"Invalid content type"})))),
     }
     Ok(Json(serde_json::json!({"ok":true})))
+}
+
+async fn preview_content(
+    State(state): State<Arc<AppState>>,
+    headers: axum::http::HeaderMap,
+    Path((content_type, id)): Path<(String, String)>,
+) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
+    require_admin!(headers, state);
+    match content_type.as_str() {
+        "moment" => {
+            let row: Option<(u64, String, String, String, chrono::NaiveDateTime, String, String, Option<String>)> = sqlx::query_as(
+                "SELECT m.id, m.user_id, m.text_content, m.visibility, m.created_at, u.nickname, u.username, u.avatar
+                 FROM moments m JOIN users u ON u.id = m.user_id WHERE m.id = ?"
+            ).bind(&id).fetch_optional(&state.db).await.unwrap_or(None);
+            let (mid, user_id, text, vis, created_at, nickname, username, avatar) = row
+                .ok_or_else(|| (axum::http::StatusCode::NOT_FOUND, Json(serde_json::json!({"error":"Moment not found"}))))?;
+            let images: Vec<(String,)> = sqlx::query_as(
+                "SELECT url FROM moment_images WHERE moment_id = ? ORDER BY sort_order"
+            ).bind(mid).fetch_all(&state.db).await.unwrap_or_default();
+            let videos: Vec<(String, Option<String>, u16)> = sqlx::query_as(
+                "SELECT url, thumbnail, duration FROM moment_videos WHERE moment_id = ?"
+            ).bind(mid).fetch_all(&state.db).await.unwrap_or_default();
+            Ok(Json(serde_json::json!({
+                "type": "moment", "id": mid, "user_id": user_id,
+                "text_content": text, "visibility": vis,
+                "created_at": created_at.and_utc().timestamp_millis(),
+                "user": { "nickname": nickname, "username": username, "avatar": avatar },
+                "images": images.iter().map(|(u,)| u.clone()).collect::<Vec<_>>(),
+                "videos": videos.iter().map(|(u,t,d)| serde_json::json!({"url":u,"thumbnail":t,"duration":d})).collect::<Vec<_>>(),
+            })))
+        }
+        "timeline_post" => {
+            let row: Option<(u64, String, String, i8, chrono::NaiveDateTime, String, Option<String>)> = sqlx::query_as(
+                "SELECT p.id, p.user_id, p.text_content, p.is_anonymous, p.created_at, u.nickname, u.avatar
+                 FROM timeline_posts p JOIN users u ON u.id = p.user_id WHERE p.id = ?"
+            ).bind(&id).fetch_optional(&state.db).await.unwrap_or(None);
+            let (pid, user_id, text, is_anon, created_at, nickname, avatar) = row
+                .ok_or_else(|| (axum::http::StatusCode::NOT_FOUND, Json(serde_json::json!({"error":"Post not found"}))))?;
+            let media: Vec<(String, String, Option<String>, u16)> = sqlx::query_as(
+                "SELECT url, media_type, thumbnail, duration FROM timeline_media WHERE post_id = ? ORDER BY sort_order"
+            ).bind(pid).fetch_all(&state.db).await.unwrap_or_default();
+            Ok(Json(serde_json::json!({
+                "type": "timeline_post", "id": pid, "user_id": user_id,
+                "text_content": text, "is_anonymous": is_anon == 1,
+                "created_at": created_at.and_utc().timestamp_millis(),
+                "user": { "nickname": if is_anon == 1 { "Anonymous".to_string() } else { nickname }, "avatar": if is_anon == 1 { None } else { avatar } },
+                "media": media.iter().map(|(u,m,t,d)| serde_json::json!({"url":u,"media_type":m,"thumbnail":t,"duration":d})).collect::<Vec<_>>(),
+            })))
+        }
+        "user" => {
+            let row: Option<(String, String, String, Option<String>, chrono::NaiveDateTime)> = sqlx::query_as(
+                "SELECT id, username, nickname, avatar, created_at FROM users WHERE id = ?"
+            ).bind(&id).fetch_optional(&state.db).await.unwrap_or(None);
+            let (uid, username, nickname, avatar, created_at) = row
+                .ok_or_else(|| (axum::http::StatusCode::NOT_FOUND, Json(serde_json::json!({"error":"User not found"}))))?;
+            Ok(Json(serde_json::json!({
+                "type": "user", "id": uid, "user_id": uid,
+                "user": { "nickname": nickname, "username": username, "avatar": avatar },
+                "created_at": created_at.and_utc().timestamp_millis(),
+            })))
+        }
+        _ => Err((axum::http::StatusCode::BAD_REQUEST, Json(serde_json::json!({"error":"Invalid content type"})))),
+    }
 }
 
 async fn ban_user(
