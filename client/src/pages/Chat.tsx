@@ -8,7 +8,7 @@ import { get, post, put, uploadFileWithProgress, normalizeFileUrl } from '../api
 import { sendWs, onWs } from '../api/socket'
 import { getKeys } from '../crypto/keystore'
 import { encryptHybrid, decryptHybrid } from '../crypto/ratchet'
-import { ChevronLeft, Lock, Settings, Timer, ImageIcon, Film, Plus, Mic, Download, Paperclip, AlertTriangle, Clock, Package as PackageIcon, FileText, File as FileIcon, Image as LucideImage, Music, Video, Check, CheckCheck, Phone, VideoIcon, SendHorizonal, Smile, WifiOff } from 'lucide-react'
+import { ChevronLeft, Lock, Settings, Timer, ImageIcon, Film, Plus, Mic, Download, Paperclip, AlertTriangle, Clock, Package as PackageIcon, FileText, File as FileIcon, Image as LucideImage, Music, Video, Check, CheckCheck, Phone, VideoIcon, SendHorizonal, Smile, WifiOff, X, ZoomIn, ZoomOut } from 'lucide-react'
 import TgsPlayer from '../components/TgsPlayer'
 
 // Auto-delete options (seconds)
@@ -79,6 +79,224 @@ function UploadOverlay({ progress, label }: { progress: number; label: string })
   )
 }
 
+// ── Image Viewer Component ──────────────────────────────────────
+function ImageViewer({ src, onClose }: { src: string; onClose: () => void }) {
+  const [scale, setScale] = useState(1)
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const [lastTap, setLastTap] = useState(0)
+  const [initialPinchDist, setInitialPinchDist] = useState(0)
+  const [initialPinchScale, setInitialPinchScale] = useState(1)
+  const imgRef = useRef<HTMLDivElement>(null)
+
+  const handleDoubleClick = () => {
+    if (scale > 1) {
+      setScale(1)
+      setPosition({ x: 0, y: 0 })
+    } else {
+      setScale(2.5)
+    }
+  }
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      // Pinch start
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      )
+      setInitialPinchDist(dist)
+      setInitialPinchScale(scale)
+    } else if (e.touches.length === 1) {
+      // Double tap detection
+      const now = Date.now()
+      if (now - lastTap < 300) {
+        handleDoubleClick()
+        setLastTap(0)
+        return
+      }
+      setLastTap(now)
+
+      // Drag start (only when zoomed)
+      if (scale > 1) {
+        setIsDragging(true)
+        setDragStart({
+          x: e.touches[0].clientX - position.x,
+          y: e.touches[0].clientY - position.y,
+        })
+      }
+    }
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      // Pinch zoom
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      )
+      if (initialPinchDist > 0) {
+        const newScale = Math.min(5, Math.max(0.5, initialPinchScale * (dist / initialPinchDist)))
+        setScale(newScale)
+      }
+      e.preventDefault()
+    } else if (e.touches.length === 1 && isDragging && scale > 1) {
+      setPosition({
+        x: e.touches[0].clientX - dragStart.x,
+        y: e.touches[0].clientY - dragStart.y,
+      })
+      e.preventDefault()
+    }
+  }
+
+  const handleTouchEnd = () => {
+    setIsDragging(false)
+    setInitialPinchDist(0)
+    if (scale <= 0.8) {
+      onClose()
+    } else if (scale < 1) {
+      setScale(1)
+      setPosition({ x: 0, y: 0 })
+    }
+  }
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (scale > 1) {
+      setIsDragging(true)
+      setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y })
+    }
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging && scale > 1) {
+      setPosition({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y })
+    }
+  }
+
+  const handleMouseUp = () => {
+    setIsDragging(false)
+  }
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault()
+    const delta = e.deltaY > 0 ? -0.2 : 0.2
+    setScale(prev => Math.min(5, Math.max(0.5, prev + delta)))
+  }
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) onClose()
+  }
+
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(src)
+      const blob = await response.blob()
+      const blobUrl = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = blobUrl
+      a.download = `image_${Date.now()}.${blob.type.split('/')[1] || 'jpg'}`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(blobUrl)
+    } catch {
+      // Fallback: open in new tab
+      window.open(src, '_blank')
+    }
+  }
+
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 10000,
+        background: 'rgba(0,0,0,0.92)', display: 'flex',
+        flexDirection: 'column', animation: 'fade-in .2s ease',
+      }}
+      onClick={handleBackdropClick}
+    >
+      {/* Top bar */}
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        padding: '12px 16px', paddingTop: 'max(12px, env(safe-area-inset-top))',
+        flexShrink: 0,
+      }}>
+        <button onClick={onClose} style={{
+          width: 36, height: 36, borderRadius: 18,
+          background: 'rgba(255,255,255,0.15)', border: 'none',
+          color: '#fff', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}><X size={20} /></button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => setScale(s => Math.max(0.5, s - 0.5))} style={{
+            width: 36, height: 36, borderRadius: 18,
+            background: 'rgba(255,255,255,0.15)', border: 'none',
+            color: '#fff', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}><ZoomOut size={18} /></button>
+          <button onClick={() => setScale(s => Math.min(5, s + 0.5))} style={{
+            width: 36, height: 36, borderRadius: 18,
+            background: 'rgba(255,255,255,0.15)', border: 'none',
+            color: '#fff', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}><ZoomIn size={18} /></button>
+        </div>
+      </div>
+
+      {/* Image area */}
+      <div
+        ref={imgRef}
+        style={{
+          flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          overflow: 'hidden', cursor: scale > 1 ? 'grab' : 'default',
+          touchAction: 'none',
+        }}
+        onDoubleClick={handleDoubleClick}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onWheel={handleWheel}
+      >
+        <img
+          src={src}
+          alt=""
+          draggable={false}
+          style={{
+            maxWidth: '100%', maxHeight: '100%', objectFit: 'contain',
+            transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+            transition: isDragging ? 'none' : 'transform 0.2s ease',
+            userSelect: 'none',
+          }}
+        />
+      </div>
+
+      {/* Bottom bar */}
+      <div style={{
+        display: 'flex', justifyContent: 'center', gap: 24,
+        padding: '12px 16px', paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
+        flexShrink: 0,
+      }}>
+        <button onClick={handleDownload} style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+          background: 'none', border: 'none', color: '#fff',
+          cursor: 'pointer', fontSize: 11,
+        }}>
+          <div style={{
+            width: 44, height: 44, borderRadius: 22,
+            background: 'rgba(255,255,255,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}><Download size={20} /></div>
+          Save
+        </button>
+      </div>
+    </div>
+  )
+}
+
 const EMPTY_MSGS: any[] = []
 
 export default function Chat() {
@@ -90,7 +308,6 @@ export default function Chat() {
   const user = useStore(s => s.user)
   const messages = useStore(s => s.messages[id!] ?? EMPTY_MSGS)
   const setMessages = useStore(s => s.setMessages)
-  const addMessage = useStore(s => s.addMessage)
   const friends = useStore(s => s.friends)
   const groups = useStore(s => s.groups)
   const wsConnected = useStore(s => s.wsConnected)
@@ -104,6 +321,7 @@ export default function Chat() {
   const [showSettings, setShowSettings] = useState(false)
   const [sending, setSending] = useState(false)
   const [showEmojiPanel, setShowEmojiPanel] = useState(false)
+  const [viewingImage, setViewingImage] = useState<string | null>(null)
   const [showAttachPanel, setShowAttachPanel] = useState(false)
   const [emojiTab, setEmojiTab] = useState<'emoji' | 'sticker'>('emoji')
   const [emojiCat, setEmojiCat] = useState(-1)
@@ -165,7 +383,7 @@ export default function Chat() {
     }
   }
 
-  // ── Load history + decrypt ──
+  // ── Load history + decrypt + merge with cache ──
   useEffect(() => {
     if (!id) return
     const path = isGroup ? `/api/messages/group/${id}?limit=50000` : `/api/messages/private/${id}?limit=50000`
@@ -180,9 +398,10 @@ export default function Chat() {
         filtered = msgs.filter(m => m.ts > cutoff)
       }
 
+      let serverMessages: any[]
       if (!isGroup) {
         const keys = getKeys()
-        const decrypted = await Promise.all(filtered.map(async (msg) => {
+        serverMessages = await Promise.all(filtered.map(async (msg) => {
           try {
             const isMe = msg.from === user?.id
             if (isMe && msg.self_ciphertext && msg.self_header) {
@@ -195,10 +414,17 @@ export default function Chat() {
           } catch {}
           return { ...msg, decrypted: msg.decrypted || undefined }
         }))
-        setMessages(id, decrypted)
       } else {
-        setMessages(id, filtered.map(m => ({ ...m, decrypted: m.ciphertext })))
+        serverMessages = filtered.map(m => ({ ...m, decrypted: m.ciphertext }))
       }
+
+      // Merge: use server messages as base, append any local-only messages
+      // (messages received via WebSocket that aren't in the server response yet)
+      const serverIds = new Set(serverMessages.filter(m => m.id).map(m => m.id))
+      const localMsgs = useStore.getState().messages[id] || []
+      const localOnly = localMsgs.filter(m => m.id && !serverIds.has(m.id))
+      const merged = [...serverMessages, ...localOnly].sort((a, b) => (a.ts || 0) - (b.ts || 0))
+      setMessages(id, merged)
     }).catch(() => {})
   }, [id])
 
@@ -217,7 +443,7 @@ export default function Chat() {
   }, [messages.length])
 
   useEffect(() => {
-    const unsub = onWs('typing', (data) => {
+    const unsub = onWs('typing', (data: any) => {
       if (data.from !== user?.id) {
         setTyping(true)
         if (typingTimer.current) clearTimeout(typingTimer.current)
@@ -227,24 +453,9 @@ export default function Chat() {
     return unsub
   }, [])
 
-  useEffect(() => {
-    const unsub = onWs('message', async (data) => {
-      const chatId = data.group_id || (data.from === user?.id ? data.to : data.from)
-      if (chatId !== id) return
-      if (!isGroup && data.ciphertext && data.header) {
-        try {
-          const keys = getKeys()
-          const text = await decryptHybrid(data.header, keys?.ik_priv || '', null, data.ciphertext)
-          addMessage(chatId, { ...data, decrypted: text })
-        } catch {
-          addMessage(chatId, data)
-        }
-      } else {
-        addMessage(chatId, { ...data, decrypted: data.ciphertext })
-      }
-    })
-    return unsub
-  }, [id, isGroup])
+  // NOTE: The duplicate onWs('message') handler has been removed.
+  // All incoming messages are now handled by the global useSocket.ts handler,
+  // which performs decryption and deduplication via addMessage in the store.
 
   // ── Send message ──
   const sendMessage = async (text?: string, msgType = 'text', _extra: any = {}) => {
@@ -549,7 +760,8 @@ export default function Chat() {
       return <span style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}><Lock size={16} /> {t('chat.decrypt_failed')}</span>
     }
     if (msg.msg_type === 'image') {
-      return <img className="msg-image" src={normalizeFileUrl(displayText)} alt="" style={{ maxWidth: 240, borderRadius: 8, cursor: 'pointer' }} />
+      const imgUrl = normalizeFileUrl(displayText)
+      return <img className="msg-image" src={imgUrl} alt="" style={{ maxWidth: 240, borderRadius: 8, cursor: 'pointer' }} onClick={() => setViewingImage(imgUrl)} />
     }
     if (msg.msg_type === 'sticker') {
       // Try to parse as JSON for animated/video stickers
@@ -664,6 +876,9 @@ export default function Chat() {
 
   return (
     <div className="page" id="chat-page" style={{ position: 'relative' }}>
+
+      {/* Image viewer overlay */}
+      {viewingImage && <ImageViewer src={viewingImage} onClose={() => setViewingImage(null)} />}
 
       {/* Upload progress overlay */}
       {uploadProgress >= 0 && <UploadOverlay progress={uploadProgress} label={uploadLabel} />}

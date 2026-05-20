@@ -1,6 +1,54 @@
 import { create } from 'zustand'
 import { applyNativeProxy, clearNativeProxy } from '../api/proxy-bridge'
 
+// ── Message cache persistence helpers ──────────────────────────
+const MSG_CACHE_KEY = 'pp_msg_cache'
+const MSG_CACHE_VERSION = 1
+
+function loadCachedMessages(): Record<string, ChatMessage[]> {
+  try {
+    const raw = localStorage.getItem(MSG_CACHE_KEY)
+    if (!raw) return {}
+    const parsed = JSON.parse(raw)
+    if (parsed._v !== MSG_CACHE_VERSION) return {}
+    const { _v, ...msgs } = parsed
+    return msgs
+  } catch { return {} }
+}
+
+let _saveMsgTimer: ReturnType<typeof setTimeout> | null = null
+function persistMessages(messages: Record<string, ChatMessage[]>) {
+  if (_saveMsgTimer) clearTimeout(_saveMsgTimer)
+  _saveMsgTimer = setTimeout(() => {
+    try {
+      // Keep only the last 200 messages per chat to avoid localStorage overflow
+      const trimmed: Record<string, ChatMessage[]> = { _v: MSG_CACHE_VERSION } as any
+      for (const [chatId, msgs] of Object.entries(messages)) {
+        trimmed[chatId] = msgs.slice(-200)
+      }
+      localStorage.setItem(MSG_CACHE_KEY, JSON.stringify(trimmed))
+    } catch {
+      // localStorage full — try to evict oldest chats
+      try {
+        const keys = Object.keys(messages)
+        if (keys.length > 3) {
+          const reduced: Record<string, ChatMessage[]> = { _v: MSG_CACHE_VERSION } as any
+          // Keep only 3 most recent chats
+          const sorted = keys.sort((a, b) => {
+            const lastA = messages[a]?.at(-1)?.ts || 0
+            const lastB = messages[b]?.at(-1)?.ts || 0
+            return lastB - lastA
+          })
+          for (const k of sorted.slice(0, 3)) {
+            reduced[k] = messages[k].slice(-100)
+          }
+          localStorage.setItem(MSG_CACHE_KEY, JSON.stringify(reduced))
+        }
+      } catch { /* give up */ }
+    }
+  }, 500) // debounce 500ms
+}
+
 export interface User {
   id: string
   username: string
@@ -210,6 +258,7 @@ export const useStore = create<AppStore>((set, get) => ({
   logout: () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+    localStorage.removeItem(MSG_CACHE_KEY)
     set({ token: null, user: null, friends: [], groups: [], messages: {}, unread: {} })
   },
 
@@ -240,23 +289,37 @@ export const useStore = create<AppStore>((set, get) => ({
   groups: [],
   setGroups: (groups) => set({ groups }),
 
-  // Messages
-  messages: {},
-  addMessage: (chatId, msg) => set(s => ({
-    messages: {
-      ...s.messages,
-      [chatId]: [...(s.messages[chatId] || []), msg],
+  // Messages (initialized from localStorage cache)
+  messages: loadCachedMessages(),
+  addMessage: (chatId, msg) => set(s => {
+    const existing = s.messages[chatId] || []
+    // Deduplicate by message ID
+    if (msg.id && existing.some(m => m.id === msg.id)) {
+      return s // skip duplicate
     }
-  })),
-  setMessages: (chatId, msgs) => set(s => ({
-    messages: { ...s.messages, [chatId]: msgs }
-  })),
-  prependMessages: (chatId, msgs) => set(s => ({
-    messages: {
+    const updated = {
       ...s.messages,
-      [chatId]: [...msgs, ...(s.messages[chatId] || [])],
+      [chatId]: [...existing, msg],
     }
-  })),
+    persistMessages(updated)
+    return { messages: updated }
+  }),
+  setMessages: (chatId, msgs) => set(s => {
+    const updated = { ...s.messages, [chatId]: msgs }
+    persistMessages(updated)
+    return { messages: updated }
+  }),
+  prependMessages: (chatId, msgs) => set(s => {
+    const existing = s.messages[chatId] || []
+    const existingIds = new Set(existing.filter(m => m.id).map(m => m.id))
+    const deduped = msgs.filter(m => !m.id || !existingIds.has(m.id))
+    const updated = {
+      ...s.messages,
+      [chatId]: [...deduped, ...existing],
+    }
+    persistMessages(updated)
+    return { messages: updated }
+  }),
   markMessagesRead: (msgIds, ts) => set(s => {
     const updated = { ...s.messages }
     for (const chatId of Object.keys(updated)) {

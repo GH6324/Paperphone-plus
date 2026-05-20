@@ -3,6 +3,8 @@ import { useStore } from '../store'
 import { connectWs, disconnectWs, onWs } from '../api/socket'
 import { useNotificationStore } from '../store/notificationStore'
 import { playMessageSound, showBrowserNotification, getMessagePreview } from '../utils/notification'
+import { getKeys } from '../crypto/keystore'
+import { decryptHybrid } from '../crypto/ratchet'
 
 export function useSocket() {
   const token = useStore(s => s.token)
@@ -13,7 +15,7 @@ export function useSocket() {
     connectWs()
 
     // Listen for incoming messages and route to store
-    const unsubMsg = onWs('message', (data) => {
+    const unsubMsg = onWs('message', async (data) => {
       const myId = useStore.getState().user?.id
       const chatId = data.group_id || (data.from === myId ? data.to : data.from)
       if (chatId) {
@@ -35,7 +37,30 @@ export function useSocket() {
           }
         }
 
-        useStore.getState().addMessage(chatId, data)
+        // Decrypt private messages before adding to store
+        let msgToAdd = data
+        if (!data.group_id && data.ciphertext && data.header) {
+          try {
+            const keys = getKeys()
+            if (keys) {
+              const isMe = data.from === myId
+              if (isMe && data.self_ciphertext && data.self_header) {
+                const text = await decryptHybrid(data.self_header, keys.ik_priv, null, data.self_ciphertext)
+                msgToAdd = { ...data, decrypted: text }
+              } else if (!isMe) {
+                const text = await decryptHybrid(data.header, keys.ik_priv, null, data.ciphertext)
+                msgToAdd = { ...data, decrypted: text }
+              }
+            }
+          } catch {
+            // Decryption failed, keep original data
+          }
+        } else if (data.group_id) {
+          // Group messages are unencrypted
+          msgToAdd = { ...data, decrypted: data.ciphertext }
+        }
+
+        useStore.getState().addMessage(chatId, msgToAdd)
 
         // If not on that chat page AND message is not from me, trigger notification
         const isFromMe = data.from === myId
