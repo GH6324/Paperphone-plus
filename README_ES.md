@@ -7,6 +7,7 @@ Una aplicación de mensajería instantánea cifrada de extremo a extremo, estilo
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
 [![Google Play](https://img.shields.io/badge/Google%20Play-Descargar-green?logo=google-play)](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus)
+[![App Store](https://img.shields.io/badge/App%20Store-Descargar-blue?logo=apple)](https://apps.apple.com/us/app/paperphoneplus/id6769265178)
 
 ---
 
@@ -62,7 +63,7 @@ Frontend (client/)
 - 🌐 8 idiomas (detección automática + cambio manual)
 - 📱 PWA iOS (instalación permanente)
 - 📱 Aplicación Android nativa — Disponible en [Google Play](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus), con soporte de notificaciones push FCM
-- 📱 Aplicación iOS nativa — Disponible en App Store, con soporte de notificaciones push APNS
+- 📱 Aplicación iOS nativa — Disponible en [App Store](https://apps.apple.com/us/app/paperphoneplus/id6769265178), con soporte de notificaciones push APNS
 - 🔔 Notificaciones push — Web Push (VAPID) + FCM + OneSignal + ntfy + APNS cinco canales (iOS nativo + Android chino sin Google Services)
 - 🔑 Autenticación de dos factores (TOTP)
 - 🛡️ Moderación de contenido — Reportes de usuarios (6 categorías) + bloqueo de usuarios (ocultación instantánea) + Términos de uso (EULA)

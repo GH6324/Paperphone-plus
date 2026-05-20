@@ -7,6 +7,7 @@ Eine WeChat-ähnliche Ende-zu-Ende-verschlüsselte Instant-Messaging-App mit zus
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
 [![Google Play](https://img.shields.io/badge/Google%20Play-Herunterladen-green?logo=google-play)](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus)
+[![App Store](https://img.shields.io/badge/App%20Store-Herunterladen-blue?logo=apple)](https://apps.apple.com/us/app/paperphoneplus/id6769265178)
 
 ---
 
@@ -62,7 +63,7 @@ Frontend (client/)
 - 🌐 8 Sprachen (automatische Erkennung + manuelle Umschaltung)
 - 📱 iOS PWA (permanente Installation)
 - 📱 Native Android-App — Verfügbar im [Google Play](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus), mit FCM-Push-Benachrichtigungen
-- 📱 Native iOS-App — Verfügbar im App Store, mit APNS-Push-Benachrichtigungen
+- 📱 Native iOS-App — Verfügbar im [App Store](https://apps.apple.com/us/app/paperphoneplus/id6769265178), mit APNS-Push-Benachrichtigungen
 - 🔔 Push-Benachrichtigungen — Web Push (VAPID) + FCM + OneSignal + ntfy + APNS Fünf-Kanal (iOS nativ + chinesische Android-Geräte ohne Google-Dienste)
 - 🔑 Zwei-Faktor-Authentifizierung (TOTP)
 - 🌐 Proxy-Einstellungen — SOCKS5 / HTTP / HTTPS Proxy-Unterstützung, konfigurierbar auf Login- und Einstellungsseiten (Adresse, Port, Benutzername, Passwort)

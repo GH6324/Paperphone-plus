@@ -7,6 +7,7 @@
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
 [![Google Play](https://img.shields.io/badge/Google%20Play-Скачать-green?logo=google-play)](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus)
+[![App Store](https://img.shields.io/badge/App%20Store-Скачать-blue?logo=apple)](https://apps.apple.com/us/app/paperphoneplus/id6769265178)
 
 ---
 
@@ -62,7 +63,7 @@
 - 🌐 8 языков (автоопределение + ручной выбор)
 - 📱 iOS PWA (постоянная установка)
 - 📱 Нативное Android-приложение — Доступно в [Google Play](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus), с поддержкой FCM push-уведомлений
-- 📱 Нативное iOS-приложение — Доступно в App Store, с поддержкой APNS push-уведомлений
+- 📱 Нативное iOS-приложение — Доступно в [App Store](https://apps.apple.com/us/app/paperphoneplus/id6769265178), с поддержкой APNS push-уведомлений
 - 🔔 Push-уведомления — Web Push (VAPID) + FCM + OneSignal + ntfy + APNS пятиканальная доставка (нативный iOS + китайские Android без Google Services)
 - 🔑 Двухфакторная аутентификация (TOTP)
 - 🛡️ Модерация контента — Жалобы пользователей (6 категорий) + блокировка пользователей (мгновенное скрытие) + Условия использования (EULA)
