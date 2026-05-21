@@ -8,6 +8,8 @@
 
 [![Google Play](https://img.shields.io/badge/Google%20Play-下载-green?logo=google-play)](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus)
 [![App Store](https://img.shields.io/badge/App%20Store-下载-blue?logo=apple)](https://apps.apple.com/us/app/paperphoneplus/id6769265178)
+[![Windows](https://img.shields.io/badge/Windows-客户端下载-blue?logo=windows)](https://github.com/619dev/ppp-win/releases)
+[![Mac](https://img.shields.io/badge/Mac-客户端下载-black?logo=apple)](https://github.com/619dev/ppp-mac/releases)
 
 ---
 
@@ -51,6 +53,8 @@
 | 📱 iOS 永久免签 | PWA H5 → Safari「添加到主屏幕」，无需企业证书 |
 | 📱 Android 原生 App | 已上架 [Google Play](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus)，支持 FCM 推送通知 |
 | 📱 iOS 原生 App | 已上架 [App Store](https://apps.apple.com/us/app/paperphoneplus/id6769265178)，支持 APNS 推送通知 |
+| 🖥️ Windows 桌面客户端 | 原生 Windows 桌面应用，[点击下载](https://github.com/619dev/ppp-win/releases) |
+| 🍎 Mac 桌面客户端 | 原生 Mac 桌面应用，[点击下载](https://github.com/619dev/ppp-mac/releases) |
 | 💬 消息功能 | 文字、图片、视频、文档文件（PDF/DOCX/XLSX 等带类型图标）、语音消息、Emoji 面板（200+，8 分类）、Telegram 贴纸包、已读状态 |
 | 📤 文件上传 | 单文件最大 500MB，支持 Cloudflare R2 或本地存储，带进度条动画 |
 | 🌐 朋友圈 | 发动态（文字+最多9张图或1个视频≤10分钟）、点赞（显示好友头像）、评论、标签可见性控制 |
