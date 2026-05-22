@@ -27,9 +27,11 @@ import { initOneSignal, loginOneSignal } from './api/onesignal'
 import { get, post } from './api/http'
 import { isNativePlatform } from './utils/platform'
 import { initNativePush } from './api/nativePush'
+import { useAutoDeleteCleanup } from './hooks/useAutoDeleteCleanup'
 
 function ProtectedLayout() {
   useSocket()
+  useAutoDeleteCleanup()
 
   // Auto-subscribe to push notifications when authenticated
   useEffect(() => {

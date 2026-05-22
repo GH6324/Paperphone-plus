@@ -356,7 +356,7 @@ export default function Chat() {
   const group = groups.find(g => g.id === id)
   const chatName = isGroup ? (group?.name || id) : (friend?.nickname || id)
   const isOwner = isGroup && group?.owner_id === user?.id
-  const currentAutoDelete = isGroup ? (group?.auto_delete ?? 604800) : (friend?.auto_delete ?? 604800)
+  const currentAutoDelete = isGroup ? (group?.auto_delete ?? 0) : (friend?.auto_delete ?? 0)
 
   // ── Recent emoji helpers ──
   const getRecentEmojis = (): string[] => {
@@ -391,7 +391,7 @@ export default function Chat() {
       if (!Array.isArray(msgs)) return
 
       // Client-side defense: filter out expired messages based on auto_delete
-      const autoDeleteSec = isGroup ? (group?.auto_delete ?? 604800) : (friend?.auto_delete ?? 604800)
+      const autoDeleteSec = isGroup ? (group?.auto_delete ?? 0) : (friend?.auto_delete ?? 0)
       let filtered = msgs
       if (autoDeleteSec > 0) {
         const cutoff = Date.now() - autoDeleteSec * 1000

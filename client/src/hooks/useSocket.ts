@@ -26,10 +26,10 @@ export function useSocket() {
           let autoDeleteSec = 0
           if (data.group_id) {
             const group = groups.find(g => g.id === data.group_id)
-            autoDeleteSec = group?.auto_delete ?? 604800
+            autoDeleteSec = group?.auto_delete ?? 0
           } else {
             const friend = friends.find(f => f.id === (data.from === myId ? data.to : data.from))
-            autoDeleteSec = friend?.auto_delete ?? 604800
+            autoDeleteSec = friend?.auto_delete ?? 0
           }
           if (autoDeleteSec > 0) {
             const cutoff = Date.now() - autoDeleteSec * 1000
