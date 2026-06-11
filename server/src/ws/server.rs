@@ -263,10 +263,11 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppState>) {
             }
 
             sqlx::query(
-                "INSERT INTO messages (id, type, from_id, to_id, ciphertext, header, msg_type) VALUES (?, 'group', ?, ?, ?, ?, ?)"
+                "INSERT INTO messages (id, type, from_id, to_id, ciphertext, header, msg_type, nonce, sender_key_version) VALUES (?, 'group', ?, ?, ?, ?, ?, ?, ?)"
             )
             .bind(&msg_id).bind(&uid).bind(group_id)
             .bind(ciphertext).bind(header).bind(msg_sub_type)
+            .bind(nonce).bind(sender_key_version.map(|v| v as i64))
             .execute(&state.db).await.ok();
 
             // Send to all group members except sender

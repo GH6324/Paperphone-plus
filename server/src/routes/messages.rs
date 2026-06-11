@@ -102,9 +102,9 @@ async fn get_group_messages(
     .bind(&group_id)
     .execute(&state.db).await.ok();
 
-    let rows: Vec<(String, String, String, Option<String>, String, chrono::NaiveDateTime, String, Option<String>)> = if let Some(before) = &params.before {
+    let rows: Vec<(String, String, String, Option<String>, String, chrono::NaiveDateTime, String, Option<String>, Option<String>, Option<i64>)> = if let Some(before) = &params.before {
         sqlx::query_as(
-            "SELECT m.id, m.from_id, m.ciphertext, m.header, m.msg_type, m.created_at, u.nickname, u.avatar
+            "SELECT m.id, m.from_id, m.ciphertext, m.header, m.msg_type, m.created_at, u.nickname, u.avatar, m.nonce, m.sender_key_version
              FROM (
                SELECT * FROM messages
                WHERE type = 'group' AND to_id = ? AND created_at < ?
@@ -116,7 +116,7 @@ async fn get_group_messages(
         .fetch_all(&state.db).await.unwrap_or_default()
     } else {
         sqlx::query_as(
-            "SELECT m.id, m.from_id, m.ciphertext, m.header, m.msg_type, m.created_at, u.nickname, u.avatar
+            "SELECT m.id, m.from_id, m.ciphertext, m.header, m.msg_type, m.created_at, u.nickname, u.avatar, m.nonce, m.sender_key_version
              FROM (
                SELECT * FROM messages
                WHERE type = 'group' AND to_id = ?
@@ -128,14 +128,21 @@ async fn get_group_messages(
         .fetch_all(&state.db).await.unwrap_or_default()
     };
 
-    let messages: Vec<serde_json::Value> = rows.iter().map(|(id, from_id, ct, hdr, msg_type, created, nickname, avatar)| {
-        serde_json::json!({
+    let messages: Vec<serde_json::Value> = rows.iter().map(|(id, from_id, ct, hdr, msg_type, created, nickname, avatar, nonce, sender_key_version)| {
+        let mut msg = serde_json::json!({
             "id": id, "from": from_id,
             "from_nickname": nickname, "from_avatar": avatar,
             "ciphertext": ct, "header": hdr,
             "msg_type": msg_type,
             "ts": created.and_utc().timestamp_millis(),
-        })
+        });
+        if let Some(n) = nonce {
+            msg["nonce"] = serde_json::json!(n);
+        }
+        if let Some(skv) = sender_key_version {
+            msg["sender_key_version"] = serde_json::json!(skv);
+        }
+        msg
     }).collect();
 
     Ok(Json(serde_json::json!(messages)))

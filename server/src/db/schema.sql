@@ -82,6 +82,8 @@ CREATE TABLE IF NOT EXISTS messages (
   self_ciphertext LONGTEXT  DEFAULT NULL,
   self_header TEXT          DEFAULT NULL,
   msg_type    ENUM('text','image','file','voice','video_call','system','sticker','video') NOT NULL DEFAULT 'text',
+  nonce       TEXT          DEFAULT NULL,
+  sender_key_version INT    DEFAULT NULL,
   created_at  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   delivered   TINYINT(1)    NOT NULL DEFAULT 0,
   read_at     DATETIME      DEFAULT NULL,
