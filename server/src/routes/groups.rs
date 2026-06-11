@@ -28,6 +28,8 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/{id}/invite", post(create_invite))
         .route("/join/{invite_id}", post(join_by_invite))
         .route("/{id}/auto-delete", put(update_auto_delete))
+        .route("/{id}/encryption", put(toggle_encryption))
+        .route("/{id}/sender-keys", post(upload_sender_keys).get(get_sender_keys))
 }
 
 #[derive(Deserialize)]
@@ -81,8 +83,8 @@ async fn list_groups(
     State(state): State<Arc<AppState>>,
     auth: AuthUser,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    let rows: Vec<(String, String, Option<String>, String, Option<String>, i32, i8)> = sqlx::query_as(
-        "SELECT g.id, g.name, g.avatar, g.owner_id, g.notice, g.auto_delete, gm.muted
+    let rows: Vec<(String, String, Option<String>, String, Option<String>, i32, i8, i8)> = sqlx::query_as(
+        "SELECT g.id, g.name, g.avatar, g.owner_id, g.notice, g.auto_delete, gm.muted, g.encrypted
          FROM `groups` g JOIN group_members gm ON gm.group_id = g.id
          WHERE gm.user_id = ?"
     )
@@ -90,8 +92,8 @@ async fn list_groups(
     .fetch_all(&state.db).await
     .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
 
-    let groups: Vec<serde_json::Value> = rows.iter().map(|(id, name, avatar, owner_id, notice, auto_del, muted)| {
-        serde_json::json!({ "id": id, "name": name, "avatar": avatar, "owner_id": owner_id, "notice": notice, "auto_delete": auto_del, "muted": *muted == 1 })
+    let groups: Vec<serde_json::Value> = rows.iter().map(|(id, name, avatar, owner_id, notice, auto_del, muted, encrypted)| {
+        serde_json::json!({ "id": id, "name": name, "avatar": avatar, "owner_id": owner_id, "notice": notice, "auto_delete": auto_del, "muted": *muted == 1, "encrypted": *encrypted == 1 })
     }).collect();
 
     Ok(Json(serde_json::json!(groups)))
@@ -102,14 +104,14 @@ async fn get_group(
     _auth: AuthUser,
     Path(id): Path<String>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    let group: Option<(String, String, Option<String>, String, Option<String>, i32)> = sqlx::query_as(
-        "SELECT id, name, avatar, owner_id, notice, auto_delete FROM `groups` WHERE id = ?"
+    let group: Option<(String, String, Option<String>, String, Option<String>, i32, i8)> = sqlx::query_as(
+        "SELECT id, name, avatar, owner_id, notice, auto_delete, encrypted FROM `groups` WHERE id = ?"
     )
     .bind(&id)
     .fetch_optional(&state.db).await
     .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
 
-    let (gid, name, avatar, owner_id, notice, auto_del) = group
+    let (gid, name, avatar, owner_id, notice, auto_del, encrypted) = group
         .ok_or_else(|| (axum::http::StatusCode::NOT_FOUND, Json(serde_json::json!({ "error": "Group not found" }))))?;
 
     // Get members
@@ -127,7 +129,7 @@ async fn get_group(
 
     Ok(Json(serde_json::json!({
         "id": gid, "name": name, "avatar": avatar, "owner_id": owner_id,
-        "notice": notice, "auto_delete": auto_del, "members": member_list
+        "notice": notice, "auto_delete": auto_del, "encrypted": encrypted == 1, "members": member_list
     })))
 }
 
@@ -216,6 +218,29 @@ async fn remove_member(
         .bind(&group_id).bind(&user_id)
         .execute(&state.db).await
         .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
+
+    // Clean up sender keys for the removed member
+    sqlx::query("DELETE FROM group_sender_keys WHERE group_id = ? AND user_id = ?")
+        .bind(&group_id).bind(&user_id).execute(&state.db).await.ok();
+    sqlx::query("DELETE FROM group_sender_key_distributions WHERE group_id = ? AND (from_id = ? OR to_id = ?)")
+        .bind(&group_id).bind(&user_id).bind(&user_id).execute(&state.db).await.ok();
+
+    // Notify remaining members to rotate their sender keys
+    let encrypted: Option<(i8,)> = sqlx::query_as("SELECT encrypted FROM `groups` WHERE id = ?")
+        .bind(&group_id).fetch_optional(&state.db).await.ok().flatten();
+    if encrypted.map(|e| e.0).unwrap_or(0) == 1 {
+        let members: Vec<(String,)> = sqlx::query_as(
+            "SELECT user_id FROM group_members WHERE group_id = ?"
+        ).bind(&group_id).fetch_all(&state.db).await.unwrap_or_default();
+        for (mid,) in &members {
+            state.ws_clients.send_to_user(mid, serde_json::json!({
+                "type": "sender_key_rotate",
+                "group_id": &group_id,
+                "removed_user": &user_id,
+            }));
+        }
+    }
+
     Ok(Json(serde_json::json!({ "ok": true })))
 }
 
@@ -227,6 +252,29 @@ async fn leave_group(
     sqlx::query("DELETE FROM group_members WHERE group_id = ? AND user_id = ?")
         .bind(&id).bind(&auth.0.id)
         .execute(&state.db).await.ok();
+
+    // Clean up sender keys
+    sqlx::query("DELETE FROM group_sender_keys WHERE group_id = ? AND user_id = ?")
+        .bind(&id).bind(&auth.0.id).execute(&state.db).await.ok();
+    sqlx::query("DELETE FROM group_sender_key_distributions WHERE group_id = ? AND (from_id = ? OR to_id = ?)")
+        .bind(&id).bind(&auth.0.id).bind(&auth.0.id).execute(&state.db).await.ok();
+
+    // Notify remaining members to rotate sender keys if encrypted
+    let encrypted: Option<(i8,)> = sqlx::query_as("SELECT encrypted FROM `groups` WHERE id = ?")
+        .bind(&id).fetch_optional(&state.db).await.ok().flatten();
+    if encrypted.map(|e| e.0).unwrap_or(0) == 1 {
+        let members: Vec<(String,)> = sqlx::query_as(
+            "SELECT user_id FROM group_members WHERE group_id = ?"
+        ).bind(&id).fetch_all(&state.db).await.unwrap_or_default();
+        for (mid,) in &members {
+            state.ws_clients.send_to_user(mid, serde_json::json!({
+                "type": "sender_key_rotate",
+                "group_id": &id,
+                "removed_user": &auth.0.id,
+            }));
+        }
+    }
+
     Ok(Json(serde_json::json!({ "ok": true })))
 }
 
@@ -341,3 +389,141 @@ async fn update_auto_delete(
         .execute(&state.db).await.ok();
     Ok(Json(serde_json::json!({ "ok": true })))
 }
+
+// ── Group Encryption Toggle ─────────────────────────────────────────────
+
+#[derive(Deserialize)]
+struct EncryptionReq { encrypted: bool }
+
+async fn toggle_encryption(
+    State(state): State<Arc<AppState>>,
+    auth: AuthUser,
+    Path(id): Path<String>,
+    Json(body): Json<EncryptionReq>,
+) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
+    // Only group owner can toggle encryption
+    let owner: Option<(String,)> = sqlx::query_as("SELECT owner_id FROM `groups` WHERE id = ?")
+        .bind(&id).fetch_optional(&state.db).await.ok().flatten();
+    if owner.as_ref().map(|o| o.0.as_str()) != Some(&auth.0.id) {
+        return Err((axum::http::StatusCode::FORBIDDEN, Json(serde_json::json!({ "error": "Only the group owner can toggle encryption" }))));
+    }
+
+    // Update encryption status
+    sqlx::query("UPDATE `groups` SET encrypted = ? WHERE id = ?")
+        .bind(body.encrypted as i8).bind(&id)
+        .execute(&state.db).await
+        .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
+
+    // Clear all group messages
+    sqlx::query("DELETE FROM messages WHERE type = 'group' AND to_id = ?")
+        .bind(&id).execute(&state.db).await.ok();
+
+    // Clear all sender keys and distributions
+    sqlx::query("DELETE FROM group_sender_keys WHERE group_id = ?")
+        .bind(&id).execute(&state.db).await.ok();
+    sqlx::query("DELETE FROM group_sender_key_distributions WHERE group_id = ?")
+        .bind(&id).execute(&state.db).await.ok();
+
+    // Broadcast encryption change to all group members
+    let members: Vec<(String,)> = sqlx::query_as(
+        "SELECT user_id FROM group_members WHERE group_id = ?"
+    ).bind(&id).fetch_all(&state.db).await.unwrap_or_default();
+
+    for (mid,) in &members {
+        state.ws_clients.send_to_user(mid, serde_json::json!({
+            "type": "group_encryption_changed",
+            "group_id": &id,
+            "encrypted": body.encrypted,
+        }));
+    }
+
+    Ok(Json(serde_json::json!({ "ok": true })))
+}
+
+// ── Sender Key Management ───────────────────────────────────────────────
+
+#[derive(Deserialize)]
+struct SenderKeyUpload {
+    distributions: Vec<SenderKeyDistEntry>,
+    key_version: u32,
+}
+
+#[derive(Deserialize)]
+struct SenderKeyDistEntry {
+    to_id: String,
+    encrypted_key: String,
+    header: String,
+}
+
+async fn upload_sender_keys(
+    State(state): State<Arc<AppState>>,
+    auth: AuthUser,
+    Path(group_id): Path<String>,
+    Json(body): Json<SenderKeyUpload>,
+) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
+    // Verify caller is a member
+    let member: Option<(String,)> = sqlx::query_as(
+        "SELECT user_id FROM group_members WHERE group_id = ? AND user_id = ?"
+    ).bind(&group_id).bind(&auth.0.id).fetch_optional(&state.db).await.ok().flatten();
+    if member.is_none() {
+        return Err((axum::http::StatusCode::FORBIDDEN, Json(serde_json::json!({ "error": "Not a group member" }))));
+    }
+
+    // Upsert sender key metadata
+    sqlx::query(
+        "INSERT INTO group_sender_keys (group_id, user_id, key_version) VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE key_version = VALUES(key_version), created_at = NOW()"
+    ).bind(&group_id).bind(&auth.0.id).bind(body.key_version)
+    .execute(&state.db).await.ok();
+
+    // Insert distributions for each recipient
+    for dist in &body.distributions {
+        sqlx::query(
+            "INSERT INTO group_sender_key_distributions (group_id, from_id, to_id, encrypted_key, header, key_version) VALUES (?, ?, ?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE encrypted_key = VALUES(encrypted_key), header = VALUES(header), created_at = NOW()"
+        )
+        .bind(&group_id).bind(&auth.0.id).bind(&dist.to_id)
+        .bind(&dist.encrypted_key).bind(&dist.header).bind(body.key_version)
+        .execute(&state.db).await.ok();
+
+        // Notify recipient via WebSocket
+        state.ws_clients.send_to_user(&dist.to_id, serde_json::json!({
+            "type": "sender_key_distribution",
+            "group_id": &group_id,
+            "from_id": &auth.0.id,
+            "encrypted_key": &dist.encrypted_key,
+            "header": &dist.header,
+            "key_version": body.key_version,
+        }));
+    }
+
+    Ok(Json(serde_json::json!({ "ok": true })))
+}
+
+async fn get_sender_keys(
+    State(state): State<Arc<AppState>>,
+    auth: AuthUser,
+    Path(group_id): Path<String>,
+) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
+    // Get all sender key distributions addressed to this user for this group
+    let rows: Vec<(String, String, String, u32)> = sqlx::query_as(
+        "SELECT from_id, encrypted_key, header, key_version
+         FROM group_sender_key_distributions
+         WHERE group_id = ? AND to_id = ?
+         ORDER BY created_at DESC"
+    )
+    .bind(&group_id).bind(&auth.0.id)
+    .fetch_all(&state.db).await.unwrap_or_default();
+
+    let keys: Vec<serde_json::Value> = rows.iter().map(|(from_id, ek, hdr, ver)| {
+        serde_json::json!({
+            "from_id": from_id,
+            "encrypted_key": ek,
+            "header": hdr,
+            "key_version": ver,
+        })
+    }).collect();
+
+    Ok(Json(serde_json::json!({ "keys": keys })))
+}
+

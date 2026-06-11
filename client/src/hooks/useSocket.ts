@@ -5,6 +5,9 @@ import { useNotificationStore } from '../store/notificationStore'
 import { playMessageSound, showBrowserNotification, getMessagePreview } from '../utils/notification'
 import { getKeys } from '../crypto/keystore'
 import { decryptHybrid } from '../crypto/ratchet'
+import { getSenderKey, storeSenderKey, clearGroupSenderKeys, receiveSenderKey, removeSenderKey } from '../crypto/groupCrypto'
+import { decryptWithSenderKey } from '../crypto/groupCrypto'
+import { get } from '../api/http'
 
 export function useSocket() {
   const token = useStore(s => s.token)
@@ -56,8 +59,25 @@ export function useSocket() {
             // Decryption failed, keep original data
           }
         } else if (data.group_id) {
-          // Group messages are unencrypted
-          msgToAdd = { ...data, decrypted: data.ciphertext }
+          // Group messages - check if encrypted
+          if (data.sender_key_version && data.nonce) {
+            // Encrypted group message — decrypt with sender's key
+            try {
+              const sk = getSenderKey(data.group_id, data.from)
+              if (sk) {
+                const text = await decryptWithSenderKey(data.ciphertext, data.nonce, sk.senderKey)
+                msgToAdd = { ...data, decrypted: text }
+              } else {
+                // Don't have sender key yet, show placeholder
+                msgToAdd = { ...data, decrypted: '🔒' }
+              }
+            } catch {
+              msgToAdd = { ...data, decrypted: '🔒' }
+            }
+          } else {
+            // Unencrypted group message
+            msgToAdd = { ...data, decrypted: data.ciphertext }
+          }
         }
 
         useStore.getState().addMessage(chatId, msgToAdd)
@@ -165,12 +185,55 @@ export function useSocket() {
       }
     })
 
+    // Listen for group encryption mode changes
+    const unsubEncChange = onWs('group_encryption_changed', (data) => {
+      if (data.group_id) {
+        // Clear local messages for this group
+        useStore.getState().setMessages(data.group_id, [])
+        // Clear sender keys for this group
+        clearGroupSenderKeys(data.group_id)
+        // Refresh groups list to get updated encryption status
+        get('/api/groups').then(g => useStore.getState().setGroups(g)).catch(() => {})
+      }
+    })
+
+    // Listen for sender key distributions
+    const unsubSKDist = onWs('sender_key_distribution', async (data) => {
+      if (data.group_id && data.from_id && data.encrypted_key && data.header) {
+        try {
+          const keys = getKeys()
+          if (keys) {
+            const senderKey = await receiveSenderKey(
+              data.encrypted_key,
+              data.header,
+              keys.ik_priv,
+              null
+            )
+            storeSenderKey(data.group_id, data.from_id, senderKey, data.key_version || 1)
+          }
+        } catch {
+          // Failed to decrypt sender key
+        }
+      }
+    })
+
+    // Listen for sender key rotation requests
+    const unsubSKRotate = onWs('sender_key_rotate', (data) => {
+      if (data.group_id && data.removed_user) {
+        // Remove the departed user's sender key from local cache
+        removeSenderKey(data.group_id, data.removed_user)
+      }
+    })
+
     return () => {
       unsubMsg()
       unsubAck()
       unsubRead()
       unsubOnline()
       unsubOffline()
+      unsubEncChange()
+      unsubSKDist()
+      unsubSKRotate()
       disconnectWs()
     }
   }, [token])

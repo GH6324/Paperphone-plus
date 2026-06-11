@@ -21,7 +21,7 @@ export const ja: Record<string, string> = {
   'chat.uploading_image': '画像をアップロード中...', 'chat.uploading_video': '動画をアップロード中...', 'chat.uploading_file': 'ファイルをアップロード中...', 'chat.uploading_voice': '音声をアップロード中...', 'chat.upload_failed': 'アップロードに失敗しました',
   'chat.attach_image': '画像を送信', 'chat.attach_video': '動画', 'chat.attach_file': 'ファイル', 'chat.attach_voice': '音声', 'chat.attach_more': 'その他', 'chat.file': 'ファイル',
   'chat.recording': '録音中...', 'chat.stop_recording': '停止', 'chat.voice_speed': '倍速', 'chat.mic_failed': 'マイクにアクセスできません',
-  'chat.group_unencrypted_warning': 'グループチャットは暗号化されていません。プライバシー情報の共有は避けてください。',
+  'chat.group_unencrypted_warning': 'グループチャットは暗号化されていません。ボットを追加できます。個人のプライバシー情報を共有しないでください。',
 
   'contacts.title': '連絡先', 'contacts.friends': '友達', 'contacts.groups': 'グループ',
   'contacts.requests': '友達リクエスト', 'contacts.add': '友達を追加', 'contacts.search_user': 'ユーザーを検索...',
@@ -39,6 +39,14 @@ export const ja: Record<string, string> = {
   'group.qr_code': 'グループQRコード', 'group.qr_expire_1w': '1週間', 'group.qr_expire_1m': '1ヶ月', 'group.qr_expire_3m': '3ヶ月', 'group.qr_hint': 'QRコードをスキャンしてグループに参加。リンクは選択した期間後に有効期限切れ',
   'group.invite_friends': '友達を招待', 'group.select_friends': '友達を選択', 'group.invite_success': '招待しました', 'group.no_friends_to_invite': '全ての友達が既にグループに参加しています',
   'group.voice_call': 'グループ音声通話', 'group.video_call': 'グループビデオ通話',
+  'group.encryption': '暗号化モード', 'group.encryption_on': 'エンドツーエンド暗号化が有効', 'group.encryption_off': '暗号化なし',
+  'group.encryption_switch_confirm': '暗号化モードを切り替えると、すべてのチャット履歴が削除されます。続行しますか？',
+  'group.encryption_bot_warning': 'グループで暗号化を有効にすると、ボットは使用できなくなります。ボットを再び使用するには、暗号化を無効にしてください。',
+  'group.encryption_changed': '暗号化モードが変更されました。チャット履歴は削除されました。',
+  'group.encryption_desc': 'メッセージはSender Keyで暗号化され、グループメンバーのみが読めます',
+  'group.encrypted_banner': 'グループチャットは暗号化されています。ボットは使用できません。暗号化されていても、個人のプライバシー情報を共有しないでください。',
+  'group.distributing_keys': '暗号化キーを配布中...',
+  'group.owner_only_encryption': 'グループオーナーのみが暗号化を切り替えられます',
 
   'discover.title': '発見', 'discover.moments': 'モーメンツ', 'discover.timeline': 'タイムライン',
   'discover.scan': 'QRスキャン', 'discover.scan_result': 'スキャン結果', 'discover.invite_expired': '招待リンクは期限切れまたは無効です',

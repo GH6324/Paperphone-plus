@@ -45,7 +45,7 @@ Eine WeChat-ähnliche Ende-zu-Ende-verschlüsselte Instant-Messaging-App mit zus
 | 🗝️ Zero-Knowledge-Server | Server speichert nur Chiffretext; private Schlüssel verlassen niemals das Gerät |
 | 📹 Video- & Sprachanrufe | WebRTC P2P (1:1) + Mesh (Gruppe), Cloudflare TURN für NAT-Traversal |
 | 🎙️ Stimmverzerrer | Echtzeit-Stimmeffekte für Sprachnachrichten, 1:1-Anrufe und Gruppenanrufe — 3 Modi (0.8x tief / 1.0x normal / 1.2x hoch), basierend auf Web Audio API |
-| 👥 Gruppenchat | Bis zu 2000 Mitglieder, Klartextnachrichten (unverschlüsselt), Nicht-stören-Modus, Mitgliederverwaltung |
+| 👥 Gruppenchat | Bis zu 2000 Mitglieder, umschaltbare Modi „Verschlüsselt" / „Unverschlüsselt" (nur Besitzer, Umschalten löscht den Chatverlauf). Verschlüsselter Modus verwendet das Signal-Sender-Key-Protokoll (XSalsa20-Poly1305 symmetrische Verschlüsselung + ECDH-Schlüsselverteilung) — nur Gruppenmitglieder können Nachrichten entschlüsseln; Bots sind im verschlüsselten Modus deaktiviert. Nicht-stören-Modus, Mitgliederverwaltung |
 | 👫 Freundesystem | Freundschaftsanfragen erfordern Genehmigung mit bis zu 512 Zeichen Nachricht; Spitznamen; Multi-Tag-Gruppierung |
 | ⏱️ Automatisches Löschen | 5 Stufen (nie / 1 Tag / 3 Tage / 1 Woche / 1 Monat), von beiden Seiten in DMs einstellbar, nur Besitzer in Gruppen |
 | 🔔 Push-Benachrichtigungen | Web Push (VAPID) + FCM + OneSignal + ntfy + APNS Fünf-Kanal — Benachrichtigungen auch offline (iOS nativ + chinesische Android-Geräte ohne Google-Dienste) |

@@ -4,7 +4,7 @@ import { get, post, put, del, uploadFileWithProgress } from '../api/http'
 import { useI18n } from '../hooks/useI18n'
 import { useStore } from '../store'
 import { QRCodeCanvas } from '../components/QRCode'
-import { BellOff, Camera, ChevronLeft, ChevronRight, ChevronDown, Megaphone, MessageCircle, Pencil, Settings, Smartphone, Users, UserPlus, Plus, Check } from 'lucide-react'
+import { AlertTriangle, BellOff, Camera, ChevronLeft, ChevronRight, ChevronDown, Megaphone, MessageCircle, Pencil, Settings, Shield, Smartphone, Users, UserPlus, Plus, Check } from 'lucide-react'
 
 const INVITE_EXPIRY_OPTIONS = [
   { days: 7, key: 'group.qr_expire_1w' },
@@ -29,6 +29,8 @@ export default function GroupInfo() {
   const [inviteLoading, setInviteLoading] = useState(false)
   const [showInvite, setShowInvite] = useState(false)
   const [selectedFriends, setSelectedFriends] = useState<Set<string>>(new Set())
+  const [encryptionLoading, setEncryptionLoading] = useState(false)
+  const [showEncryptConfirm, setShowEncryptConfirm] = useState(false)
   const avatarRef = useRef<HTMLInputElement>(null)
   const friends = useStore(s => s.friends)
 
@@ -293,6 +295,52 @@ export default function GroupInfo() {
         </div>
       )}
 
+      {/* Encryption confirm dialog */}
+      {showEncryptConfirm && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          animation: 'fade-in .2s ease',
+        }}>
+          <div style={{
+            background: 'var(--bg-card)', borderRadius: 16, padding: 24,
+            width: 'min(360px, 90vw)', boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+          }}>
+            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>
+              {t('group.encryption')}
+            </div>
+            <div style={{ fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.5 }}>
+              {t('group.encryption_switch_confirm')}
+            </div>
+            <div style={{ display: 'flex', gap: 10, marginTop: 16, justifyContent: 'flex-end' }}>
+              <button onClick={() => setShowEncryptConfirm(false)}
+                style={{
+                  padding: '8px 20px', borderRadius: 10, border: '1px solid var(--border)',
+                  background: 'var(--bg-primary)', color: 'var(--text-primary)', cursor: 'pointer', fontSize: 14,
+                }}>{t('common.cancel')}</button>
+              <button onClick={async () => {
+                setEncryptionLoading(true)
+                try {
+                  await put(`/api/groups/${id}/encryption`, { encrypted: !group.encrypted })
+                  reload()
+                  useStore.getState().setMessages(id!, [])
+                  get('/api/groups').then(g => useStore.getState().setGroups(g)).catch(() => {})
+                } catch {}
+                setEncryptionLoading(false)
+                setShowEncryptConfirm(false)
+              }}
+                disabled={encryptionLoading}
+                style={{
+                  padding: '8px 20px', borderRadius: 10, border: 'none',
+                  background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 600,
+                  opacity: encryptionLoading ? 0.6 : 1,
+                }}>{encryptionLoading ? '...' : t('common.save')}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <input ref={avatarRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarChange} />
 
       <div className="page-header">
@@ -386,6 +434,51 @@ export default function GroupInfo() {
               }} />
             </div>
           </div>
+
+          {/* Encryption mode toggle */}
+          <div className="list-item" onClick={() => {
+            if (isOwner) setShowEncryptConfirm(true)
+            else alert(t('group.encryption_owner_only') || 'Only the group owner can change encryption mode')
+          }} style={{ cursor: isOwner ? 'pointer' : 'default', borderRadius: 12, marginBottom: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
+              <span style={{ fontSize: 20 }}><Shield size={18} /></span>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 500 }}>{t('group.encryption')}</div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                  {group.encrypted ? t('group.encryption_on') : t('group.encryption_off')}
+                </div>
+              </div>
+            </div>
+            {/* Toggle switch */}
+            <div style={{
+              width: 44, height: 24, borderRadius: 12, padding: 2,
+              background: group.encrypted ? 'var(--accent)' : 'var(--border)',
+              transition: 'background .2s ease', cursor: isOwner ? 'pointer' : 'default', flexShrink: 0,
+              opacity: isOwner ? 1 : 0.5,
+            }}>
+              <div style={{
+                width: 20, height: 20, borderRadius: 10,
+                background: '#fff',
+                transform: group.encrypted ? 'translateX(20px)' : 'translateX(0)',
+                transition: 'transform .2s ease',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+              }} />
+            </div>
+          </div>
+
+          {/* Bot warning when encryption is on */}
+          {group.encrypted && (
+            <div style={{
+              margin: '0 0 8px', padding: 12, borderRadius: 10,
+              background: 'rgba(255, 149, 0, 0.1)', border: '1px solid rgba(255, 149, 0, 0.25)',
+              display: 'flex', alignItems: 'flex-start', gap: 8,
+            }}>
+              <AlertTriangle size={16} style={{ color: '#ff9500', flexShrink: 0, marginTop: 1 }} />
+              <div style={{ fontSize: 12, color: '#ff9500', lineHeight: 1.4 }}>
+                {t('group.encryption_bot_warning')}
+              </div>
+            </div>
+          )}
 
           {/* Send message */}
           <div className="list-item" onClick={() => navigate(`/chat/${id}?group=1`)}

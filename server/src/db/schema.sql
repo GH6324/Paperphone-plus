@@ -366,3 +366,34 @@ CREATE TABLE IF NOT EXISTS apns_tokens (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   INDEX idx_apns_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ── Group Encryption (Sender Keys for E2E encrypted groups) ─────────────
+ALTER TABLE `groups` ADD COLUMN encrypted TINYINT(1) NOT NULL DEFAULT 0;
+
+-- Each member's sender key for an encrypted group (public metadata)
+CREATE TABLE IF NOT EXISTS group_sender_keys (
+  group_id      VARCHAR(36)     NOT NULL,
+  user_id       VARCHAR(36)     NOT NULL,
+  key_version   INT UNSIGNED    NOT NULL DEFAULT 1,
+  created_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (group_id, user_id),
+  FOREIGN KEY (group_id) REFERENCES `groups`(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id)  REFERENCES users(id)    ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Per-recipient encrypted sender key distributions (1:1 encrypted via ECDH)
+CREATE TABLE IF NOT EXISTS group_sender_key_distributions (
+  id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  group_id      VARCHAR(36)     NOT NULL,
+  from_id       VARCHAR(36)     NOT NULL,
+  to_id         VARCHAR(36)     NOT NULL,
+  encrypted_key TEXT            NOT NULL,
+  header        TEXT            NOT NULL,
+  key_version   INT UNSIGNED    NOT NULL DEFAULT 1,
+  created_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_gskd (group_id, from_id, to_id, key_version),
+  INDEX idx_gskd_to (to_id, group_id),
+  FOREIGN KEY (group_id) REFERENCES `groups`(id) ON DELETE CASCADE,
+  FOREIGN KEY (from_id)  REFERENCES users(id)    ON DELETE CASCADE,
+  FOREIGN KEY (to_id)    REFERENCES users(id)    ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

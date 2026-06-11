@@ -8,6 +8,8 @@ import { get, post, put, uploadFileWithProgress, normalizeFileUrl } from '../api
 import { sendWs, onWs } from '../api/socket'
 import { getKeys } from '../crypto/keystore'
 import { encryptHybrid, decryptHybrid } from '../crypto/ratchet'
+import { getMySenderKey, getSenderKey, generateSenderKey, encryptWithSenderKey, decryptWithSenderKey, distributeSenderKey, storeSenderKey } from '../crypto/groupCrypto'
+import { Shield } from 'lucide-react'
 import { ChevronLeft, Lock, Settings, Timer, ImageIcon, Film, Plus, Mic, Download, Paperclip, AlertTriangle, Clock, Package as PackageIcon, FileText, File as FileIcon, Image as LucideImage, Music, Video, Check, CheckCheck, Phone, VideoIcon, SendHorizonal, Smile, WifiOff, X, ZoomIn, ZoomOut } from 'lucide-react'
 import TgsPlayer from '../components/TgsPlayer'
 
@@ -414,6 +416,22 @@ export default function Chat() {
           } catch {}
           return { ...msg, decrypted: msg.decrypted || undefined }
         }))
+      } else if (group?.encrypted) {
+        // Encrypted group: decrypt with sender keys
+        const keys = getKeys()
+        serverMessages = await Promise.all(filtered.map(async (msg) => {
+          if (msg.nonce && msg.sender_key_version) {
+            try {
+              const sk = getSenderKey(id!, msg.from)
+              if (sk) {
+                const text = await decryptWithSenderKey(msg.ciphertext, msg.nonce, sk.senderKey)
+                return { ...msg, decrypted: text }
+              }
+            } catch {}
+            return { ...msg, decrypted: '\ud83d\udd12' }
+          }
+          return { ...msg, decrypted: msg.ciphertext }
+        }))
       } else {
         serverMessages = filtered.map(m => ({ ...m, decrypted: m.ciphertext }))
       }
@@ -482,7 +500,45 @@ export default function Chat() {
 
       let sent = false
       if (isGroup) {
-        sent = sendWs({ type: 'message', msg_type: msgType, group_id: id, ciphertext: content })
+        if (group?.encrypted) {
+          // Encrypted group: use sender key
+          try {
+            let sk = getMySenderKey(id!, user.id)
+            if (!sk) {
+              // Generate and distribute sender key
+              const newKey = await generateSenderKey()
+              storeSenderKey(id!, user.id, newKey, 1)
+              // Distribute to group members
+              const groupInfo = groups.find(g => g.id === id)
+              if (groupInfo?.members) {
+                const keys = getKeys()
+                const distributions: any[] = []
+                for (const m of groupInfo.members) {
+                  if (m.id === user.id) continue
+                  // We need member's public key; get from friends or the member data
+                  const friendEntry = friends.find(f => f.id === m.id)
+                  if (friendEntry?.ik_pub && keys) {
+                    try {
+                      const dist = await distributeSenderKey(newKey, friendEntry.ik_pub, friendEntry.kem_pub)
+                      distributions.push({ to_id: m.id, encrypted_key: dist.encrypted_key, header: dist.header })
+                    } catch {}
+                  }
+                }
+                if (distributions.length > 0) {
+                  post(`/api/groups/${id}/sender-keys`, { distributions, key_version: 1 }).catch(() => {})
+                }
+              }
+              sk = { groupId: id!, userId: user.id, senderKey: newKey, keyVersion: 1 }
+            }
+            const encrypted = await encryptWithSenderKey(content, sk.senderKey)
+            sent = sendWs({ type: 'message', msg_type: msgType, group_id: id, ciphertext: encrypted.ciphertext, nonce: encrypted.nonce, sender_key_version: sk.keyVersion })
+          } catch (encErr) {
+            console.warn('[Chat] Group encryption failed:', encErr)
+            sent = sendWs({ type: 'message', msg_type: msgType, group_id: id, ciphertext: content })
+          }
+        } else {
+          sent = sendWs({ type: 'message', msg_type: msgType, group_id: id, ciphertext: content })
+        }
       } else {
         const keys = getKeys()
         const recipientPub = friend?.ik_pub
@@ -950,6 +1006,7 @@ export default function Chat() {
           onClick={() => isGroup ? navigate(`/group/${id}`) : navigate(`/user/${id}`)}>
           {chatName}
           {!isGroup && <span style={{ fontSize: 14, opacity: 0.7 }} title={t('chat.e2e_enabled')}><Lock size={16} /></span>}
+          {isGroup && group?.encrypted && <span style={{ fontSize: 14, opacity: 0.7, color: 'var(--accent)' }} title={t('group.encryption_on')}><Shield size={16} /></span>}
         </h1>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 4, alignItems: 'center' }}>
           {!isGroup && (
@@ -988,7 +1045,18 @@ export default function Chat() {
         </div>
       )}
 
-      {isGroup && (
+      {isGroup && group?.encrypted && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          padding: '6px 14px', fontSize: 12,
+          color: 'var(--accent)', background: 'rgba(76, 175, 80, 0.08)',
+          borderBottom: '1px solid rgba(76, 175, 80, 0.15)',
+        }}>
+          <span style={{ fontSize: 14, flexShrink: 0 }}><Shield size={14} /></span>
+          <span>{t('group.encrypted_banner')}</span>
+        </div>
+      )}
+      {isGroup && !group?.encrypted && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: 6,
           padding: '6px 14px', fontSize: 12,

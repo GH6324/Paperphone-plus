@@ -22,7 +22,7 @@ export const es: Record<string, string> = {
   'chat.uploading_image': 'Subiendo imagen...', 'chat.uploading_video': 'Subiendo vídeo...', 'chat.uploading_file': 'Subiendo archivo...', 'chat.uploading_voice': 'Subiendo nota de voz...', 'chat.upload_failed': 'Error al subir',
   'chat.attach_image': 'Enviar imagen', 'chat.attach_video': 'Vídeo', 'chat.attach_file': 'Archivo', 'chat.attach_voice': 'Voz', 'chat.attach_more': 'Más', 'chat.file': 'Archivo',
   'chat.recording': 'Grabando...', 'chat.stop_recording': 'Detener', 'chat.voice_speed': 'Velocidad', 'chat.mic_failed': 'No se puede acceder al micrófono',
-  'chat.group_unencrypted_warning': 'Los chats grupales no están cifrados. Evita compartir información privada.',
+  'chat.group_unencrypted_warning': 'El chat grupal no está cifrado. Se pueden agregar bots. No comparta información personal privada.',
 
   'contacts.title': 'Contactos', 'contacts.friends': 'Amigos', 'contacts.groups': 'Grupos',
   'contacts.requests': 'Solicitudes de amistad', 'contacts.add': 'Agregar amigo',
@@ -41,6 +41,14 @@ export const es: Record<string, string> = {
   'group.qr_code': 'Código QR del grupo', 'group.qr_expire_1w': '1 semana', 'group.qr_expire_1m': '1 mes', 'group.qr_expire_3m': '3 meses', 'group.qr_hint': 'Escanea el código QR para unirte al grupo. El enlace expira después del período seleccionado.',
   'group.invite_friends': 'Invitar amigos', 'group.select_friends': 'Seleccionar amigos', 'group.invite_success': 'Invitación enviada', 'group.no_friends_to_invite': 'Todos tus amigos ya están en este grupo',
   'group.voice_call': 'Llamada de voz grupal', 'group.video_call': 'Videollamada grupal',
+  'group.encryption': 'Modo de cifrado', 'group.encryption_on': 'Cifrado de extremo a extremo activado', 'group.encryption_off': 'Sin cifrar',
+  'group.encryption_switch_confirm': 'Cambiar el modo de cifrado eliminará todo el historial de chat. ¿Continuar?',
+  'group.encryption_bot_warning': 'Una vez activado el cifrado en un grupo, los bots ya no se pueden usar. Desactive el cifrado para volver a usar bots.',
+  'group.encryption_changed': 'El modo de cifrado ha cambiado. El historial de chat ha sido eliminado.',
+  'group.encryption_desc': 'Los mensajes están cifrados con Sender Keys. Solo los miembros del grupo pueden leerlos.',
+  'group.encrypted_banner': 'El chat grupal está cifrado. Los bots no se pueden usar. Incluso con cifrado, no comparta información personal privada.',
+  'group.distributing_keys': 'Distribuyendo claves de cifrado...',
+  'group.owner_only_encryption': 'Solo el propietario del grupo puede cambiar el cifrado',
 
   'discover.title': 'Descubrir', 'discover.moments': 'Momentos', 'discover.timeline': 'Timeline',
   'discover.scan': 'Escanear QR', 'discover.scan_result': 'Resultado del escaneo', 'discover.invite_expired': 'El enlace de invitación ha caducado o es inválido',

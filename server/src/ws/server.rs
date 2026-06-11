@@ -239,6 +239,8 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppState>) {
             let msg_sub_type = parsed.get("msg_type").and_then(|v| v.as_str()).unwrap_or("text");
             let ciphertext = parsed.get("ciphertext").and_then(|v| v.as_str()).unwrap_or("");
             let header = parsed.get("header").and_then(|v| v.as_str());
+            let nonce = parsed.get("nonce").and_then(|v| v.as_str());
+            let sender_key_version = parsed.get("sender_key_version").and_then(|v| v.as_u64());
             let ts = chrono::Utc::now().timestamp_millis();
 
             let sender: Option<(String, Option<String>)> = sqlx::query_as(
@@ -246,12 +248,19 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppState>) {
             ).bind(&uid).fetch_optional(&state.db).await.ok().flatten();
             let (nick, avatar) = sender.unwrap_or(("".to_string(), None));
 
-            let envelope = serde_json::json!({
+            let mut envelope = serde_json::json!({
                 "type": "message", "id": msg_id, "from": uid,
                 "from_nickname": nick, "from_avatar": avatar,
                 "group_id": group_id, "msg_type": msg_sub_type,
                 "ciphertext": ciphertext, "header": header, "ts": ts,
             });
+            // Include encryption metadata if present
+            if let Some(n) = nonce {
+                envelope["nonce"] = serde_json::json!(n);
+            }
+            if let Some(skv) = sender_key_version {
+                envelope["sender_key_version"] = serde_json::json!(skv);
+            }
 
             sqlx::query(
                 "INSERT INTO messages (id, type, from_id, to_id, ciphertext, header, msg_type) VALUES (?, 'group', ?, ?, ?, ?, ?)"

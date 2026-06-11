@@ -98,6 +98,7 @@ export interface Group {
   notice?: string
   auto_delete: number
   muted?: boolean
+  encrypted?: boolean
   members?: GroupMember[]
 }
 

@@ -22,7 +22,7 @@ export const fr: Record<string, string> = {
   'chat.uploading_image': 'Envoi de l\'image...', 'chat.uploading_video': 'Envoi de la vidéo...', 'chat.uploading_file': 'Envoi du fichier...', 'chat.uploading_voice': 'Envoi du message vocal...', 'chat.upload_failed': 'Échec de l\'envoi',
   'chat.attach_image': 'Envoyer une image', 'chat.attach_video': 'Vidéo', 'chat.attach_file': 'Fichier', 'chat.attach_voice': 'Vocal', 'chat.attach_more': 'Plus', 'chat.file': 'Fichier',
   'chat.recording': 'Enregistrement...', 'chat.stop_recording': 'Arrêter', 'chat.voice_speed': 'Vitesse', 'chat.mic_failed': 'Impossible d\'accéder au micro',
-  'chat.group_unencrypted_warning': 'Les discussions de groupe ne sont pas chiffrées. Évitez de partager des informations privées.',
+  'chat.group_unencrypted_warning': 'Le chat de groupe n\'est pas chiffré. Les bots peuvent être ajoutés. Ne partagez pas d\'informations personnelles privées.',
 
   'contacts.title': 'Contacts', 'contacts.friends': 'Amis', 'contacts.groups': 'Groupes',
   'contacts.requests': 'Demandes d\'amis', 'contacts.add': 'Ajouter un ami',
@@ -41,6 +41,14 @@ export const fr: Record<string, string> = {
   'group.qr_code': 'QR code du groupe', 'group.qr_expire_1w': '1 semaine', 'group.qr_expire_1m': '1 mois', 'group.qr_expire_3m': '3 mois', 'group.qr_hint': 'Scannez le QR code pour rejoindre ce groupe. Le lien expire après la période choisie.',
   'group.invite_friends': 'Inviter des amis', 'group.select_friends': 'Sélectionner des amis', 'group.invite_success': 'Invitation envoyée', 'group.no_friends_to_invite': 'Tous vos amis sont déjà dans ce groupe',
   'group.voice_call': 'Appel vocal de groupe', 'group.video_call': 'Appel vidéo de groupe',
+  'group.encryption': 'Mode de chiffrement', 'group.encryption_on': 'Chiffrement de bout en bout activé', 'group.encryption_off': 'Non chiffré',
+  'group.encryption_switch_confirm': 'Changer le mode de chiffrement supprimera tout l\'historique des messages. Continuer ?',
+  'group.encryption_bot_warning': 'Une fois le chiffrement activé dans un groupe, les bots ne peuvent plus être utilisés. Désactivez le chiffrement pour réutiliser les bots.',
+  'group.encryption_changed': 'Le mode de chiffrement a été modifié. L\'historique des messages a été effacé.',
+  'group.encryption_desc': 'Les messages sont chiffrés avec des Sender Keys. Seuls les membres du groupe peuvent les lire.',
+  'group.encrypted_banner': 'Le chat de groupe est chiffré. Les bots ne peuvent pas être utilisés. Même avec le chiffrement, ne partagez pas d\'informations personnelles privées.',
+  'group.distributing_keys': 'Distribution des clés de chiffrement...',
+  'group.owner_only_encryption': 'Seul le propriétaire du groupe peut modifier le chiffrement',
 
   'discover.title': 'Découvrir', 'discover.moments': 'Moments', 'discover.timeline': 'Timeline',
   'discover.scan': 'Scanner QR', 'discover.scan_result': 'Résultat du scan', 'discover.invite_expired': 'Le lien d’invitation a expiré ou est invalide',

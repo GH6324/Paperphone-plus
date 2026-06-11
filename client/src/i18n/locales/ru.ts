@@ -22,7 +22,7 @@ export const ru: Record<string, string> = {
   'chat.uploading_image': 'Загрузка изображения...', 'chat.uploading_video': 'Загрузка видео...', 'chat.uploading_file': 'Загрузка файла...', 'chat.uploading_voice': 'Загрузка голосового сообщения...', 'chat.upload_failed': 'Ошибка загрузки',
   'chat.attach_image': 'Отправить изображение', 'chat.attach_video': 'Видео', 'chat.attach_file': 'Файл', 'chat.attach_voice': 'Голос', 'chat.attach_more': 'Ещё', 'chat.file': 'Файл',
   'chat.recording': 'Запись...', 'chat.stop_recording': 'Остановить', 'chat.voice_speed': 'Скорость', 'chat.mic_failed': 'Нет доступа к микрофону',
-  'chat.group_unencrypted_warning': 'Групповые чаты не зашифрованы. Не делитесь конфиденциальной информацией.',
+  'chat.group_unencrypted_warning': 'Групповой чат не зашифрован. Можно добавлять ботов. Не делитесь личной конфиденциальной информацией.',
 
   'contacts.title': 'Контакты', 'contacts.friends': 'Друзья', 'contacts.groups': 'Группы',
   'contacts.requests': 'Заявки в друзья', 'contacts.add': 'Добавить друга',
@@ -41,6 +41,14 @@ export const ru: Record<string, string> = {
   'group.qr_code': 'QR-код группы', 'group.qr_expire_1w': '1 неделя', 'group.qr_expire_1m': '1 месяц', 'group.qr_expire_3m': '3 месяца', 'group.qr_hint': 'Отсканируйте QR-код, чтобы присоединиться к группе. Ссылка истекает после выбранного периода.',
   'group.invite_friends': 'Пригласить друзей', 'group.select_friends': 'Выбрать друзей', 'group.invite_success': 'Приглашение отправлено', 'group.no_friends_to_invite': 'Все друзья уже в этой группе',
   'group.voice_call': 'Групповой голосовой звонок', 'group.video_call': 'Групповой видеозвонок',
+  'group.encryption': 'Режим шифрования', 'group.encryption_on': 'Сквозное шифрование включено', 'group.encryption_off': 'Без шифрования',
+  'group.encryption_switch_confirm': 'Переключение режима шифрования удалит всю историю чата. Продолжить?',
+  'group.encryption_bot_warning': 'После включения шифрования в группе боты не могут использоваться. Отключите шифрование, чтобы снова использовать ботов.',
+  'group.encryption_changed': 'Режим шифрования изменён. История чата удалена.',
+  'group.encryption_desc': 'Сообщения зашифрованы с помощью Sender Keys. Только участники группы могут их читать.',
+  'group.encrypted_banner': 'Групповой чат зашифрован. Боты недоступны. Даже при шифровании не делитесь личной конфиденциальной информацией.',
+  'group.distributing_keys': 'Распределение ключей шифрования...',
+  'group.owner_only_encryption': 'Только владелец группы может переключать шифрование',
 
   'discover.title': 'Обзор', 'discover.moments': 'Моменты', 'discover.timeline': 'Лента',
   'discover.scan': 'Сканировать QR', 'discover.scan_result': 'Результат сканирования', 'discover.invite_expired': 'Ссылка-приглашение истекла или недействительна',

@@ -21,7 +21,7 @@ export const ko: Record<string, string> = {
   'chat.uploading_image': '이미지 업로드 중...', 'chat.uploading_video': '동영상 업로드 중...', 'chat.uploading_file': '파일 업로드 중...', 'chat.uploading_voice': '음성 업로드 중...', 'chat.upload_failed': '업로드 실패',
   'chat.attach_image': '이미지 전송', 'chat.attach_video': '동영상', 'chat.attach_file': '파일', 'chat.attach_voice': '음성', 'chat.attach_more': '더보기', 'chat.file': '파일',
   'chat.recording': '녹음 중...', 'chat.stop_recording': '중지', 'chat.voice_speed': '배속', 'chat.mic_failed': '마이크에 접근할 수 없습니다',
-  'chat.group_unencrypted_warning': '그룹 채팅은 암호화되지 않습니다. 개인정보를 공유하지 마세요.',
+  'chat.group_unencrypted_warning': '그룹 채팅은 암호화되지 않습니다. 봇을 추가할 수 있습니다. 개인 정보를 공유하지 마세요.',
 
   'contacts.title': '연락처', 'contacts.friends': '친구', 'contacts.groups': '그룹',
   'contacts.requests': '친구 요청', 'contacts.add': '친구 추가', 'contacts.search_user': '사용자 검색...',
@@ -39,6 +39,14 @@ export const ko: Record<string, string> = {
   'group.qr_code': '그룹 QR 코드', 'group.qr_expire_1w': '1주', 'group.qr_expire_1m': '1개월', 'group.qr_expire_3m': '3개월', 'group.qr_hint': 'QR 코드를 스캔하여 그룹에 참여하세요. 링크는 선택한 기간 후 만료됩니다.',
   'group.invite_friends': '친구 초대', 'group.select_friends': '친구 선택', 'group.invite_success': '초대 완료', 'group.no_friends_to_invite': '모든 친구가 이미 그룹에 있습니다',
   'group.voice_call': '그룹 음성 통화', 'group.video_call': '그룹 영상 통화',
+  'group.encryption': '암호화 모드', 'group.encryption_on': '종단간 암호화 활성화', 'group.encryption_off': '비암호화',
+  'group.encryption_switch_confirm': '암호화 모드를 전환하면 모든 채팅 기록이 삭제됩니다. 계속하시겠습니까?',
+  'group.encryption_bot_warning': '그룹에서 암호화를 활성화하면 봇을 사용할 수 없습니다. 봇을 다시 사용하려면 암호화를 비활성화하세요.',
+  'group.encryption_changed': '암호화 모드가 변경되었습니다. 채팅 기록이 삭제되었습니다.',
+  'group.encryption_desc': '메시지는 Sender Key로 암호화되며 그룹 멤버만 읽을 수 있습니다',
+  'group.encrypted_banner': '그룹 채팅이 암호화되었습니다. 봇을 사용할 수 없습니다. 암호화되어 있어도 개인 정보를 공유하지 마세요.',
+  'group.distributing_keys': '암호화 키 배포 중...',
+  'group.owner_only_encryption': '그룹 소유자만 암호화를 전환할 수 있습니다',
 
   'discover.title': '발견', 'discover.moments': '모먼트', 'discover.timeline': '타임라인',
   'discover.scan': 'QR 스캔', 'discover.scan_result': '스캔 결과', 'discover.invite_expired': '초대 링크가 만료되었거나 유효하지 않습니다',

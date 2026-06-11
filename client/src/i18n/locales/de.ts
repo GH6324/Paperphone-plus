@@ -22,7 +22,7 @@ export const de: Record<string, string> = {
   'chat.uploading_image': 'Bild wird hochgeladen...', 'chat.uploading_video': 'Video wird hochgeladen...', 'chat.uploading_file': 'Datei wird hochgeladen...', 'chat.uploading_voice': 'Sprachnachricht wird hochgeladen...', 'chat.upload_failed': 'Hochladen fehlgeschlagen',
   'chat.attach_image': 'Bild senden', 'chat.attach_video': 'Video', 'chat.attach_file': 'Datei', 'chat.attach_voice': 'Sprache', 'chat.attach_more': 'Mehr', 'chat.file': 'Datei',
   'chat.recording': 'Aufnahme...', 'chat.stop_recording': 'Stopp', 'chat.voice_speed': 'Tempo', 'chat.mic_failed': 'Kein Zugriff auf Mikrofon',
-  'chat.group_unencrypted_warning': 'Gruppenchats sind nicht verschlüsselt. Teilen Sie keine privaten Informationen.',
+  'chat.group_unencrypted_warning': 'Der Gruppenchat ist nicht verschlüsselt. Bots können hinzugefügt werden. Teilen Sie keine persönlichen privaten Informationen.',
 
   'contacts.title': 'Kontakte', 'contacts.friends': 'Freunde', 'contacts.groups': 'Gruppen',
   'contacts.requests': 'Freundschaftsanfragen', 'contacts.add': 'Freund hinzufügen',
@@ -41,6 +41,14 @@ export const de: Record<string, string> = {
   'group.qr_code': 'Gruppen-QR-Code', 'group.qr_expire_1w': '1 Woche', 'group.qr_expire_1m': '1 Monat', 'group.qr_expire_3m': '3 Monate', 'group.qr_hint': 'QR-Code scannen, um der Gruppe beizutreten. Der Link verfällt nach dem gewählten Zeitraum.',
   'group.invite_friends': 'Freunde einladen', 'group.select_friends': 'Freunde auswählen', 'group.invite_success': 'Erfolgreich eingeladen', 'group.no_friends_to_invite': 'Alle Freunde sind bereits in dieser Gruppe',
   'group.voice_call': 'Gruppen-Sprachanruf', 'group.video_call': 'Gruppen-Videoanruf',
+  'group.encryption': 'Verschlüsselungsmodus', 'group.encryption_on': 'Ende-zu-Ende-Verschlüsselung aktiviert', 'group.encryption_off': 'Unverschlüsselt',
+  'group.encryption_switch_confirm': 'Das Umschalten des Verschlüsselungsmodus löscht den gesamten Chatverlauf. Fortfahren?',
+  'group.encryption_bot_warning': 'Sobald die Verschlüsselung in einer Gruppe aktiviert ist, können Bots nicht mehr verwendet werden. Deaktivieren Sie die Verschlüsselung, um Bots wieder zu nutzen.',
+  'group.encryption_changed': 'Der Verschlüsselungsmodus wurde geändert. Der Chatverlauf wurde gelöscht.',
+  'group.encryption_desc': 'Nachrichten werden mit Sender Keys verschlüsselt. Nur Gruppenmitglieder können sie lesen.',
+  'group.encrypted_banner': 'Der Gruppenchat ist verschlüsselt. Bots können nicht verwendet werden. Auch bei Verschlüsselung keine persönlichen privaten Informationen teilen.',
+  'group.distributing_keys': 'Verschlüsselungsschlüssel werden verteilt...',
+  'group.owner_only_encryption': 'Nur der Gruppenbesitzer kann die Verschlüsselung umschalten',
 
   'discover.title': 'Entdecken', 'discover.moments': 'Momente', 'discover.timeline': 'Timeline',
   'discover.scan': 'QR scannen', 'discover.scan_result': 'Scan-Ergebnis', 'discover.invite_expired': 'Einladungslink ist abgelaufen oder ungültig',

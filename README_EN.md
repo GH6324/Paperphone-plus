@@ -45,7 +45,7 @@ A WeChat-style end-to-end encrypted instant messaging app with stateless ECDH + 
 | 🗝️ Zero-Knowledge Server | Server stores only ciphertext; private keys never leave the device |
 | 📹 Video & Voice Calls | WebRTC P2P (1:1) + Mesh (group), Cloudflare TURN for NAT traversal |
 | 🎙️ Voice Changer | Real-time voice effects for voice messages, 1:1 calls, and group calls — 3 modes (0.8x deep / 1.0x normal / 1.2x high-pitched), powered by Web Audio API |
-| 👥 Group Chat | Up to 2000 members, plain-text messages (no encryption), Do Not Disturb mode, member management |
+| 👥 Group Chat | Up to 2000 members, switchable "Encrypted" / "Unencrypted" modes (owner-only toggle, switching clears chat history). Encrypted mode uses Signal-style Sender Key protocol (XSalsa20-Poly1305 symmetric encryption + ECDH key distribution) — only group members can decrypt messages; bots are disabled in encrypted mode. Do Not Disturb mode, member management |
 | 👫 Friend System | Friend requests require approval with up to 512-char message; custom nicknames; multi-tag grouping |
 | ⏱️ Auto-Delete Messages | 5 tiers (never / 1 day / 3 days / 1 week / 1 month), settable by either party in DMs, owner-only in groups |
 | 🔔 Push Notifications | Web Push (VAPID) + FCM + OneSignal + ntfy + APNS five-channel — reach users even when offline (iOS native + Chinese Android without Google Services supported) |

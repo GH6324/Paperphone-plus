@@ -45,7 +45,7 @@ Una aplicación de mensajería instantánea cifrada de extremo a extremo, estilo
 | 🗝️ Servidor de conocimiento cero | El servidor solo almacena texto cifrado; las claves privadas nunca abandonan el dispositivo |
 | 📹 Videollamadas y llamadas de voz | WebRTC P2P (1:1) + Mesh (grupo), Cloudflare TURN para traversal de NAT |
 | 🎙️ Modificador de voz | Efectos de voz en tiempo real para mensajes de voz, llamadas 1:1 y llamadas grupales — 3 modos (0.8x grave / 1.0x normal / 1.2x agudo), basado en Web Audio API |
-| 👥 Chat grupal | Hasta 2000 miembros, mensajes en texto plano (sin cifrado), modo No Molestar, gestión de miembros |
+| 👥 Chat grupal | Hasta 2000 miembros, modos "Cifrado" / "Sin cifrar" conmutables (solo propietario, al cambiar se borra el historial del chat). El modo cifrado usa el protocolo Sender Key estilo Signal (cifrado simétrico XSalsa20-Poly1305 + distribución de claves ECDH) — solo los miembros del grupo pueden descifrar los mensajes; los bots están desactivados en modo cifrado. Modo No Molestar, gestión de miembros |
 | 👫 Sistema de amigos | Las solicitudes de amistad requieren aprobación con hasta 512 caracteres de mensaje; apodos personalizados; agrupación por etiquetas |
 | ⏱️ Eliminación automática de mensajes | 5 niveles (nunca / 1 día / 3 días / 1 semana / 1 mes), configurable por ambas partes en DMs, solo por el propietario en grupos |
 | 🔔 Notificaciones push | Web Push (VAPID) + FCM + OneSignal + ntfy + APNS cinco canales — alcanza usuarios incluso sin conexión (iOS nativo + Android chino sin Google Services) |

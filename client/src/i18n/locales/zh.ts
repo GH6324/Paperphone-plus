@@ -66,7 +66,7 @@ export const zh: Record<string, string> = {
   'chat.stop_recording': '停止录音',
   'chat.voice_speed': '倍速',
   'chat.mic_failed': '无法访问麦克风',
-  'chat.group_unencrypted_warning': '群聊会话不加密，请不要谈论隐私信息。',
+  'chat.group_unencrypted_warning': '群聊未加密，可以添加群机器人，请勿在群聊透露个人隐私信息',
 
   // Contacts
   'contacts.title': '联系人',
@@ -122,6 +122,16 @@ export const zh: Record<string, string> = {
   'group.no_friends_to_invite': '所有好友都已在群中',
   'group.voice_call': '群语音通话',
   'group.video_call': '群视频通话',
+  'group.encryption': '加密模式',
+  'group.encryption_on': '端到端加密已开启',
+  'group.encryption_off': '未加密',
+  'group.encryption_switch_confirm': '切换加密模式将清空所有聊天记录，确定继续？',
+  'group.encryption_bot_warning': '群聊一旦开启加密，群内再也无法使用机器人，切换回未加密模式可再次使用群机器人。',
+  'group.encryption_changed': '群加密模式已变更，历史消息已清空',
+  'group.encryption_desc': '消息使用 Sender Key 加密，仅群成员可读',
+  'group.encrypted_banner': '群聊已加密，无法使用群机器人，即使已加密也不要在群聊透露个人隐私信息',
+  'group.distributing_keys': '正在分发加密密钥...',
+  'group.owner_only_encryption': '仅群主可切换加密模式',
 
   // Discover
   'discover.title': '发现',
