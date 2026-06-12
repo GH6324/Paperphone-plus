@@ -8,7 +8,7 @@ import { get, post, put, uploadFileWithProgress, normalizeFileUrl } from '../api
 import { sendWs, onWs } from '../api/socket'
 import { getKeys } from '../crypto/keystore'
 import { encryptHybrid, decryptHybrid } from '../crypto/ratchet'
-import { getMySenderKey, getSenderKey, generateSenderKey, encryptWithSenderKey, decryptWithSenderKey, distributeSenderKey, storeSenderKey, receiveSenderKey } from '../crypto/groupCrypto'
+import { getMySenderKey, getSenderKey, generateSenderKey, encryptWithSenderKey, decryptWithSenderKey, distributeSenderKey, storeSenderKey, receiveSenderKey, isSenderKeyDistributed, markSenderKeyDistributed, removeSenderKey } from '../crypto/groupCrypto'
 import { Shield } from 'lucide-react'
 import { ChevronLeft, Lock, Settings, Timer, ImageIcon, Film, Plus, Mic, Download, Paperclip, AlertTriangle, Clock, Package as PackageIcon, FileText, File as FileIcon, Image as LucideImage, Music, Video, Check, CheckCheck, Phone, VideoIcon, SendHorizonal, Smile, WifiOff, X, ZoomIn, ZoomOut } from 'lucide-react'
 import TgsPlayer from '../components/TgsPlayer'
@@ -534,11 +534,16 @@ export default function Chat() {
           // Encrypted group: use sender key
           try {
             let sk = getMySenderKey(id!, user.id)
+            // If we have a key but it was never successfully distributed, discard it and regenerate
+            if (sk && !isSenderKeyDistributed(id!, user.id)) {
+              removeSenderKey(id!, user.id)
+              sk = null
+            }
             if (!sk) {
               // Generate and distribute sender key
               const newKey = await generateSenderKey()
-              storeSenderKey(id!, user.id, newKey, 1)
               // Distribute to group members — fetch from server to ensure we have full member list
+              let distributed = false
               try {
                 const groupDetail = await get(`/api/groups/${id}`)
                 if (groupDetail?.members && Array.isArray(groupDetail.members)) {
@@ -570,15 +575,26 @@ export default function Chat() {
                   }
                   if (distributions.length > 0) {
                     await post(`/api/groups/${id}/sender-keys`, { distributions, key_version: 1 })
+                    distributed = true
                   }
                 }
               } catch (distErr) {
                 console.warn('[Chat] Sender key distribution failed:', distErr)
               }
-              sk = { groupId: id!, userId: user.id, senderKey: newKey, keyVersion: 1 }
+              // Only store and use the key if distribution succeeded
+              if (distributed) {
+                storeSenderKey(id!, user.id, newKey, 1, true)
+                sk = { groupId: id!, userId: user.id, senderKey: newKey, keyVersion: 1, distributed: true }
+              } else {
+                // Distribution failed — send unencrypted as fallback
+                console.warn('[Chat] Sender key distribution failed, sending unencrypted')
+                sent = sendWs({ type: 'message', msg_type: msgType, group_id: id, ciphertext: content })
+              }
             }
-            const encrypted = await encryptWithSenderKey(content, sk.senderKey)
-            sent = sendWs({ type: 'message', msg_type: msgType, group_id: id, ciphertext: encrypted.ciphertext, nonce: encrypted.nonce, sender_key_version: sk.keyVersion })
+            if (sk && !sent) {
+              const encrypted = await encryptWithSenderKey(content, sk.senderKey)
+              sent = sendWs({ type: 'message', msg_type: msgType, group_id: id, ciphertext: encrypted.ciphertext, nonce: encrypted.nonce, sender_key_version: sk.keyVersion })
+            }
           } catch (encErr) {
             console.warn('[Chat] Group encryption failed:', encErr)
             sent = sendWs({ type: 'message', msg_type: msgType, group_id: id, ciphertext: content })

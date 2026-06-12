@@ -21,6 +21,7 @@ interface SenderKeyEntry {
   userId: string        // The owner of this sender key
   senderKey: string     // base64-encoded 32-byte symmetric key
   keyVersion: number
+  distributed?: boolean // Whether this key has been successfully distributed (only for own keys)
 }
 
 /** In-memory + localStorage cache of sender keys */
@@ -44,14 +45,36 @@ function saveSenderKeys() {
 /**
  * Store a sender key for a specific user in a specific group.
  */
-export function storeSenderKey(groupId: string, userId: string, senderKey: string, keyVersion: number) {
+export function storeSenderKey(groupId: string, userId: string, senderKey: string, keyVersion: number, distributed?: boolean) {
   loadSenderKeys()
   // Replace existing entry for same group+user
   senderKeyCache = senderKeyCache.filter(
     sk => !(sk.groupId === groupId && sk.userId === userId)
   )
-  senderKeyCache.push({ groupId, userId, senderKey, keyVersion })
+  senderKeyCache.push({ groupId, userId, senderKey, keyVersion, distributed })
   saveSenderKeys()
+}
+
+/**
+ * Check if own sender key has been distributed to other members.
+ */
+export function isSenderKeyDistributed(groupId: string, userId: string): boolean {
+  const sk = getSenderKey(groupId, userId)
+  return sk?.distributed === true
+}
+
+/**
+ * Mark own sender key as distributed.
+ */
+export function markSenderKeyDistributed(groupId: string, userId: string) {
+  loadSenderKeys()
+  const entry = senderKeyCache.find(
+    sk => sk.groupId === groupId && sk.userId === userId
+  )
+  if (entry) {
+    entry.distributed = true
+    saveSenderKeys()
+  }
 }
 
 /**
