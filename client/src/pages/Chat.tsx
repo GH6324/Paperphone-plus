@@ -538,25 +538,42 @@ export default function Chat() {
               // Generate and distribute sender key
               const newKey = await generateSenderKey()
               storeSenderKey(id!, user.id, newKey, 1)
-              // Distribute to group members
-              const groupInfo = groups.find(g => g.id === id)
-              if (groupInfo?.members) {
-                const keys = getKeys()
-                const distributions: any[] = []
-                for (const m of groupInfo.members) {
-                  if (m.id === user.id) continue
-                  // We need member's public key; get from friends or the member data
-                  const friendEntry = friends.find(f => f.id === m.id)
-                  if (friendEntry?.ik_pub && keys) {
-                    try {
-                      const dist = await distributeSenderKey(newKey, friendEntry.ik_pub, friendEntry.kem_pub)
-                      distributions.push({ to_id: m.id, encrypted_key: dist.encrypted_key, header: dist.header })
-                    } catch {}
+              // Distribute to group members — fetch from server to ensure we have full member list
+              try {
+                const groupDetail = await get(`/api/groups/${id}`)
+                if (groupDetail?.members && Array.isArray(groupDetail.members)) {
+                  const keys = getKeys()
+                  const distributions: any[] = []
+                  for (const m of groupDetail.members) {
+                    if (m.id === user.id) continue
+                    // Try friends list first for public key, then fetch from server
+                    let ikPub: string | undefined
+                    let kemPub: string | undefined
+                    const friendEntry = friends.find(f => f.id === m.id)
+                    if (friendEntry?.ik_pub) {
+                      ikPub = friendEntry.ik_pub
+                      kemPub = friendEntry.kem_pub
+                    } else {
+                      // Not in friends list — fetch public keys from server
+                      try {
+                        const memberKeys = await get(`/api/users/${m.id}`)
+                        ikPub = memberKeys?.ik_pub
+                        kemPub = memberKeys?.kem_pub
+                      } catch {}
+                    }
+                    if (ikPub && keys) {
+                      try {
+                        const dist = await distributeSenderKey(newKey, ikPub, kemPub)
+                        distributions.push({ to_id: m.id, encrypted_key: dist.encrypted_key, header: dist.header })
+                      } catch {}
+                    }
+                  }
+                  if (distributions.length > 0) {
+                    await post(`/api/groups/${id}/sender-keys`, { distributions, key_version: 1 })
                   }
                 }
-                if (distributions.length > 0) {
-                  await post(`/api/groups/${id}/sender-keys`, { distributions, key_version: 1 })
-                }
+              } catch (distErr) {
+                console.warn('[Chat] Sender key distribution failed:', distErr)
               }
               sk = { groupId: id!, userId: user.id, senderKey: newKey, keyVersion: 1 }
             }
