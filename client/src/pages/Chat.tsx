@@ -400,19 +400,20 @@ export default function Chat() {
             const skData = await get(`/api/groups/${id}/sender-keys`)
             if (skData?.keys && Array.isArray(skData.keys)) {
               for (const k of skData.keys) {
-                // Only import if we don't already have this sender's key
-                if (!getSenderKey(id!, k.from_id)) {
-                  try {
-                    const senderKey = await receiveSenderKey(
-                      k.encrypted_key,
-                      k.header,
-                      keys.ik_priv,
-                      null
-                    )
-                    storeSenderKey(id!, k.from_id, senderKey, k.key_version || 1)
-                  } catch (err) {
-                    console.warn(`[Chat] Failed to import sender key from ${k.from_id}:`, err)
-                  }
+                // Always try to import the latest distribution from server.
+                // Don't skip if we already have a cached key — the cached key may be
+                // stale (encrypted with a previous ik_pub after a logout/login cycle).
+                // If decryption succeeds, it overwrites the old cache entry.
+                try {
+                  const senderKey = await receiveSenderKey(
+                    k.encrypted_key,
+                    k.header,
+                    keys.ik_priv,
+                    null
+                  )
+                  storeSenderKey(id!, k.from_id, senderKey, k.key_version || 1)
+                } catch (err) {
+                  console.warn(`[Chat] Failed to import sender key from ${k.from_id}:`, err)
                 }
               }
             }

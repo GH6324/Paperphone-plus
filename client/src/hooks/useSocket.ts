@@ -21,16 +21,16 @@ async function fetchAndStoreSenderKeys(groupId: string): Promise<boolean> {
     if (!skData?.keys || !Array.isArray(skData.keys)) return false
     let imported = false
     for (const k of skData.keys) {
-      if (!getSenderKey(groupId, k.from_id)) {
-        try {
-          const senderKey = await receiveSenderKey(
-            k.encrypted_key, k.header, keys.ik_priv, null
-          )
-          storeSenderKey(groupId, k.from_id, senderKey, k.key_version || 1)
-          imported = true
-        } catch (err) {
-          console.warn(`[useSocket] Failed to decrypt sender key from ${k.from_id} for group ${groupId}:`, err)
-        }
+      // Always try to decrypt the latest distribution — don't skip if cached.
+      // Cached keys may be stale after identity key changes (logout/login cycle).
+      try {
+        const senderKey = await receiveSenderKey(
+          k.encrypted_key, k.header, keys.ik_priv, null
+        )
+        storeSenderKey(groupId, k.from_id, senderKey, k.key_version || 1)
+        imported = true
+      } catch (err) {
+        console.warn(`[useSocket] Failed to decrypt sender key from ${k.from_id} for group ${groupId}:`, err)
       }
     }
     return imported
@@ -310,7 +310,14 @@ export function useSocket() {
       if (data.group_id && data.user_id) {
         // Remove the invalidated user's sender key from local cache
         removeSenderKey(data.group_id, data.user_id)
-        console.log(`[useSocket] Sender key invalidated for user ${data.user_id} in group ${data.group_id} (identity keys changed)`)
+        // Also remove OUR OWN sender key for this group.
+        // Our previous distribution to this user was encrypted with their OLD ik_pub,
+        // so they can't decrypt it. We must regenerate and re-distribute on next send.
+        const myId = useStore.getState().user?.id
+        if (myId && myId !== data.user_id) {
+          removeSenderKey(data.group_id, myId)
+        }
+        console.log(`[useSocket] Sender key invalidated for user ${data.user_id} in group ${data.group_id} (identity keys changed). Own key also cleared for re-distribution.`)
       }
     })
 

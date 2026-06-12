@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useStore, ProxyConfig } from '../store'
 import { useI18n } from '../hooks/useI18n'
 import { clearKeys, getKeys } from '../crypto/keystore'
+import { clearAllSenderKeys } from '../crypto/groupCrypto'
 import { disconnectWs } from '../api/socket'
 import { get, post, put, del, uploadFile } from '../api/http'
 import { allLangs, langNames, LangCode } from '../i18n'
@@ -90,7 +91,11 @@ export default function Profile() {
 
   const handleLogout = () => {
     disconnectWs()
-    clearKeys()
+    // Preserve identity keys (ik_pub/ik_priv) across logout/login cycles.
+    // Clearing them would force ensureKeysExist() to generate a new keypair,
+    // breaking sender key distributions for all group members.
+    // Only clear sender key cache (it will be re-fetched on next login).
+    clearAllSenderKeys()
     logoutOneSignal()
     logout()
     navigate('/login')
