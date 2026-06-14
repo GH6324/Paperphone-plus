@@ -194,7 +194,7 @@ cd client && npm install && npm run dev
 | `APNS_RELAY_URL` | 푸시 릴레이 URL (선택 사항, 셀프 호스팅 서버에서 릴레이 호스트로 연결) | — |
 | `APNS_RELAY_KEY` | 푸시 릴레이 인증 키 (선택 사항, 릴레이 호스트의 `APNS_RELAY_SECRET`과 일치해야 합니다) | — |
 | `TELEGRAM_BOT_TOKEN` | Telegram Bot Token (선택 사항) | — |
-| `STICKER_PACKS` | 커스텀 스티커 팩 (선택 사항, `name:label`) | 기본 9개 내장 |
+| `STICKER_PACKS` | 커스텀 스티커 팩 (선택 사항, `name:label`) | 기본 12개 내장 |
 | `ADMIN_PATH` | 관리자 패널 URL 경로 | `/admin` |
 | `ADMIN_PASSWORD` | 관리자 패널 비밀번호 (**프로덕션에서 반드시 변경하세요**) | `admin123` |
 

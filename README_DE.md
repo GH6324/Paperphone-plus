@@ -194,7 +194,7 @@ Sprachnachrichten, 1:1-Anrufe und Gruppenanrufe unterstützen Echtzeit-Stimmverz
 | `APNS_RELAY_URL` | Push-Relay-URL (optional, selbstgehostete Server zeigen auf Relay-Host) | — |
 | `APNS_RELAY_KEY` | Push-Relay-Auth-Schlüssel (optional, muss mit `APNS_RELAY_SECRET` des Relay-Hosts übereinstimmen) | — |
 | `TELEGRAM_BOT_TOKEN` | Telegram Bot Token (optional) | — |
-| `STICKER_PACKS` | Benutzerdefinierte Stickerpakete (optional, `Name:Label`) | 9 integrierte Standards |
+| `STICKER_PACKS` | Benutzerdefinierte Stickerpakete (optional, `Name:Label`) | 12 integrierte Standards |
 | `ADMIN_PATH` | Admin-Panel URL-Pfad | `/admin` |
 | `ADMIN_PASSWORD` | Admin-Panel Passwort (**in Produktion ändern**) | `admin123` |
 

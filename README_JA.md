@@ -194,7 +194,7 @@ cd client && npm install && npm run dev
 | `APNS_RELAY_URL` | プッシュリレー URL（オプション、セルフホストサーバーがリレーホストを指定） | — |
 | `APNS_RELAY_KEY` | プッシュリレー認証キー（オプション、リレーホストの `APNS_RELAY_SECRET` と一致が必要） | — |
 | `TELEGRAM_BOT_TOKEN` | Telegram Bot Token（オプション） | — |
-| `STICKER_PACKS` | カスタムステッカーパック（オプション、`名前:ラベル`） | 内蔵 9 パック |
+| `STICKER_PACKS` | カスタムステッカーパック（オプション、`名前:ラベル`） | 内蔵 12 パック |
 | `ADMIN_PATH` | 管理パネル URL パス | `/admin` |
 | `ADMIN_PASSWORD` | 管理パネルパスワード（**本番環境では必ず変更**） | `admin123` |
 

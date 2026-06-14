@@ -194,7 +194,7 @@ cd client && npm install && npm run dev
 | `APNS_RELAY_URL` | URL push relay (опционально, self-hosted серверы указывают на relay-хост) | — |
 | `APNS_RELAY_KEY` | Ключ авторизации push relay (опционально, должен совпадать с `APNS_RELAY_SECRET` relay-хоста) | — |
 | `TELEGRAM_BOT_TOKEN` | Токен Telegram-бота (опционально) | — |
-| `STICKER_PACKS` | Пользовательские стикер-паки (опционально, `name:label`) | 9 встроенных по умолчанию |
+| `STICKER_PACKS` | Пользовательские стикер-паки (опционально, `name:label`) | 12 встроенных по умолчанию |
 | `ADMIN_PATH` | URL-путь панели администратора | `/admin` |
 | `ADMIN_PASSWORD` | Пароль панели администратора (**измените в продакшене**) | `admin123` |
 
