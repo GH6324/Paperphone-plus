@@ -36,8 +36,8 @@ export default function PrivacyPolicy() {
         <div className="privacy-section">
           <p className="privacy-text">
             {isZH
-              ? 'PaperPhone（以下简称"我们"）非常重视您的隐私保护。本隐私政策旨在向您说明我们如何收集、使用、存储和保护您的个人信息。使用我们的服务即表示您同意本政策中描述的做法。'
-              : 'PaperPhone ("we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, store, and protect your personal information when you use our service. By using PaperPhone, you agree to the practices described in this policy.'}
+              ? 'PaperPhonePlus（以下简称"我们"）非常重视您的隐私保护。本隐私政策旨在向您说明我们如何收集、使用、存储和保护您的个人信息。使用我们的服务即表示您同意本政策中描述的做法。'
+              : 'PaperPhonePlus ("we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, store, and protect your personal information when you use our service. By using PaperPhonePlus, you agree to the practices described in this policy.'}
           </p>
         </div>
 
@@ -75,8 +75,8 @@ export default function PrivacyPolicy() {
           </div>
           <div className="privacy-card highlight">
             <p>{isZH
-              ? 'PaperPhone 采用业界领先的混合量子安全加密方案：'
-              : 'PaperPhone uses industry-leading hybrid quantum-safe encryption:'}</p>
+              ? 'PaperPhonePlus 采用业界领先的混合量子安全加密方案：'
+              : 'PaperPhonePlus uses industry-leading hybrid quantum-safe encryption:'}</p>
             <ul>
               <li>{isZH ? 'X25519 椭圆曲线密钥交换' : 'X25519 Elliptic Curve Diffie-Hellman'}</li>
               <li>{isZH ? 'Kyber KEM 后量子密钥封装' : 'Kyber KEM post-quantum key encapsulation'}</li>
@@ -94,8 +94,8 @@ export default function PrivacyPolicy() {
           </div>
           <div className="privacy-card">
             <p>{isZH
-              ? '您的数据存储在您自行部署或选择的服务器上。PaperPhone 是开源软件，支持自托管部署。我们不运营中心化的数据存储服务。您可以随时通过自动删除消息功能清除历史消息。'
-              : 'Your data is stored on the server you deploy or choose. PaperPhone is open-source software that supports self-hosted deployment. We do not operate a centralized data storage service. You can clear message history at any time using the auto-delete messages feature.'}</p>
+              ? '您的数据存储在您自行部署或选择的服务器上。PaperPhonePlus 是开源软件，支持自托管部署。我们不运营中心化的数据存储服务。您可以随时通过自动删除消息功能清除历史消息。'
+              : 'Your data is stored on the server you deploy or choose. PaperPhonePlus is open-source software that supports self-hosted deployment. We do not operate a centralized data storage service. You can clear message history at any time using the auto-delete messages feature.'}</p>
           </div>
         </div>
 
@@ -166,7 +166,7 @@ export default function PrivacyPolicy() {
               ? '如果您对本隐私政策有任何疑问或建议，请通过以下方式联系我们：'
               : 'If you have any questions or suggestions about this Privacy Policy, please contact us:'}</p>
             <ul>
-              <li>{isZH ? '应用名称：PaperPhone Plus' : 'App: PaperPhone Plus'}</li>
+              <li>{isZH ? '应用名称：PaperPhonePlus' : 'App: PaperPhonePlus'}</li>
               <li>{isZH ? '公司名称：FM619 Technolog LTD' : 'Company: FM619 Technolog LTD'}</li>
               <li>{isZH ? '电子邮件：' : 'Email: '}<a href="mailto:4722522@gmail.com">4722522@gmail.com</a></li>
             </ul>

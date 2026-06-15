@@ -108,7 +108,7 @@ export function showBrowserNotification(title: string, body: string, onClick?: (
     const n = new Notification(title, {
       body,
       icon: '/icons/icon-192.png',
-      tag: 'paperphone-' + Date.now(),
+      tag: 'paperphoneplus-' + Date.now(),
       requireInteraction: false,
     })
     if (onClick) {

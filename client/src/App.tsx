@@ -198,16 +198,16 @@ export default function App() {
   }, [])
 
   // ── Capacitor: Deep Link handler ──
-  // Handles paperphone:// URLs to navigate within the app
+  // Handles paperphoneplus:// URLs to navigate within the app
   useEffect(() => {
     if (!isNativePlatform()) return
     let cleanup: (() => void) | undefined
     import('@capacitor/app').then(({ App: CapApp }) => {
       const listener = CapApp.addListener('appUrlOpen', (event) => {
         console.log('[DeepLink] URL opened:', event.url)
-        // paperphone://chat/123  → /chat/123
-        // paperphone://user/abc  → /user/abc
-        // paperphone://add-friend?id=xxx → /contacts?add=xxx
+        // paperphoneplus://chat/123  → /chat/123
+        // paperphoneplus://user/abc  → /user/abc
+        // paperphoneplus://add-friend?id=xxx → /contacts?add=xxx
         try {
           const url = new URL(event.url)
           const path = url.pathname || url.host + (url.pathname || '')
@@ -216,7 +216,7 @@ export default function App() {
           }
         } catch {
           // Fallback: strip scheme and navigate
-          const path = event.url.replace(/^paperphone:\/\//, '')
+          const path = event.url.replace(/^paperphoneplus:\/\//, '')
           if (path) window.location.href = '/' + path
         }
       })
@@ -272,7 +272,7 @@ function showAndroidBatteryGuide(): void {
     const title = isZH ? '📱 开启消息通知' : '📱 Enable Notifications'
     const message = isZH
       ? '为确保消息及时送达，请进行以下设置：\n\n'
-        + '1️⃣ 允许 PaperPhone 发送通知\n'
+        + '1️⃣ 允许 PaperPhonePlus 发送通知\n'
         + '2️⃣ 关闭电池优化（设置 → 电池 → 不受限制）\n'
         + '3️⃣ 允许后台运行\n\n'
         + '不同品牌操作路径略有不同：\n'
@@ -281,7 +281,7 @@ function showAndroidBatteryGuide(): void {
         + '• OPPO/vivo：设置 → 电池 → 后台耗电管理\n'
         + '• 三星：设置 → 电池 → 后台使用限制\n'
       : 'To ensure timely message delivery:\n\n'
-        + '1️⃣ Allow PaperPhone to send notifications\n'
+        + '1️⃣ Allow PaperPhonePlus to send notifications\n'
         + '2️⃣ Disable battery optimization for this app\n'
         + '3️⃣ Allow background activity\n\n'
         + 'Go to: Settings → Battery → Unrestricted'

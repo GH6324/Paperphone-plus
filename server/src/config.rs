@@ -88,9 +88,9 @@ impl Config {
 
             db_host: env_or("DB_HOST", "localhost"),
             db_port: env_or("DB_PORT", "3306").parse().unwrap_or(3306),
-            db_user: env_or("DB_USER", "paperphone"),
+            db_user: env_or("DB_USER", "paperphoneplus"),
             db_pass: env_or("DB_PASS", ""),
-            db_name: env_or("DB_NAME", "paperphone"),
+            db_name: env_or("DB_NAME", "paperphoneplus"),
 
             redis_host: env_or("REDIS_HOST", "localhost"),
             redis_port: env_or("REDIS_PORT", "6379").parse().unwrap_or(6379),

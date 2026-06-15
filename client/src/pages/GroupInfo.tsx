@@ -546,7 +546,7 @@ export default function GroupInfo() {
               </div>
 
               {/* QR code */}
-              <QRCodeCanvas data={`paperphone://invite/${inviteId}`} size={200} />
+              <QRCodeCanvas data={`paperphoneplus://invite/${inviteId}`} size={200} />
 
               <div style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>
                 {t('group.qr_hint')}

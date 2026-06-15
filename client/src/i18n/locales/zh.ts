@@ -1,6 +1,6 @@
 export const zh: Record<string, string> = {
   // Auth
-  'app.name': 'PaperPhone',
+  'app.name': 'PaperPhonePlus',
   'auth.login': '登录',
   'auth.register': '注册',
   'auth.username': '用户名',
@@ -422,7 +422,7 @@ export const zh: Record<string, string> = {
   'terms.agree_link': '使用条款',
   'terms.must_agree': '请先同意使用条款才能继续',
   'terms.hero_title': '使用条款',
-  'terms.hero_subtitle': '在使用 PaperPhone Plus 之前，请仔细阅读以下条款',
+  'terms.hero_subtitle': '在使用 PaperPhonePlus 之前，请仔细阅读以下条款',
 
   // Report
   'report.title': '举报内容',

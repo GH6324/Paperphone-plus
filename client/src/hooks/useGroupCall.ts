@@ -368,7 +368,7 @@ export function useGroupCall(userId: string | undefined) {
 
       playCallRingtone()
       const callType = data.is_video ? 'Group Video Call' : 'Group Voice Call'
-      showBrowserNotification('PaperPhone', `${callType}`, () => window.focus())
+      showBrowserNotification('PaperPhonePlus', `${callType}`, () => window.focus())
     })
 
     // Someone joined the group call → send them an offer if we're in the call

@@ -2,7 +2,7 @@ pub const ADMIN_HTML: &str = r##"<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PaperPhone Admin</title>
+<title>PaperPhonePlus Admin</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root,html[data-theme="dark"]{--bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a28;--card:#16162a;--border:#2a2a40;--text:#e8e8f0;--text2:#8888a0;--accent:#6366f1;--accent2:#818cf8;--danger:#ef4444;--success:#22c55e;--warn:#f59e0b;--radius:12px}
@@ -77,7 +77,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <body>
 <div id="login" class="login-wrap">
 <div class="login-box">
-<h1>🛡️ PaperPhone Admin</h1>
+<h1>🛡️ PaperPhonePlus Admin</h1>
 <p id="login-subtitle"></p>
 <input class="input" type="password" id="pwd" placeholder="Password" style="margin-bottom:16px"
   onkeydown="if(event.key==='Enter')doLogin()">
@@ -87,7 +87,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 <div class="app" id="app">
 <div class="header">
-<h1>🛡️ PaperPhone Admin</h1>
+<h1>🛡️ PaperPhonePlus Admin</h1>
 <select class="lang-sel" id="lang-sel" onchange="setLang(this.value)"></select>
 <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle theme"></button>
 <button class="logout-btn" onclick="doLogout()" id="logout-btn"></button>

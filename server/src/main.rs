@@ -128,6 +128,6 @@ async fn main() {
         .await
         .expect("Failed to bind");
 
-    tracing::info!("🚀 PaperPhone server listening on port {}", port);
+    tracing::info!("🚀 PaperPhonePlus server listening on port {}", port);
     axum::serve(listener, app).await.unwrap();
 }

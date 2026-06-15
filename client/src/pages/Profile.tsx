@@ -928,7 +928,7 @@ function KeyFingerprint({ onBack, t, user }: { onBack: () => void; t: (k: string
    SUB-VIEW: My QR Code
    ═══════════════════════════════════════════════════════════════════════════ */
 function MyQRCode({ onBack, t, user }: { onBack: () => void; t: (k: string) => string; user: any }) {
-  const qrData = `paperphone://friend/${user?.id}`
+  const qrData = `paperphoneplus://friend/${user?.id}`
 
   return (
     <div className="page">

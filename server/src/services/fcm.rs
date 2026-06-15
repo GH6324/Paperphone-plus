@@ -118,7 +118,7 @@ pub async fn send_push(config: &Config, fcm_token: &str, title: &str, body: &str
                 "priority": "high",
                 "notification": {
                     "sound": "default",
-                    "channel_id": "paperphone_messages",
+                    "channel_id": "paperphoneplus_messages",
                 }
             },
             "data": {

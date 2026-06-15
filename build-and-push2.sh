@@ -6,8 +6,8 @@ REPO="${REPO:-facilisvelox}"
 TAG="${TAG:-latest}"
 PUSH="${PUSH:-1}"
 
-SERVER_IMAGE="${REPO}/paperphone-plus-server"
-CLIENT_IMAGE="${REPO}/paperphone-plus-client"
+SERVER_IMAGE="${REPO}/paperphoneplus-server"
+CLIENT_IMAGE="${REPO}/paperphoneplus-client"
 
 # 如果本地没有 depot 命令，则提示使用 CI
 if ! command -v depot &> /dev/null; then

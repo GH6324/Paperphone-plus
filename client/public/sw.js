@@ -1,5 +1,5 @@
-/* PaperPhone Service Worker — push notifications + offline shell */
-const CACHE_NAME = 'paperphone-v1'
+/* PaperPhonePlus Service Worker — push notifications + offline shell */
+const CACHE_NAME = 'paperphoneplus-v1'
 
 // Install: cache app shell
 self.addEventListener('install', (event) => {
@@ -17,7 +17,7 @@ self.addEventListener('activate', (event) => {
 
 // Push notification handler
 self.addEventListener('push', (event) => {
-  let data = { title: 'PaperPhone', body: 'New message' }
+  let data = { title: 'PaperPhonePlus', body: 'New message' }
   try {
     if (event.data) data = event.data.json()
   } catch {}
@@ -29,7 +29,7 @@ self.addEventListener('push', (event) => {
     vibrate: [100, 50, 100],
     data: data.data || {},
     actions: [],
-    tag: data.tag || 'paperphone-msg',
+    tag: data.tag || 'paperphoneplus-msg',
     renotify: true,
   }
 
@@ -38,7 +38,7 @@ self.addEventListener('push', (event) => {
       // If app is in foreground, suppress push notification (WebSocket handles it)
       const anyVisible = clients.some(c => c.visibilityState === 'visible')
       if (anyVisible) return
-      return self.registration.showNotification(data.title || 'PaperPhone', options)
+      return self.registration.showNotification(data.title || 'PaperPhonePlus', options)
     })
   )
 })

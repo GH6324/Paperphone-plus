@@ -51,7 +51,7 @@ async fn get_turn_credentials(
         if !api_key.is_empty() {
             let client = reqwest::Client::new();
             let resp = client
-                .get(format!("https://paperphone.metered.live/api/v1/turn/credentials?apiKey={}", api_key))
+                .get(format!("https://paperphoneplus.metered.live/api/v1/turn/credentials?apiKey={}", api_key))
                 .send()
                 .await;
 

@@ -1,5 +1,5 @@
 export const ru: Record<string, string> = {
-  'app.name': 'PaperPhone', 'auth.login': 'Войти', 'auth.register': 'Регистрация',
+  'app.name': 'PaperPhonePlus', 'auth.login': 'Войти', 'auth.register': 'Регистрация',
   'auth.username': 'Имя пользователя', 'auth.password': 'Пароль', 'auth.nickname': 'Никнейм',
   'auth.confirm_password': 'Подтвердите пароль', 'auth.has_account': 'Уже есть аккаунт?',
   'auth.no_account': 'Нет аккаунта?', 'auth.logging_in': 'Вход...',

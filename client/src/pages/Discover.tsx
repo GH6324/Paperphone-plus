@@ -19,9 +19,9 @@ export default function Discover() {
 
   const handleScan = async (data: string) => {
     setScanning(false)
-    // Parse paperphone:// URIs
-    if (data.startsWith('paperphone://friend/')) {
-      const userId = data.replace('paperphone://friend/', '')
+    // Parse paperphoneplus:// URIs
+    if (data.startsWith('paperphoneplus://friend/')) {
+      const userId = data.replace('paperphoneplus://friend/', '')
       if (userId) {
         // Send friend request then navigate to user profile
         try {
@@ -29,8 +29,8 @@ export default function Discover() {
         } catch {}
         navigate(`/user/${userId}`)
       }
-    } else if (data.startsWith('paperphone://invite/')) {
-      const inviteId = data.replace('paperphone://invite/', '')
+    } else if (data.startsWith('paperphoneplus://invite/')) {
+      const inviteId = data.replace('paperphoneplus://invite/', '')
       if (inviteId) {
         try {
           const res = await post(`/api/groups/join/${inviteId}`)
@@ -40,8 +40,8 @@ export default function Discover() {
           setTimeout(() => setScanResult(''), 3000)
         }
       }
-    } else if (data.startsWith('paperphone://group/')) {
-      const groupId = data.replace('paperphone://group/', '')
+    } else if (data.startsWith('paperphoneplus://group/')) {
+      const groupId = data.replace('paperphoneplus://group/', '')
       if (groupId) {
         navigate(`/group/${groupId}`)
       }

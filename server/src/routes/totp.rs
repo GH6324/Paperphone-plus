@@ -24,7 +24,7 @@ fn make_totp(secret_bytes: Vec<u8>, account: &str) -> Result<totp_rs::TOTP, totp
         1,
         30,
         secret_bytes,
-        Some("PaperPhone".to_string()),
+        Some("PaperPhonePlus".to_string()),
         account.to_string(),
     )
 }

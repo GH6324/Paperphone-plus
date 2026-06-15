@@ -9,7 +9,7 @@
  * from persisted storage in priority order: IndexedDB → localStorage → sessionStorage.
  */
 
-const DB_NAME = 'PaperPhoneKeys'
+const DB_NAME = 'PaperPhonePlusKeys'
 const STORE_NAME = 'keys'
 const MEM_KEY = '__pp_keys'
 

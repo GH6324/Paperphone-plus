@@ -575,21 +575,21 @@ async fn push_incoming_call(state: &Arc<AppState>, caller_id: &str, msg: &serde_
     let body = if is_video { format!("{} invites you to a video call", name) } else { format!("{} invites you to a voice call", name) };
 
     if let Some(to) = msg.get("to").and_then(|v| v.as_str()) {
-        crate::services::push::push_to_user(&state.db, &state.config, to, "PaperPhone", &body).await;
-        crate::services::onesignal::push_to_user(&state.db, &state.config, to, "PaperPhone", &body).await;
-        crate::services::fcm::push_to_user(&state.db, &state.config, to, "PaperPhone", &body).await;
-        crate::services::ntfy::push_to_user(&state.db, &state.config, to, "PaperPhone", &body).await;
-        crate::services::apns::push_to_user(&state.db, &state.config, to, "PaperPhone", &body).await;
+        crate::services::push::push_to_user(&state.db, &state.config, to, "PaperPhonePlus", &body).await;
+        crate::services::onesignal::push_to_user(&state.db, &state.config, to, "PaperPhonePlus", &body).await;
+        crate::services::fcm::push_to_user(&state.db, &state.config, to, "PaperPhonePlus", &body).await;
+        crate::services::ntfy::push_to_user(&state.db, &state.config, to, "PaperPhonePlus", &body).await;
+        crate::services::apns::push_to_user(&state.db, &state.config, to, "PaperPhonePlus", &body).await;
     } else if let Some(group_id) = msg.get("group_id").and_then(|v| v.as_str()) {
         let members: Vec<(String,)> = sqlx::query_as(
             "SELECT user_id FROM group_members WHERE group_id = ? AND user_id != ?"
         ).bind(group_id).bind(caller_id).fetch_all(&state.db).await.unwrap_or_default();
         for (mid,) in members {
-            crate::services::push::push_to_user(&state.db, &state.config, &mid, "PaperPhone", &body).await;
-            crate::services::onesignal::push_to_user(&state.db, &state.config, &mid, "PaperPhone", &body).await;
-            crate::services::fcm::push_to_user(&state.db, &state.config, &mid, "PaperPhone", &body).await;
-            crate::services::ntfy::push_to_user(&state.db, &state.config, &mid, "PaperPhone", &body).await;
-            crate::services::apns::push_to_user(&state.db, &state.config, &mid, "PaperPhone", &body).await;
+            crate::services::push::push_to_user(&state.db, &state.config, &mid, "PaperPhonePlus", &body).await;
+            crate::services::onesignal::push_to_user(&state.db, &state.config, &mid, "PaperPhonePlus", &body).await;
+            crate::services::fcm::push_to_user(&state.db, &state.config, &mid, "PaperPhonePlus", &body).await;
+            crate::services::ntfy::push_to_user(&state.db, &state.config, &mid, "PaperPhonePlus", &body).await;
+            crate::services::apns::push_to_user(&state.db, &state.config, &mid, "PaperPhonePlus", &body).await;
         }
     }
 }

@@ -293,7 +293,7 @@ export default function Login() {
     <div className="login-page">
       <div className="login-card">
         <div className="login-logo">
-          <img src="/icons/icon-512.png" alt="PaperPhone" className="login-logo-img" />
+          <img src="/icons/icon-512.png" alt="PaperPhonePlus" className="login-logo-img" />
         </div>
         <h1 className="login-title">{t('app.name')}</h1>
         <p className="login-subtitle">{t('auth.subtitle')}</p>

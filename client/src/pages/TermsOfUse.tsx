@@ -40,8 +40,8 @@ export default function TermsOfUse() {
           </div>
           <div className="privacy-card">
             <p>{isZH
-              ? '欢迎使用 PaperPhone Plus（以下简称"本应用"），由 FM619 Technolog LTD（以下简称"我们"）提供。注册或使用本应用即表示您同意遵守本使用条款。如果您不同意这些条款，请不要注册或使用本应用。'
-              : 'Welcome to PaperPhone Plus (the "App"), provided by FM619 Technolog LTD ("we", "us", or "our"). By registering for or using the App, you agree to be bound by these Terms of Use. If you do not agree to these terms, please do not register for or use the App.'}</p>
+              ? '欢迎使用 PaperPhonePlus（以下简称"本应用"），由 FM619 Technolog LTD（以下简称"我们"）提供。注册或使用本应用即表示您同意遵守本使用条款。如果您不同意这些条款，请不要注册或使用本应用。'
+              : 'Welcome to PaperPhonePlus (the "App"), provided by FM619 Technolog LTD ("we", "us", or "our"). By registering for or using the App, you agree to be bound by these Terms of Use. If you do not agree to these terms, please do not register for or use the App.'}</p>
           </div>
         </div>
 
@@ -53,8 +53,8 @@ export default function TermsOfUse() {
           </div>
           <div className="privacy-card highlight">
             <p style={{ fontWeight: 600 }}>{isZH
-              ? 'PaperPhone Plus 对以下行为实行零容忍政策：'
-              : 'PaperPhone Plus maintains a zero tolerance policy for the following:'}</p>
+              ? 'PaperPhonePlus 对以下行为实行零容忍政策：'
+              : 'PaperPhonePlus maintains a zero tolerance policy for the following:'}</p>
             <ul>
               <li>{isZH ? '色情、淫秽或性相关的不当内容' : 'Pornographic, obscene, or sexually explicit content'}</li>
               <li>{isZH ? '仇恨言论、种族歧视或针对任何群体的歧视性内容' : 'Hate speech, racial discrimination, or discriminatory content targeting any group'}</li>
@@ -79,7 +79,7 @@ export default function TermsOfUse() {
             <h3>{isZH ? '3. 用户责任' : '3. User Responsibilities'}</h3>
           </div>
           <div className="privacy-card">
-            <p>{isZH ? '作为 PaperPhone Plus 的用户，您同意：' : 'As a user of PaperPhone Plus, you agree to:'}</p>
+            <p>{isZH ? '作为 PaperPhonePlus 的用户，您同意：' : 'As a user of PaperPhonePlus, you agree to:'}</p>
             <ul>
               <li>{isZH ? '对您发布的所有内容承担全部责任' : 'Take full responsibility for all content you post or share'}</li>
               <li>{isZH ? '不发布、传播或分享任何不当、违法或冒犯性内容' : 'Not post, transmit, or share any inappropriate, illegal, or offensive content'}</li>
@@ -192,7 +192,7 @@ export default function TermsOfUse() {
           <div className="privacy-card">
             <p>{isZH ? '如果您对本使用条款有任何疑问，或需要举报不当内容或滥用行为，请通过以下方式联系我们：' : 'If you have any questions about these Terms of Use, or need to report objectionable content or abusive behavior, please contact us:'}</p>
             <ul>
-              <li>{isZH ? '应用名称：PaperPhone Plus' : 'App: PaperPhone Plus'}</li>
+              <li>{isZH ? '应用名称：PaperPhonePlus' : 'App: PaperPhonePlus'}</li>
               <li>{isZH ? '公司名称：FM619 Technolog LTD' : 'Company: FM619 Technolog LTD'}</li>
               <li>{isZH ? '电子邮件：' : 'Email: '}<a href="mailto:4722522@gmail.com">4722522@gmail.com</a></li>
             </ul>

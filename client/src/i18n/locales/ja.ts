@@ -1,5 +1,5 @@
 export const ja: Record<string, string> = {
-  'app.name': 'PaperPhone', 'auth.login': 'ログイン', 'auth.register': '新規登録',
+  'app.name': 'PaperPhonePlus', 'auth.login': 'ログイン', 'auth.register': '新規登録',
   'auth.username': 'ユーザー名', 'auth.password': 'パスワード', 'auth.nickname': 'ニックネーム',
   'auth.confirm_password': 'パスワード確認', 'auth.has_account': 'アカウントをお持ちの場合',
   'auth.no_account': 'アカウントをお持ちでない場合', 'auth.logging_in': 'ログイン中...',

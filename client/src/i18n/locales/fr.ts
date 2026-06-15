@@ -1,5 +1,5 @@
 export const fr: Record<string, string> = {
-  'app.name': 'PaperPhone', 'auth.login': 'Connexion', 'auth.register': 'Inscription',
+  'app.name': 'PaperPhonePlus', 'auth.login': 'Connexion', 'auth.register': 'Inscription',
   'auth.username': "Nom d'utilisateur", 'auth.password': 'Mot de passe', 'auth.nickname': 'Surnom',
   'auth.confirm_password': 'Confirmer le mot de passe', 'auth.has_account': 'Déjà un compte ?',
   'auth.no_account': "Pas de compte ?", 'auth.logging_in': 'Connexion...',

@@ -26,7 +26,7 @@ struct RelayApnsReq {
 
 /// Push relay endpoint for APNS.
 ///
-/// Self-hosted PaperPhone servers call this endpoint to send iOS push
+/// Self-hosted PaperPhonePlus servers call this endpoint to send iOS push
 /// notifications through the relay's APNS credentials.
 ///
 /// Authentication: The request must include a `relay_key` matching
@@ -111,7 +111,7 @@ struct RelayFcmReq {
 
 /// Push relay endpoint for FCM.
 ///
-/// Self-hosted PaperPhone servers call this endpoint to send Android push
+/// Self-hosted PaperPhonePlus servers call this endpoint to send Android push
 /// notifications through the relay's Firebase credentials.
 ///
 /// Authentication: The request must include a `relay_key` matching
@@ -195,7 +195,7 @@ struct RelayOneSignalReq {
 
 /// Push relay endpoint for OneSignal.
 ///
-/// Self-hosted PaperPhone servers call this endpoint to send push
+/// Self-hosted PaperPhonePlus servers call this endpoint to send push
 /// notifications through the relay's OneSignal credentials.
 ///
 /// Authentication: The request must include a `relay_key` matching

@@ -408,7 +408,7 @@ export function useCall(userId: string | undefined) {
       // Show browser notification if tab is hidden
       const callType = data.is_video ? 'Video Call' : 'Voice Call'
       showBrowserNotification(
-        'PaperPhone',
+        'PaperPhonePlus',
         `Incoming ${callType}`,
         () => window.focus()
       )

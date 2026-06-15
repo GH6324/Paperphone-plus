@@ -107,7 +107,7 @@ Cryptographic Layer
 
 ### Option 1: Docker Compose (Recommended)
 ```bash
-git clone <repo-url> && cd paperphone-plus
+git clone <repo-url> && cd paperphoneplus
 cp server/.env.example server/.env
 # Edit: DB_PASS / JWT_SECRET / CF_CALLS_APP_ID etc.
 docker compose up -d
@@ -171,7 +171,7 @@ Voice messages, 1:1 calls, and group calls all support real-time voice changing 
 | `METERED_TURN_API_KEY` | Metered.ca TURN API Key (optional, free alternative) | — |
 | `VAPID_PUBLIC_KEY` | Web Push VAPID public key (optional) | — |
 | `VAPID_PRIVATE_KEY` | Web Push VAPID private key (optional) | — |
-| `VAPID_SUBJECT` | VAPID contact email (optional) | `mailto:admin@paperphone.app` |
+| `VAPID_SUBJECT` | VAPID contact email (optional) | `mailto:admin@paperphoneplus.app` |
 | `FCM_PROJECT_ID` | Firebase project ID (optional, Capacitor Android) | — |
 | `FCM_CLIENT_EMAIL` | Firebase service account email (optional) | — |
 | `FCM_PRIVATE_KEY` | Firebase service account private key (optional, supports both `\n` escape and real newlines; see below) | — |
@@ -232,7 +232,7 @@ The `private_key` field in Firebase service account JSON contains an RSA private
 
 ### ntfy Push (Chinese Android Devices without Google Services)
 
-For Android devices without Google Mobile Services (Huawei, Xiaomi, OPPO, vivo, etc.), PaperPhone supports push notifications via [ntfy](https://ntfy.sh).
+For Android devices without Google Mobile Services (Huawei, Xiaomi, OPPO, vivo, etc.), PaperPhonePlus supports push notifications via [ntfy](https://ntfy.sh).
 
 **Default setup (zero configuration)**: Uses the public ntfy.sh service. No additional configuration needed.
 
@@ -245,7 +245,7 @@ NTFY_TOKEN=your_optional_auth_token
 
 **User setup flow**:
 1. Install the ntfy app ([Google Play](https://play.google.com/store/apps/details?id=io.heckel.ntfy) / [F-Droid](https://f-droid.org/packages/io.heckel.ntfy/) / [Direct Download](https://ntfy.sh))
-2. Open PaperPhone Settings and find the "ntfy Push" card
+2. Open PaperPhonePlus Settings and find the "ntfy Push" card
 3. Copy the displayed topic name and subscribe to it in the ntfy app
 4. Tap "Register Push" to complete registration
 
@@ -267,7 +267,7 @@ APNS (Apple Push Notification Service) sends push notifications to native iOS ap
 APNS_TEAM_ID=AB12CD34EF
 APNS_KEY_ID=LH4Z9YN3P7
 APNS_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIGTAgEA...(.p8 file content)...\n-----END PRIVATE KEY-----"
-APNS_BUNDLE_ID=com.yourcompany.paperphone
+APNS_BUNDLE_ID=com.yourcompany.paperphoneplus
 APNS_SANDBOX=false
 ```
 

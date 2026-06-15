@@ -1,5 +1,5 @@
 export const ko: Record<string, string> = {
-  'app.name': 'PaperPhone', 'auth.login': '로그인', 'auth.register': '회원가입',
+  'app.name': 'PaperPhonePlus', 'auth.login': '로그인', 'auth.register': '회원가입',
   'auth.username': '사용자명', 'auth.password': '비밀번호', 'auth.nickname': '닉네임',
   'auth.confirm_password': '비밀번호 확인', 'auth.has_account': '계정이 있으시면',
   'auth.no_account': '계정이 없으시면', 'auth.logging_in': '로그인 중...',

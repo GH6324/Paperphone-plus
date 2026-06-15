@@ -1,6 +1,6 @@
 {
-  "name": "PaperPhone",
-  "short_name": "PaperPhone",
+  "name": "PaperPhonePlus",
+  "short_name": "PaperPhonePlus",
   "description": "End-to-end encrypted instant messaging",
   "start_url": "/",
   "display": "standalone",

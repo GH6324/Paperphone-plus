@@ -2,7 +2,7 @@
 apiVersion: zeabur.com/v1
 kind: Template
 metadata:
-  name: PaperPhone-Plus
+  name: PaperPhonePlus-Plus
 
 spec:
   description: >-
@@ -16,7 +16,7 @@ spec:
     - Security
     - Communication
   readme: |-
-    # PaperPhone Plus
+    # PaperPhonePlus
 
     A **WeChat-style**, end-to-end encrypted instant messaging application.
     Rewritten with **React 19 + TypeScript + Vite** frontend and **Rust (Axum)** backend
@@ -65,14 +65,14 @@ spec:
     Just set `VITE_API_URL` in Vercel to the public domain of this server service.
 
     ## Docker Hub Images
-    - `facilisvelox/paperphone-plus-client:latest`
-    - `facilisvelox/paperphone-plus-server:latest`
+    - `facilisvelox/paperphoneplus-client:latest`
+    - `facilisvelox/paperphoneplus-server:latest`
 
   variables:
     - key: PUBLIC_DOMAIN
       type: DOMAIN
       name: Client Domain
-      description: The public domain for the PaperPhone web client (e.g. paperphone.example.com).
+      description: The public domain for the PaperPhonePlus web client (e.g. paperphoneplus.example.com).
 
     - key: JWT_SECRET
       type: STRING
@@ -97,7 +97,7 @@ spec:
     - key: R2_BUCKET
       type: STRING
       name: R2 Bucket Name
-      description: Name of the R2 bucket to store uploaded files (e.g. paperphone).
+      description: Name of the R2 bucket to store uploaded files (e.g. paperphoneplus).
 
     - key: R2_PUBLIC_URL
       type: STRING
@@ -172,7 +172,7 @@ spec:
       name: OneSignal Relay URL (optional)
       description: >-
         For self-hosted servers only. URL of the push relay service
-        (the app developer's server), e.g. https://api.paperphone.app.
+        (the app developer's server), e.g. https://api.paperphoneplus.app.
         Leave blank if you have local OneSignal credentials configured.
 
     - key: ONESIGNAL_RELAY_KEY
@@ -231,7 +231,7 @@ spec:
       name: FCM Relay URL (optional)
       description: >-
         For self-hosted servers only. URL of the push relay service
-        (the app developer's server), e.g. https://api.paperphone.app.
+        (the app developer's server), e.g. https://api.paperphoneplus.app.
         Leave blank if you have local FCM credentials configured.
 
     - key: FCM_RELAY_KEY
@@ -291,7 +291,7 @@ spec:
       type: STRING
       name: APNS Bundle ID (optional)
       description: >-
-        The iOS app Bundle Identifier, e.g. com.paperphone.app.
+        The iOS app Bundle Identifier, e.g. com.paperphoneplus.app.
         Must match the Bundle ID configured in your Xcode project and
         Apple Developer portal.
 
@@ -315,7 +315,7 @@ spec:
       name: APNS Relay URL (optional)
       description: >-
         For self-hosted servers only. URL of the push relay service
-        (the app developer's server), e.g. https://api.paperphone.app.
+        (the app developer's server), e.g. https://api.paperphoneplus.app.
         Leave blank if you have local APNS credentials configured.
 
     - key: APNS_RELAY_KEY
@@ -361,10 +361,10 @@ spec:
           MYSQL_ROOT_HOST:
             default: "%"
           MYSQL_DATABASE:
-            default: paperphone
+            default: paperphoneplus
             expose: true
           MYSQL_USER:
-            default: paperphone
+            default: paperphoneplus
             expose: true
           MYSQL_PASSWORD:
             default: ${MYSQL_ROOT_PASSWORD}
@@ -425,7 +425,7 @@ spec:
           - title: Redis Connection String
             content: redis://${PORT_FORWARDED_HOSTNAME}:${DATABASE_PORT_FORWARDED_PORT}
 
-    # ── PaperPhone Server (Rust/Axum) ────────────────────────────────
+    # ── PaperPhonePlus Server (Rust/Axum) ────────────────────────────────
     - name: server
       icon: https://raw.githubusercontent.com/619dev/Paperphone-plus/main/client/public/icons/icon-512.png
       template: PREBUILT
@@ -434,7 +434,7 @@ spec:
         - Redis
       spec:
         source:
-          image: facilisvelox/paperphone-plus-server:latest
+          image: facilisvelox/paperphoneplus-server:latest
         ports:
           - id: web
             port: 3000
@@ -454,7 +454,7 @@ spec:
           DB_PORT:
             default: ${MYSQL_PORT}
           DB_USER:
-            default: paperphone
+            default: paperphoneplus
           DB_PASS:
             default: ${MYSQL_PASSWORD}
           DB_NAME:
@@ -539,7 +539,7 @@ spec:
             default: ${ZEABUR_WEB_URL}
             expose: true
 
-    # ── PaperPhone Client (Nginx / React PWA) ────────────────────────
+    # ── PaperPhonePlus Client (Nginx / React PWA) ────────────────────────
     - name: client
       icon: https://raw.githubusercontent.com/619dev/Paperphone-plus/main/client/public/icons/icon-512.png
       template: PREBUILT
@@ -548,7 +548,7 @@ spec:
         - server
       spec:
         source:
-          image: facilisvelox/paperphone-plus-client:latest
+          image: facilisvelox/paperphoneplus-client:latest
         ports:
           - id: web
             port: 80
@@ -563,7 +563,7 @@ localization:
       微信风格的端对端加密即时通讯 App（React + Rust），支持无状态 ECDH 加密、群聊 Sender Key 端到端加密、
       WebRTC 视频/语音通话、实时变声、SOCKS5/HTTP/HTTPS 代理、Cloudflare R2 文件存储、8 种语言与 iOS PWA 部署，完全可自建。
     readme: |-
-      # PaperPhone Plus
+      # PaperPhonePlus
 
       **微信风格**的端对端加密即时通讯应用。
       使用 **React 19 + TypeScript + Vite** 前端和 **Rust (Axum)** 后端重写，

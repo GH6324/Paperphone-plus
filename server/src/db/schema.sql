@@ -1,4 +1,4 @@
--- PaperPhone IM — Database Schema
+-- PaperPhonePlus IM — Database Schema
 -- MySQL 8.0+  |  utf8mb4  |  InnoDB
 --
 -- Auto-executed on server startup via sqlx.

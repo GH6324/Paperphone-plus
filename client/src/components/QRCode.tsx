@@ -65,7 +65,7 @@ export function QRCodeModal({
 
 /**
  * QR code scanner using device camera.
- * Scans for QR codes containing paperphone:// URIs.
+ * Scans for QR codes containing paperphoneplus:// URIs.
  */
 export function QRScanner({ onScan, onClose }: { onScan: (data: string) => void; onClose: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null)

@@ -3,7 +3,7 @@
  *
  * Handles:
  * 1. SDK initialization with appId from server
- * 2. User login (external_id = PaperPhone user_id) so push targets the right user
+ * 2. User login (external_id = PaperPhonePlus user_id) so push targets the right user
  * 3. Subscription ID registration on our server for server-side push
  * 4. Subscription change listener to keep server in sync
  */
@@ -70,7 +70,7 @@ export async function initOneSignal(): Promise<boolean> {
 }
 
 /**
- * Login the user so OneSignal maps this browser/device to the right PaperPhone user.
+ * Login the user so OneSignal maps this browser/device to the right PaperPhonePlus user.
  * This also enables server-side push targeting via external_id.
  */
 export async function loginOneSignal(userId: string): Promise<void> {

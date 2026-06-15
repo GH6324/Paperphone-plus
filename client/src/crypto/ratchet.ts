@@ -144,7 +144,7 @@ export async function encryptHybrid(
       combined.set(ecdhSecret)
       combined.set(kemSharedSecret, ecdhSecret.length)
 
-      const info = new TextEncoder().encode('PaperPhone-Hybrid-E2E-v2')
+      const info = new TextEncoder().encode('PaperPhonePlus-Hybrid-E2E-v2')
       finalKey = await hkdfDerive(combined, ephemeral.publicKey, info, 32)
       version = 2
     } catch {
@@ -220,7 +220,7 @@ export async function decryptHybrid(
         combined.set(ecdhSecret)
         combined.set(kemSharedSecret, ecdhSecret.length)
 
-        const info = new TextEncoder().encode('PaperPhone-Hybrid-E2E-v2')
+        const info = new TextEncoder().encode('PaperPhonePlus-Hybrid-E2E-v2')
         finalKey = await hkdfDerive(combined, ephemeralPub, info, 32)
       } catch {
         // KEM decap failed, try ECDH only as fallback

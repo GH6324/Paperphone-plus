@@ -107,7 +107,7 @@ Capa criptográfica
 
 ### Opción 1: Docker Compose (Recomendado)
 ```bash
-git clone <repo-url> && cd paperphone-plus
+git clone <repo-url> && cd paperphoneplus
 cp server/.env.example server/.env
 # Editar: DB_PASS / JWT_SECRET / CF_CALLS_APP_ID etc.
 docker compose up -d
@@ -171,7 +171,7 @@ Los mensajes de voz, las llamadas 1:1 y las llamadas grupales admiten modificaci
 | `METERED_TURN_API_KEY` | Metered.ca TURN API Key (opcional, alternativa gratuita) | — |
 | `VAPID_PUBLIC_KEY` | Clave pública VAPID de Web Push (opcional) | — |
 | `VAPID_PRIVATE_KEY` | Clave privada VAPID de Web Push (opcional) | — |
-| `VAPID_SUBJECT` | Email de contacto VAPID (opcional) | `mailto:admin@paperphone.app` |
+| `VAPID_SUBJECT` | Email de contacto VAPID (opcional) | `mailto:admin@paperphoneplus.app` |
 | `FCM_PROJECT_ID` | ID del proyecto Firebase (opcional, Capacitor Android) | — |
 | `FCM_CLIENT_EMAIL` | Email de la cuenta de servicio Firebase (opcional) | — |
 | `FCM_PRIVATE_KEY` | Clave privada de la cuenta de servicio Firebase (opcional, soporta tanto escape `\n` como saltos de línea reales; ver abajo) | — |
@@ -232,7 +232,7 @@ El campo `private_key` en el JSON de la cuenta de servicio de Firebase contiene 
 
 ### Push ntfy (Dispositivos Android chinos sin Google Services)
 
-Para dispositivos Android sin Google Mobile Services (Huawei, Xiaomi, OPPO, vivo, etc.), PaperPhone soporta notificaciones push vía [ntfy](https://ntfy.sh).
+Para dispositivos Android sin Google Mobile Services (Huawei, Xiaomi, OPPO, vivo, etc.), PaperPhonePlus soporta notificaciones push vía [ntfy](https://ntfy.sh).
 
 **Configuración predeterminada (sin configuración)**: Usa el servicio público ntfy.sh. No se necesita configuración adicional.
 
@@ -245,7 +245,7 @@ NTFY_TOKEN=your_optional_auth_token
 
 **Flujo de configuración del usuario**:
 1. Instalar la app ntfy ([Google Play](https://play.google.com/store/apps/details?id=io.heckel.ntfy) / [F-Droid](https://f-droid.org/packages/io.heckel.ntfy/) / [Descarga directa](https://ntfy.sh))
-2. Abrir Ajustes de PaperPhone y encontrar la tarjeta «ntfy Push»
+2. Abrir Ajustes de PaperPhonePlus y encontrar la tarjeta «ntfy Push»
 3. Copiar el nombre del topic mostrado y suscribirse en la app ntfy
 4. Tocar «Registrar Push» para completar el registro
 
@@ -267,7 +267,7 @@ APNS (Apple Push Notification Service) envía notificaciones push a apps iOS nat
 APNS_TEAM_ID=AB12CD34EF
 APNS_KEY_ID=LH4Z9YN3P7
 APNS_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIGTAgEA...(contenido del archivo .p8)...\n-----END PRIVATE KEY-----"
-APNS_BUNDLE_ID=com.yourcompany.paperphone
+APNS_BUNDLE_ID=com.yourcompany.paperphoneplus
 APNS_SANDBOX=false
 ```
 

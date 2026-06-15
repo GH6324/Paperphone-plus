@@ -1,5 +1,5 @@
 export const en: Record<string, string> = {
-  'app.name': 'PaperPhone',
+  'app.name': 'PaperPhonePlus',
   'auth.login': 'Log In',
   'auth.register': 'Sign Up',
   'auth.username': 'Username',
@@ -408,7 +408,7 @@ export const en: Record<string, string> = {
   'terms.agree_link': 'Terms of Use',
   'terms.must_agree': 'You must agree to the Terms of Use to continue',
   'terms.hero_title': 'Terms of Use',
-  'terms.hero_subtitle': 'Please read these terms carefully before using PaperPhone Plus',
+  'terms.hero_subtitle': 'Please read these terms carefully before using PaperPhonePlus',
 
   // Report
   'report.title': 'Report Content',

@@ -33,11 +33,11 @@ RUN if [ "$TARGETARCH" = "arm64" ]; then \
       && export OPENSSL_LIB_DIR=/usr/lib/aarch64-linux-gnu \
       && cargo build --release --target aarch64-unknown-linux-gnu \
       && mkdir -p target/output \
-      && cp target/aarch64-unknown-linux-gnu/release/paperphone-server target/output/; \
+      && cp target/aarch64-unknown-linux-gnu/release/paperphoneplus-server target/output/; \
     else \
       cargo build --release \
       && mkdir -p target/output \
-      && cp target/release/paperphone-server target/output/; \
+      && cp target/release/paperphoneplus-server target/output/; \
     fi
 
 # ── Stage 2: Runtime ───────────────────────────────────────────
@@ -59,7 +59,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
 WORKDIR /app
-COPY --from=builder /app/target/output/paperphone-server .
+COPY --from=builder /app/target/output/paperphoneplus-server .
 
 ENV PORT=3000
 EXPOSE 3000
@@ -67,4 +67,4 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --retries=5 --start-period=15s \
   CMD curl -sf http://localhost:3000/health || exit 1
 
-CMD ["./paperphone-server"]
+CMD ["./paperphoneplus-server"]
