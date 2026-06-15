@@ -187,9 +187,8 @@ export const useStore = create<AppStore>((set, get) => ({
   // Server URL
   serverUrl: localStorage.getItem('serverUrl') || '',
   setServerUrl: (url) => {
-    const trimmed = url.replace(/\/+$/, '') // trim trailing slashes
-    localStorage.setItem('serverUrl', trimmed)
-    set({ serverUrl: trimmed })
+    localStorage.setItem('serverUrl', url)
+    set({ serverUrl: url })
   },
 
   // Proxy list (up to 5) + active selection

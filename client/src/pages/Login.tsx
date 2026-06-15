@@ -169,6 +169,10 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    const normalizedServerUrl = serverUrl.trim().replace(/\/+$/, '')
+    if (normalizedServerUrl !== serverUrl) {
+      setServerUrl(normalizedServerUrl)
+    }
     setLoading(true)
 
     try {
