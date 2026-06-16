@@ -3,8 +3,8 @@ version: "3.8"
 services:
   # ── Frontend (Nginx + React SPA) ────────────────────────────
   client:
-    container_name: paperphoneplus-client
-    image: facilisvelox/paperphoneplus-client:latest
+    container_name: paperphone-plus-client
+    image: facilisvelox/paperphone-plus-client:latest
     ports:
       - "80:80"
     depends_on:
@@ -14,8 +14,8 @@ services:
 
   # ── Backend (Rust) ──────────────────────────────────────────
   server:
-    container_name: paperphoneplus-server
-    image: facilisvelox/paperphoneplus-server:latest
+    container_name: paperphone-plus-server
+    image: facilisvelox/paperphone-plus-server:latest
     ports:
       - "3000:3000"
     environment:
@@ -24,9 +24,9 @@ services:
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
       DB_HOST: mysql
       DB_PORT: 3306
-      DB_USER: ${DB_USER:-paperphoneplus}
-      DB_PASS: ${DB_PASS:-paperphoneplus}
-      DB_NAME: ${DB_NAME:-paperphoneplus}
+      DB_USER: ${DB_USER:-paperphone}
+      DB_PASS: ${DB_PASS:-paperphone}
+      DB_NAME: ${DB_NAME:-paperphone}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASS: ${REDIS_PASS:-}
@@ -81,13 +81,13 @@ services:
 
   # ── MySQL 8.0 ───────────────────────────────────────────────
   mysql:
-    container_name: paperphoneplus-mysql
+    container_name: paperphone-mysql
     image: mysql:8.0
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
-      MYSQL_DATABASE: ${DB_NAME:-paperphoneplus}
-      MYSQL_USER: ${DB_USER:-paperphoneplus}
-      MYSQL_PASSWORD: ${DB_PASS:-paperphoneplus}
+      MYSQL_DATABASE: ${DB_NAME:-paperphone}
+      MYSQL_USER: ${DB_USER:-paperphone}
+      MYSQL_PASSWORD: ${DB_PASS:-paperphone}
     volumes:
       - mysql_data:/var/lib/mysql
       - ./server/src/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
@@ -103,7 +103,7 @@ services:
 
   # ── Redis 7 ─────────────────────────────────────────────────
   redis:
-    container_name: paperphoneplus-redis
+    container_name: paperphone-redis
     image: redis:7-alpine
     command: >
       sh -c "if [ -n '${REDIS_PASS:-}' ]; then

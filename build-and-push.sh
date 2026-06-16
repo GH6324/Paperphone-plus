@@ -24,8 +24,8 @@ TAG="${TAG:-latest}"
 PUSH="${PUSH:-1}"
 SWAP="${SWAP:-}"                       # e.g. SWAP=4G to create swap before build
 
-SERVER_IMAGE="${REPO}/paperphoneplus-server"
-CLIENT_IMAGE="${REPO}/paperphoneplus-client"
+SERVER_IMAGE="${REPO}/paperphone-plus-server"
+CLIENT_IMAGE="${REPO}/paperphone-plus-client"
 
 # ── Swap setup (optional, for low-memory VPS) ─────────────────────────────
 if [[ -n "$SWAP" && ! -f /swapfile ]]; then

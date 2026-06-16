@@ -107,7 +107,7 @@ Capa criptográfica
 
 ### Opción 1: Docker Compose (Recomendado)
 ```bash
-git clone <repo-url> && cd paperphoneplus
+git clone <repo-url> && cd paperphone-plus
 cp server/.env.example server/.env
 # Editar: DB_PASS / JWT_SECRET / CF_CALLS_APP_ID etc.
 docker compose up -d

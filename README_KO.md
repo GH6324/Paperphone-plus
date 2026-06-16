@@ -107,7 +107,7 @@ WeChat 스타일의 종단간 암호화 메신저. 무상태 ECDH + XSalsa20-Pol
 
 ### 옵션 1: Docker Compose (권장)
 ```bash
-git clone <repo-url> && cd paperphoneplus
+git clone <repo-url> && cd paperphone-plus
 cp server/.env.example server/.env
 # 편집: DB_PASS / JWT_SECRET / CF_CALLS_APP_ID 등
 docker compose up -d

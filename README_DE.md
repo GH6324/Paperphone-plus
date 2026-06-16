@@ -107,7 +107,7 @@ Kryptographische Schicht
 
 ### Option 1: Docker Compose (Empfohlen)
 ```bash
-git clone <repo-url> && cd paperphoneplus
+git clone <repo-url> && cd paperphone-plus
 cp server/.env.example server/.env
 # Bearbeiten: DB_PASS / JWT_SECRET / CF_CALLS_APP_ID usw.
 docker compose up -d

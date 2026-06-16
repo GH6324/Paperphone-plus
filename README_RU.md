@@ -107,7 +107,7 @@
 
 ### Вариант 1: Docker Compose (Рекомендуется)
 ```bash
-git clone <repo-url> && cd paperphoneplus
+git clone <repo-url> && cd paperphone-plus
 cp server/.env.example server/.env
 # Отредактируйте: DB_PASS / JWT_SECRET / CF_CALLS_APP_ID и т.д.
 docker compose up -d

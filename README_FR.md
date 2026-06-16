@@ -107,7 +107,7 @@ Couche cryptographique
 
 ### Option 1 : Docker Compose (Recommandé)
 ```bash
-git clone <repo-url> && cd paperphoneplus
+git clone <repo-url> && cd paperphone-plus
 cp server/.env.example server/.env
 # Modifier : DB_PASS / JWT_SECRET / CF_CALLS_APP_ID etc.
 docker compose up -d

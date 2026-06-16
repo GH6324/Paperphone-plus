@@ -1,7 +1,7 @@
 [package]
-name = "paperphoneplus-server"
+name = "paperphone-plus-server"
 version = "1.0.0"
-edition = "2021"
+edition = "2026"
 description = "PaperPhonePlus IM Backend — Secure messaging server in Rust"
 
 [profile.release]

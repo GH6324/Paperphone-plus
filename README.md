@@ -115,7 +115,7 @@
 ### 方式一：Docker Compose（推荐）
 ```bash
 # 克隆仓库
-git clone <repo-url> && cd paperphoneplus
+git clone <repo-url> && cd paperphone-plus
 
 # 复制并编辑环境变量
 cp server/.env.example server/.env

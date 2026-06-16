@@ -65,8 +65,8 @@ spec:
     Just set `VITE_API_URL` in Vercel to the public domain of this server service.
 
     ## Docker Hub Images
-    - `facilisvelox/paperphoneplus-client:latest`
-    - `facilisvelox/paperphoneplus-server:latest`
+    - `facilisvelox/paperphone-plus-client:latest`
+    - `facilisvelox/paperphone-plus-server:latest`
 
   variables:
     - key: PUBLIC_DOMAIN
@@ -361,10 +361,10 @@ spec:
           MYSQL_ROOT_HOST:
             default: "%"
           MYSQL_DATABASE:
-            default: paperphoneplus
+            default: paperphone
             expose: true
           MYSQL_USER:
-            default: paperphoneplus
+            default: paperphone
             expose: true
           MYSQL_PASSWORD:
             default: ${MYSQL_ROOT_PASSWORD}
@@ -434,7 +434,7 @@ spec:
         - Redis
       spec:
         source:
-          image: facilisvelox/paperphoneplus-server:latest
+          image: facilisvelox/paperphone-plus-server:latest
         ports:
           - id: web
             port: 3000
@@ -548,7 +548,7 @@ spec:
         - server
       spec:
         source:
-          image: facilisvelox/paperphoneplus-client:latest
+          image: facilisvelox/paperphone-plus-client:latest
         ports:
           - id: web
             port: 80
