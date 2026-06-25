@@ -96,6 +96,8 @@ Cryptographic Layer
 
 ---
 
+> 📖 **[Detailed Deployment Guide](DEPLOY_EN.md)** — Complete step-by-step instructions for Zeabur + Vercel hybrid deployment, Docker Compose + Nginx local deployment, and client server address configuration.
+
 ### Option 0: Zeabur One-Click Cloud Deploy
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 

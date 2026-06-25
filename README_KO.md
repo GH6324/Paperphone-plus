@@ -96,6 +96,8 @@ WeChat 스타일의 종단간 암호화 메신저. 무상태 ECDH + XSalsa20-Pol
 
 ---
 
+> 📖 **[상세 배포 가이드 (中文)](DEPLOY_CN.md)** | **[Deployment Guide (English)](DEPLOY_EN.md)** — Zeabur + Vercel 하이브리드 배포, Docker Compose + Nginx 로컬 배포 및 클라이언트 서버 주소 구성에 대한 단계별 전체 가이드.
+
 ### 옵션 0: Zeabur 원클릭 클라우드 배포
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 

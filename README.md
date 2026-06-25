@@ -96,6 +96,8 @@
 
 ---
 
+> 📖 **[详细部署文档 / Deployment Guide](DEPLOY_CN.md)** — 包含 Zeabur + Vercel 混合部署、Docker Compose + Nginx 本地部署的完整步骤，以及各客户端服务器地址配置说明。
+
 ### 方式零：Zeabur 一键云部署
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 

@@ -96,6 +96,8 @@
 
 ---
 
+> 📖 **[Подробное руководство по развёртыванию (中文)](DEPLOY_CN.md)** | **[Deployment Guide (English)](DEPLOY_EN.md)** — Полные пошаговые инструкции по гибридному развёртыванию Zeabur + Vercel, локальному развёртыванию Docker Compose + Nginx, а также настройке адреса сервера в клиентских приложениях.
+
 ### Вариант 0: Zeabur — облачное развёртывание в один клик
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 

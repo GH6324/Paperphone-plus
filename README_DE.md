@@ -96,6 +96,8 @@ Kryptographische Schicht
 
 ---
 
+> 📖 **[Detaillierte Bereitstellungsanleitung (中文)](DEPLOY_CN.md)** | **[Deployment Guide (English)](DEPLOY_EN.md)** — Vollständige Schritt-für-Schritt-Anleitung für Zeabur + Vercel Hybrid-Bereitstellung, Docker Compose + Nginx lokale Bereitstellung und Client-Server-Adresskonfiguration.
+
 ### Option 0: Zeabur One-Click Cloud-Bereitstellung
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 

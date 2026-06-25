@@ -96,6 +96,8 @@ Couche cryptographique
 
 ---
 
+> 📖 **[Guide de déploiement détaillé (中文)](DEPLOY_CN.md)** | **[Deployment Guide (English)](DEPLOY_EN.md)** — Instructions étape par étape complètes pour le déploiement hybride Zeabur + Vercel, le déploiement local avec Docker Compose + Nginx, et la configuration de l'adresse du serveur client.
+
 ### Option 0 : Déploiement cloud Zeabur en un clic
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 

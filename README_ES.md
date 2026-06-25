@@ -96,6 +96,8 @@ Capa criptográfica
 
 ---
 
+> 📖 **[Guía de despliegue detallada (中文)](DEPLOY_CN.md)** | **[Deployment Guide (English)](DEPLOY_EN.md)** — Instrucciones paso a paso completas para el despliegue híbrido Zeabur + Vercel, despliegue local con Docker Compose + Nginx, y configuración de la dirección del servidor del cliente.
+
 ### Opción 0: Despliegue en la nube con Zeabur en un clic
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
