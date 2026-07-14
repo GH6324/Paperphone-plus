@@ -2,7 +2,7 @@
 apiVersion: zeabur.com/v1
 kind: Template
 metadata:
-  name: PaperPhonePlus-Plus
+  name: PaperPhone-Plus
 
 spec:
   description: >-
