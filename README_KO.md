@@ -103,6 +103,10 @@ WeChat 스타일의 종단간 암호화 메신저. 무상태 ECDH + XSalsa20-Pol
 
 > **Zeabur 회의 네트워크 제한:** 템플릿은 WebSocket/API 7880과 ICE/TCP 7881로 LiveKit을 배포합니다. 현재 Zeabur는 UDP 서비스 포트를 노출하지 않으므로 회의는 TCP 폴백을 사용하며 약한 네트워크에서 지연이나 품질 저하가 발생할 수 있습니다. UDP 7882 설정은 미리 준비되어 있습니다. 현재 프로덕션 100인 회의에는 LiveKit Cloud 또는 UDP를 지원하는 VM을 사용하십시오.
 
+#### 서버 Nginx 구성
+
+두 도메인용 프로덕션 설정 [deploy/nginx/paperphone-plus.conf](deploy/nginx/paperphone-plus.conf)을 사용하십시오. `api.example.com`과 `meeting.example.com`을 실제 도메인으로 바꾸고 TLS 인증서를 발급한 뒤 파일을 `/etc/nginx/sites-available/paperphone-plus`에 복사하여 활성화하고 `sudo nginx -t && sudo systemctl reload nginx`를 실행합니다. 백엔드에는 `LIVEKIT_URL=wss://meeting.example.com`을 설정합니다. Nginx는 API와 WebSocket만 프록시하므로 TCP 7881과 UDP 7882는 호스트 및 클라우드 방화벽에서 직접 개방해야 합니다.
+
 > [!TIP]
 > **고급: Zeabur + Vercel 하이브리드 배포**
 > Zeabur에 배포한 후 **client** 서비스를 수동으로 삭제하고 프론트엔드를 Vercel에 배포할 수 있습니다 (아래 옵션 2 참조).

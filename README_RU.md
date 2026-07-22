@@ -103,6 +103,10 @@
 
 > **Сетевое ограничение Zeabur:** шаблон развёртывает LiveKit через WebSocket/API 7880 и ICE/TCP 7881. Сейчас Zeabur не предоставляет UDP-порты сервисов, поэтому конференции используют TCP и могут иметь большую задержку в слабых сетях. UDP 7882 уже предусмотрен в конфигурации. Для производственных конференций на 100 участников используйте LiveKit Cloud или виртуальную машину с поддержкой UDP.
 
+#### Настройка Nginx на сервере
+
+Используйте двухдоменную конфигурацию [deploy/nginx/paperphone-plus.conf](deploy/nginx/paperphone-plus.conf). Замените `api.example.com` и `meeting.example.com`, получите TLS-сертификаты, скопируйте файл в `/etc/nginx/sites-available/paperphone-plus`, включите его и выполните `sudo nginx -t && sudo systemctl reload nginx`. На сервере задайте `LIVEKIT_URL=wss://meeting.example.com`. Nginx проксирует только API и WebSocket; TCP 7881 и UDP 7882 необходимо открыть напрямую в системном и облачном межсетевых экранах.
+
 > [!TIP]
 > **Продвинутый вариант: гибридное развёртывание Zeabur + Vercel**
 > После развёртывания на Zeabur вы можете вручную удалить сервис **client** и развернуть фронтенд на Vercel (см. Вариант 2 ниже).

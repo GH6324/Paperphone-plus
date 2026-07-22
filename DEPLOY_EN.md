@@ -237,6 +237,35 @@ sudo certbot --nginx -d your.domain.com
 
 **Configure Nginx**:
 
+Prefer the repository's production two-domain configuration, which proxies both the application server and LiveKit:
+
+```bash
+sudo mkdir -p /var/www/certbot
+sudo cp deploy/nginx/paperphone-plus.conf /etc/nginx/sites-available/paperphone-plus
+sudo nano /etc/nginx/sites-available/paperphone-plus
+```
+
+Replace `api.example.com`, `meeting.example.com`, and the certificate paths. Obtain certificates for both domains, then enable the site:
+
+```bash
+sudo certbot certonly --webroot -w /var/www/certbot \
+  -d api.example.com -d meeting.example.com
+sudo ln -s /etc/nginx/sites-available/paperphone-plus /etc/nginx/sites-enabled/paperphone-plus
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+Set `LIVEKIT_URL=wss://meeting.example.com` on the backend. Nginx handles API, IM WebSocket, and LiveKit WebSocket traffic on 443. You must also expose `7881/tcp` and `7882/udp` directly through the host firewall and cloud security group:
+
+```bash
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw allow 7881/tcp
+sudo ufw allow 7882/udp
+```
+
+The single-domain example below is retained only for legacy deployments without group meetings. Use the repository configuration above when meetings are enabled.
+
 Create an Nginx site configuration file:
 
 ```bash

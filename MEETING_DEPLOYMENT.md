@@ -27,6 +27,11 @@ LIVEKIT_API_SECRET=<至少 32 字节随机 secret>
 - 100 人会议的实际容量取决于并发开麦/开摄像头数、出口带宽和 CPU。正式上线前应使用目标码率和设备模型进行压测。
 - 生产环境不要使用仓库中的默认密钥。
 
+仓库提供了可直接修改的双域名 Nginx 配置：
+[`deploy/nginx/paperphone-plus.conf`](deploy/nginx/paperphone-plus.conf)。将
+`api.example.com`、`meeting.example.com` 和证书路径替换为实际值后启用。Nginx 只代理
+HTTPS/WebSocket；LiveKit 的 TCP 7881 和 UDP 7882 必须在主机及云防火墙中直接开放。
+
 ## Zeabur 部署
 
 `zeabur.yaml` 会创建 LiveKit 服务，并自动向 server 注入相同的会议密钥和

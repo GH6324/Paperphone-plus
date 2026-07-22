@@ -237,7 +237,34 @@ sudo certbot --nginx -d your.domain.com
 
 **配置 Nginx**：
 
-创建 Nginx 站点配置文件：
+推荐直接使用仓库中同时代理业务后端与 LiveKit 的双域名配置：
+
+```bash
+sudo mkdir -p /var/www/certbot
+sudo cp deploy/nginx/paperphone-plus.conf /etc/nginx/sites-available/paperphone-plus
+sudo nano /etc/nginx/sites-available/paperphone-plus
+```
+
+把文件中的 `api.example.com`、`meeting.example.com` 和证书路径替换为实际值。先为两个域名申请证书：
+
+```bash
+sudo certbot certonly --webroot -w /var/www/certbot \
+  -d api.example.com -d meeting.example.com
+sudo ln -s /etc/nginx/sites-available/paperphone-plus /etc/nginx/sites-enabled/paperphone-plus
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+后端环境变量设置为 `LIVEKIT_URL=wss://meeting.example.com`。Nginx 负责 443 上的 API、IM WebSocket 与 LiveKit WebSocket；还必须在主机防火墙和云安全组直接开放 `7881/tcp` 与 `7882/udp`。例如使用 UFW：
+
+```bash
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw allow 7881/tcp
+sudo ufw allow 7882/udp
+```
+
+以下单域名配置只适用于不启用群会议的旧式部署；启用会议时请使用上面的仓库配置。创建站点配置文件：
 
 ```bash
 sudo nano /etc/nginx/sites-available/paperphoneplus

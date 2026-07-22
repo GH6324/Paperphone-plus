@@ -103,6 +103,10 @@ Capa criptográfica
 
 > **Limitación de red de Zeabur:** la plantilla despliega LiveKit mediante WebSocket/API 7880 e ICE/TCP 7881. Zeabur actualmente no expone puertos UDP, por lo que las reuniones usan TCP como alternativa y pueden tener mayor latencia en redes débiles. UDP 7882 ya está reservado. Para reuniones de producción con 100 participantes, use LiveKit Cloud o una VM compatible con UDP.
 
+#### Configuración Nginx del servidor
+
+Use la configuración de producción de dos dominios [deploy/nginx/paperphone-plus.conf](deploy/nginx/paperphone-plus.conf). Sustituya `api.example.com` y `meeting.example.com`, obtenga certificados TLS, copie el archivo a `/etc/nginx/sites-available/paperphone-plus`, actívelo y ejecute `sudo nginx -t && sudo systemctl reload nginx`. Configure `LIVEKIT_URL=wss://meeting.example.com` en el backend. Nginx solo reenvía API y WebSocket; exponga TCP 7881 y UDP 7882 directamente en los cortafuegos.
+
 > [!TIP]
 > **Avanzado: Despliegue híbrido Zeabur + Vercel**
 > Después de desplegar en Zeabur, puede eliminar manualmente el servicio **client** y desplegar el frontend en Vercel en su lugar (ver Opción 2 a continuación).

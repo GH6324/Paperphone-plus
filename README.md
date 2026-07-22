@@ -103,6 +103,10 @@
 
 > **Zeabur 会议网络限制：** 模板会部署 LiveKit，并通过 WebSocket/API 7880 与 ICE/TCP 7881 提供会议连接。Zeabur 当前不支持 UDP 服务端口，因此可以使用 TCP 回退，但弱网延迟和画质可能下降。模板已预留 UDP 7882 配置；平台未来支持 UDP 后只需开放该端口。当前生产级百人会议建议使用 LiveKit Cloud，或将 LiveKit 部署到支持 UDP 的云主机。
 
+#### 服务端 Nginx 配置
+
+仓库提供双域名生产配置：[deploy/nginx/paperphone-plus.conf](deploy/nginx/paperphone-plus.conf)。将 `api.example.com` 和 `meeting.example.com` 替换为实际域名，申请对应 TLS 证书，然后复制到 `/etc/nginx/sites-available/paperphone-plus`，创建启用链接并执行 `sudo nginx -t && sudo systemctl reload nginx`。后端设置 `LIVEKIT_URL=wss://meeting.example.com`。Nginx 仅代理 API 与 WebSocket；LiveKit 的 TCP 7881、UDP 7882 必须在主机和云防火墙直接开放。
+
 > [!TIP]
 > **进阶方案：Zeabur + Vercel 混合部署**
 > 可以在 Zeabur 部署完成后，手动删除 Zeabur 上的 **client** 服务，改用 Vercel 部署前端（参见下方“方式二”）。
