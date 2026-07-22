@@ -52,6 +52,10 @@ services:
       ONESIGNAL_RELAY_URL: ${ONESIGNAL_RELAY_URL:-}
       ONESIGNAL_RELAY_KEY: ${ONESIGNAL_RELAY_KEY:-}
       METERED_TURN_API_KEY: ${METERED_TURN_API_KEY:-}
+      # Must be reachable by browsers; set wss://meeting.example.com in production.
+      LIVEKIT_URL: ${LIVEKIT_URL:-ws://localhost:7880}
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:-paperphone}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET:-paperphone_change_this_secret}
       NTFY_BASE_URL: ${NTFY_BASE_URL:-https://ntfy.sh}
       NTFY_TOKEN: ${NTFY_TOKEN:-}
       APNS_TEAM_ID: ${APNS_TEAM_ID:-}
@@ -77,6 +81,31 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    restart: unless-stopped
+
+  # SFU media server: one WebRTC connection per device, suitable for 100-person meetings.
+  livekit:
+    container_name: paperphone-livekit
+    image: livekit/livekit-server:v1.9.6
+    environment:
+      LIVEKIT_CONFIG: |
+        port: 7880
+        rtc:
+          tcp_port: 7881
+          udp_port: 7882
+          use_external_ip: true
+        redis:
+          address: redis:6379
+          password: ${REDIS_PASS:-}
+        keys:
+          ${LIVEKIT_API_KEY:-paperphone}: ${LIVEKIT_API_SECRET:-paperphone_change_this_secret}
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "7882:7882/udp"
+    depends_on:
+      redis:
+        condition: service_healthy
     restart: unless-stopped
 
   # ── MySQL 8.0 ───────────────────────────────────────────────

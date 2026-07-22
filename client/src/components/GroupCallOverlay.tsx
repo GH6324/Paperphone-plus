@@ -1,335 +1,129 @@
-/**
- * Group Call Overlay
- *
- * Full-screen overlay for group voice/video calls.
- * Displays participant grid (video or avatar), controls, and incoming/ringing UI.
- */
-import { useRef, useEffect } from 'react'
-import { useGroupCallContext, formatDuration } from '../contexts/GroupCallContext'
+import { useEffect, useRef, useState } from 'react'
+import { CameraOff, ChevronLeft, LayoutGrid, Mic, MicOff, PhoneIncoming, PhoneOff, Presentation, Users, Video } from 'lucide-react'
+import { formatDuration, useGroupCallContext } from '../contexts/GroupCallContext'
 import { useStore } from '../store'
-import { useI18n } from '../hooks/useI18n'
-import { Phone, PhoneOff, PhoneIncoming, Mic, MicOff, CameraOff, Video as VideoIcon, Users, AudioLines } from 'lucide-react'
 
 export default function GroupCallOverlay() {
   const gc = useGroupCallContext()
-  const { t } = useI18n()
-  const friends = useStore(s => s.friends)
   const groups = useStore(s => s.groups)
-
-  if (gc.status === 'idle') return null
+  const [showPeople, setShowPeople] = useState(false)
+  if (gc.status === 'idle') return gc.error ? <MeetingError message={gc.error} onClose={gc.cleanup} /> : null
 
   const group = groups.find(g => g.id === gc.groupId)
-  const displayGroupName = gc.groupName || group?.name || gc.groupId || ''
+  const participants = Array.from(gc.peers.values())
+  const title = gc.groupName || group?.name || '群视频会议'
 
-  const peerCount = gc.peers.size
-
-  return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 10000,
-      background: gc.isVideo ? '#000' : 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-      display: 'flex', flexDirection: 'column',
-      color: '#fff', animation: 'fade-in .3s ease',
-    }}>
-      {/* ── Top info bar ── */}
-      <div style={{
-        padding: '16px 20px', paddingTop: 'calc(16px + env(safe-area-inset-top, 0px))',
-        display: 'flex', alignItems: 'center', gap: 12,
-        background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(10px)',
-        zIndex: 5,
-      }}>
-        <div style={{
-          width: 40, height: 40, borderRadius: 12,
-          background: 'rgba(255,255,255,0.15)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          {group?.avatar
-            ? <img src={group.avatar} alt="" style={{ width: '100%', height: '100%', borderRadius: 12, objectFit: 'cover' }} />
-            : <Users size={20} />}
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 16, fontWeight: 600 }}>{displayGroupName}</div>
-          <div style={{ fontSize: 12, opacity: 0.8 }}>
-            {gc.status === 'ringing' && (t('call.group_incoming') || 'Group Call Invite')}
-            {gc.status === 'connecting' && (t('call.joining') || 'Joining...')}
-            {gc.status === 'connected' && (
-              <>{formatDuration(gc.duration)} · {peerCount + 1} {t('call.participants') || 'participants'}</>
-            )}
-          </div>
+  if (gc.status === 'ringing') return (
+    <main style={shellStyle}>
+      <div style={{ margin: 'auto', textAlign: 'center' }}>
+        <Avatar name={gc.inviterName} src={gc.inviterAvatar} size={96} />
+        <h2 style={{ margin: '20px 0 8px' }}>{title}</h2>
+        <p style={{ color: '#a9b2c3' }}>{gc.inviterName} 邀请你加入{gc.isVideo ? '视频' : '语音'}会议</p>
+        <div style={{ display: 'flex', gap: 36, justifyContent: 'center', marginTop: 34 }}>
+          <RoundButton label="拒绝" color="#e5484d" onClick={gc.rejectGroupCall}><PhoneOff /></RoundButton>
+          <RoundButton label="加入" color="#25a65a" onClick={gc.acceptGroupCall}><PhoneIncoming /></RoundButton>
         </div>
       </div>
-
-      {/* ── Ringing (incoming invite) ── */}
-      {gc.status === 'ringing' && (
-        <div style={{
-          flex: 1, display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center', gap: 20,
-        }}>
-          <div style={{
-            width: 96, height: 96, borderRadius: '50%',
-            background: 'rgba(255,255,255,0.15)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 40, fontWeight: 600, border: '3px solid rgba(255,255,255,0.2)',
-            backdropFilter: 'blur(10px)',
-          }}>
-            {gc.inviterAvatar
-              ? <img src={gc.inviterAvatar} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-              : (gc.inviterName?.[0] || '?')}
-          </div>
-          <div style={{ fontSize: 22, fontWeight: 600 }}>{gc.inviterName || '?'}</div>
-          <div style={{ fontSize: 14, opacity: 0.8 }}>
-            {gc.isVideo
-              ? (t('call.group_video') || 'Group Video Call')
-              : (t('call.group_voice') || 'Group Voice Call')}
-          </div>
-
-          {/* Accept / Reject buttons */}
-          <div style={{ display: 'flex', gap: 32, marginTop: 20 }}>
-            <button onClick={gc.rejectGroupCall} style={btnStyle('#ef4444')}>
-              <PhoneOff size={28} />
-            </button>
-            <button onClick={gc.acceptGroupCall} style={btnStyle('#22c55e')}>
-              <PhoneIncoming size={28} />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ── Connecting / Connected ── */}
-      {(gc.status === 'connecting' || gc.status === 'connected') && (
-        <div style={{
-          flex: 1, display: 'flex', flexDirection: 'column',
-          padding: 12, overflow: 'hidden',
-        }}>
-          {gc.isVideo ? (
-            <VideoGrid gc={gc} friends={friends} />
-          ) : (
-            <VoiceGrid gc={gc} friends={friends} />
-          )}
-        </div>
-      )}
-
-      {/* ── Controls ── */}
-      {(gc.status === 'connecting' || gc.status === 'connected') && (
-        <div style={{
-          padding: '16px 20px',
-          paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
-          display: 'flex', justifyContent: 'center', gap: 20,
-          background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(10px)',
-          zIndex: 5,
-        }}>
-          <button onClick={gc.toggleMute} style={smallBtnStyle(gc.isMuted)}>
-            {gc.isMuted ? <MicOff size={22} /> : <Mic size={22} />}
-          </button>
-          {gc.isVideo && (
-            <button onClick={gc.toggleCamera} style={smallBtnStyle(gc.isCameraOff)}>
-              {gc.isCameraOff ? <CameraOff size={22} /> : <VideoIcon size={22} />}
-            </button>
-          )}
-          <button onClick={gc.toggleVoiceMode}
-            style={voiceBtnStyle(gc.voiceMode)}>
-            <span style={{ fontSize: 14, fontWeight: 700 }}>
-              {gc.voiceMode === 'slow' ? '🐢' : gc.voiceMode === 'fast' ? '🐇' : '🔊'}
-            </span>
-            <span style={{ fontSize: 10, marginTop: 1 }}>
-              {gc.voiceMode === 'slow' ? '0.8x' : gc.voiceMode === 'fast' ? '1.2x' : '1.0x'}
-            </span>
-          </button>
-          <button onClick={gc.leaveGroupCall} style={btnStyle('#ef4444')}>
-            <PhoneOff size={28} />
-          </button>
-        </div>
-      )}
-    </div>
+    </main>
   )
-}
-
-// ── Video grid ──
-function VideoGrid({ gc, friends }: { gc: ReturnType<typeof useGroupCallContext>; friends: any[] }) {
-  const peerEntries = Array.from(gc.peers.values())
-  const total = peerEntries.length + 1 // +1 for local
-
-  const cols = total <= 2 ? 1 : total <= 4 ? 2 : 3
-  const rows = Math.ceil(total / cols)
 
   return (
-    <div style={{
-      flex: 1, display: 'grid',
-      gridTemplateColumns: `repeat(${cols}, 1fr)`,
-      gridTemplateRows: `repeat(${rows}, 1fr)`,
-      gap: 4, borderRadius: 12, overflow: 'hidden',
-    }}>
-      {/* Local video */}
-      <LocalVideoTile gc={gc} />
+    <main style={shellStyle}>
+      <header style={headerStyle}>
+        <button aria-label="离开会议" onClick={gc.leaveGroupCall} style={iconButton}><ChevronLeft /></button>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</div>
+          <div style={{ color: '#a9b2c3', fontSize: 12 }}>
+            {gc.status === 'connecting' ? '正在进入会议…' : `${formatDuration(gc.duration)} · ${participants.length + 1}/${gc.maxParticipants} 人`}
+            {gc.meetingMode === 'lecture' && ' · 讲课模式'}
+          </div>
+        </div>
+        <button onClick={() => setShowPeople(v => !v)} style={{ ...iconButton, marginLeft: 'auto' }}><Users size={20} /></button>
+      </header>
 
-      {/* Remote videos */}
-      {peerEntries.map(peer => (
-        <RemoteVideoTile key={peer.peerId} peer={peer} friends={friends} />
-      ))}
-    </div>
+      <section style={{ flex: 1, minHeight: 0, display: 'flex' }}>
+        <div style={{ flex: 1, minWidth: 0, padding: 8 }}>
+          <VideoStage gc={gc} participants={participants} />
+        </div>
+        {showPeople && <PeoplePanel gc={gc} participants={participants} />}
+      </section>
+
+      <footer style={footerStyle}>
+        <Control label={gc.isMuted ? '解除静音' : '静音'} active={gc.isMuted} disabled={gc.meetingMode === 'lecture' && !gc.isHost} onClick={gc.toggleMute}>
+          {gc.isMuted ? <MicOff /> : <Mic />}
+        </Control>
+        {gc.isVideo && <Control label={gc.isCameraOff ? '开启视频' : '关闭视频'} active={gc.isCameraOff} onClick={gc.toggleCamera}>
+          {gc.isCameraOff ? <CameraOff /> : <Video />}
+        </Control>}
+        {gc.isHost && <Control label="全员静音" onClick={gc.muteAll}><MicOff /></Control>}
+        {gc.isHost && <Control label={gc.meetingMode === 'lecture' ? '自由讨论' : '讲课模式'} active={gc.meetingMode === 'lecture'}
+          onClick={() => gc.setMeetingMode(gc.meetingMode === 'lecture' ? 'discussion' : 'lecture')}><Presentation /></Control>}
+        <Control label="离开" danger onClick={gc.leaveGroupCall}><PhoneOff /></Control>
+      </footer>
+    </main>
   )
 }
 
-function LocalVideoTile({ gc }: { gc: ReturnType<typeof useGroupCallContext> }) {
-  const videoRef = useRef<HTMLVideoElement>(null)
+function VideoStage({ gc, participants }: { gc: ReturnType<typeof useGroupCallContext>; participants: any[] }) {
   const user = useStore(s => s.user)
-
-  useEffect(() => {
-    if (videoRef.current && gc.localStream) {
-      videoRef.current.srcObject = gc.localStream
-    }
-  }, [gc.localStream])
-
+  const tiles = [{ peerId: user?.id || 'local', nickname: `${user?.nickname || '我'}（我）`, stream: gc.localStream,
+    isMuted: gc.isMuted, isCameraOff: gc.isCameraOff, isHost: gc.isHost }, ...participants]
+  const visible = gc.meetingMode === 'lecture'
+    ? [...tiles].sort((a, b) => Number(b.isHost) - Number(a.isHost)).slice(0, 6)
+    : tiles.slice(0, 16)
+  const cols = visible.length <= 1 ? 1 : visible.length <= 4 ? 2 : visible.length <= 9 ? 3 : 4
   return (
-    <div style={{
-      position: 'relative', background: '#111', borderRadius: 8, overflow: 'hidden',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }}>
-      <video ref={videoRef} autoPlay playsInline muted
-        style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-      <div style={{
-        position: 'absolute', bottom: 6, left: 8,
-        fontSize: 12, fontWeight: 600, color: '#fff',
-        background: 'rgba(0,0,0,0.5)', padding: '2px 8px', borderRadius: 6,
-      }}>
-        {user?.nickname || 'Me'}
-      </div>
+    <div style={{ height: '100%', display: 'grid', gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+      gridAutoRows: 'minmax(0, 1fr)', gap: 6, overflow: 'hidden' }}>
+      {visible.map(p => <ParticipantTile key={p.peerId} participant={p} />)}
+      {tiles.length > visible.length && <div style={moreTile}><LayoutGrid size={30} /><span>另有 {tiles.length - visible.length} 人</span></div>}
     </div>
   )
 }
 
-function RemoteVideoTile({ peer, friends }: { peer: any; friends: any[] }) {
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const friend = friends.find(f => f.id === peer.peerId)
-  const name = peer.nickname || friend?.nickname || peer.peerId?.slice(0, 6) || '?'
-
-  useEffect(() => {
-    if (videoRef.current && peer.stream) {
-      videoRef.current.srcObject = peer.stream
-    }
-  }, [peer.stream])
-
+function ParticipantTile({ participant: p }: { participant: any }) {
+  const ref = useRef<HTMLVideoElement>(null)
+  useEffect(() => { if (ref.current) ref.current.srcObject = p.stream }, [p.stream])
+  const hasVideo = p.stream?.getVideoTracks().some((t: MediaStreamTrack) => t.enabled && t.readyState === 'live') && !p.isCameraOff
   return (
-    <div style={{
-      position: 'relative', background: '#111', borderRadius: 8, overflow: 'hidden',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }}>
-      <video ref={videoRef} autoPlay playsInline
-        style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-      <div style={{
-        position: 'absolute', bottom: 6, left: 8,
-        fontSize: 12, fontWeight: 600, color: '#fff',
-        background: 'rgba(0,0,0,0.5)', padding: '2px 8px', borderRadius: 6,
-      }}>
-        {name}
-      </div>
-    </div>
+    <article style={{ position: 'relative', minHeight: 0, overflow: 'hidden', borderRadius: 10, background: '#151a22',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', border: p.isSpeaking ? '2px solid #38bdf8' : '2px solid transparent' }}>
+      <video ref={ref} autoPlay playsInline muted={p.nickname?.endsWith('（我）')} style={{ width: '100%', height: '100%', objectFit: 'cover', display: hasVideo ? 'block' : 'none' }} />
+      {!hasVideo && <Avatar name={p.nickname} src={p.avatar} size={64} />}
+      <span style={nameplate}>{p.nickname || p.peerId}{p.isHost && ' · 主席'} {p.isMuted && <MicOff size={12} />}</span>
+    </article>
   )
 }
 
-// ── Voice grid (avatar-based) ──
-function VoiceGrid({ gc, friends }: { gc: ReturnType<typeof useGroupCallContext>; friends: any[] }) {
+function PeoplePanel({ gc, participants }: { gc: ReturnType<typeof useGroupCallContext>; participants: any[] }) {
   const user = useStore(s => s.user)
-  const peerEntries = Array.from(gc.peers.values())
-
-  return (
-    <div style={{
-      flex: 1, display: 'flex', flexWrap: 'wrap',
-      alignItems: 'center', justifyContent: 'center',
-      gap: 20, padding: 20,
-    }}>
-      {/* Local participant */}
-      <VoiceAvatar
-        name={user?.nickname || 'Me'}
-        avatar={user?.avatar}
-        isLocal
-        isMuted={gc.isMuted}
-      />
-
-      {/* Remote participants */}
-      {peerEntries.map(peer => {
-        const friend = friends.find(f => f.id === peer.peerId)
-        return (
-          <VoiceAvatar
-            key={peer.peerId}
-            name={peer.nickname || friend?.nickname || peer.peerId?.slice(0, 6) || '?'}
-            avatar={peer.avatar || friend?.avatar}
-          />
-        )
-      })}
-    </div>
-  )
+  return <aside style={{ width: 'min(320px, 42vw)', borderLeft: '1px solid #2b3442', padding: 14, overflowY: 'auto', background: '#111720' }}>
+    <h3 style={{ margin: '4px 0 14px' }}>参会者（{participants.length + 1}）</h3>
+    {[{ peerId: user?.id, nickname: `${user?.nickname || '我'}（我）`, avatar: user?.avatar, isMuted: gc.isMuted, isHost: gc.isHost }, ...participants].map(p =>
+      <div key={p.peerId} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0' }}>
+        <Avatar name={p.nickname} src={p.avatar} size={34} /><span style={{ flex: 1 }}>{p.nickname}</span>
+        {p.isHost && <span style={{ fontSize: 11, color: '#65b7ff' }}>主席</span>}{p.isMuted ? <MicOff size={16} color="#a9b2c3" /> : <Mic size={16} />}
+      </div>)}
+  </aside>
 }
 
-function VoiceAvatar({ name, avatar, isLocal, isMuted }: {
-  name: string; avatar?: string; isLocal?: boolean; isMuted?: boolean
-}) {
-  return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-      minWidth: 80,
-    }}>
-      <div style={{
-        position: 'relative',
-        width: 72, height: 72, borderRadius: '50%',
-        background: 'rgba(255,255,255,0.15)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 28, fontWeight: 600,
-        border: '3px solid rgba(255,255,255,0.2)',
-        backdropFilter: 'blur(10px)',
-        animation: isLocal ? undefined : 'pulse-ring 2s infinite',
-      }}>
-        {avatar
-          ? <img src={avatar} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-          : (name?.[0] || '?')}
-        {isMuted && (
-          <div style={{
-            position: 'absolute', bottom: -2, right: -2,
-            width: 22, height: 22, borderRadius: '50%',
-            background: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            border: '2px solid rgba(0,0,0,0.5)',
-          }}>
-            <MicOff size={12} />
-          </div>
-        )}
-      </div>
-      <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.9, textAlign: 'center' }}>
-        {name}
-      </div>
-    </div>
-  )
+function Avatar({ name, src, size }: { name?: string; src?: string; size: number }) {
+  return <div style={{ width: size, height: size, flex: `0 0 ${size}px`, borderRadius: '50%', background: '#36506d', display: 'grid', placeItems: 'center', fontSize: size * .4, overflow: 'hidden' }}>
+    {src ? <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (name?.[0] || '?')}
+  </div>
 }
 
-// ── Shared button styles ──
-function btnStyle(bg: string): React.CSSProperties {
-  return {
-    width: 64, height: 64, borderRadius: '50%', border: 'none',
-    background: bg, color: '#fff', cursor: 'pointer',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    boxShadow: bg.startsWith('rgba') ? 'none' : `0 4px 20px ${bg}66`,
-  }
+function Control({ label, children, onClick, active, danger, disabled }: any) {
+  return <button disabled={disabled} onClick={onClick} style={{ border: 0, color: '#fff', background: 'transparent', opacity: disabled ? .4 : 1, display: 'grid', justifyItems: 'center', gap: 5, cursor: disabled ? 'not-allowed' : 'pointer', fontSize: 11 }}>
+    <span style={{ width: 46, height: 46, borderRadius: 14, display: 'grid', placeItems: 'center', background: danger ? '#d93f45' : active ? '#eef2f6' : '#2a3442', color: active && !danger ? '#10151c' : '#fff' }}>{children}</span>{label}
+  </button>
 }
+function RoundButton({ label, color, onClick, children }: any) { return <button onClick={onClick} style={{ border: 0, background: 'none', color: '#fff', display: 'grid', gap: 8, justifyItems: 'center', cursor: 'pointer' }}><span style={{ width: 64, height: 64, borderRadius: '50%', background: color, display: 'grid', placeItems: 'center' }}>{children}</span>{label}</button> }
+function MeetingError({ message, onClose }: { message: string; onClose: () => void }) { return <div style={{ position: 'fixed', left: '50%', bottom: 30, transform: 'translateX(-50%)', zIndex: 10001, padding: '12px 16px', borderRadius: 10, color: '#fff', background: '#a32931' }}>{message} <button onClick={onClose} style={{ marginLeft: 12 }}>关闭</button></div> }
 
-function smallBtnStyle(active: boolean): React.CSSProperties {
-  return {
-    width: 52, height: 52, borderRadius: '50%', border: 'none',
-    background: active ? '#ef4444' : 'rgba(255,255,255,0.2)',
-    color: '#fff', cursor: 'pointer',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    backdropFilter: 'blur(10px)',
-  }
-}
-
-function voiceBtnStyle(mode: string): React.CSSProperties {
-  const isActive = mode !== 'normal'
-  return {
-    width: 52, height: 52, borderRadius: '50%', border: 'none',
-    background: isActive
-      ? 'linear-gradient(135deg, #667eea, #764ba2)'
-      : 'rgba(255,255,255,0.2)',
-    color: '#fff', cursor: 'pointer',
-    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-    backdropFilter: 'blur(10px)',
-    transition: 'all 0.2s ease',
-    boxShadow: isActive ? '0 2px 12px rgba(102,126,234,0.5)' : 'none',
-  }
-}
+const shellStyle: React.CSSProperties = { position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', flexDirection: 'column', background: '#0b1017', color: '#fff' }
+const headerStyle: React.CSSProperties = { minHeight: 58, padding: 'calc(8px + env(safe-area-inset-top)) 12px 8px', display: 'flex', alignItems: 'center', gap: 10, background: '#111720', borderBottom: '1px solid #2b3442' }
+const footerStyle: React.CSSProperties = { minHeight: 74, padding: '8px 14px calc(8px + env(safe-area-inset-bottom))', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 'clamp(8px, 3vw, 24px)', background: '#111720', borderTop: '1px solid #2b3442', overflowX: 'auto' }
+const iconButton: React.CSSProperties = { width: 40, height: 40, borderRadius: 10, border: 0, background: '#222c38', color: '#fff', display: 'grid', placeItems: 'center', cursor: 'pointer' }
+const nameplate: React.CSSProperties = { position: 'absolute', left: 7, bottom: 6, display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, padding: '3px 7px', borderRadius: 6, background: 'rgba(0,0,0,.58)' }
+const moreTile: React.CSSProperties = { minHeight: 0, borderRadius: 10, background: '#151a22', color: '#a9b2c3', display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center', justifyContent: 'center' }

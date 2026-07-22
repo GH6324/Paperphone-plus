@@ -2,7 +2,7 @@
 
 Una aplicación de mensajería instantánea cifrada de extremo a extremo, estilo WeChat, con cifrado ECDH + XSalsa20-Poly1305 sin estado por mensaje, videollamadas en tiempo real, almacenamiento de archivos Cloudflare R2, soporte multilingüe y despliegue PWA para iOS.
 
-[![Rust](https://img.shields.io/badge/Rust-1.83+-orange)](#) [![React](https://img.shields.io/badge/React-19-blue)](#) [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](#) [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)](#) [![Redis](https://img.shields.io/badge/Redis-7.x-red)](#) [![WebRTC](https://img.shields.io/badge/WebRTC-P2P%20%2B%20Mesh-orange)](#) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
+[![Rust](https://img.shields.io/badge/Rust-1.83+-orange)](#) [![React](https://img.shields.io/badge/React-19-blue)](#) [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](#) [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)](#) [![Redis](https://img.shields.io/badge/Redis-7.x-red)](#) [![WebRTC](https://img.shields.io/badge/WebRTC-P2P%20%2B%20SFU-orange)](#) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
@@ -43,7 +43,7 @@ Una aplicación de mensajería instantánea cifrada de extremo a extremo, estilo
 |----------------|-------------|
 | 🔐 Cifrado de extremo a extremo | ECDH sin estado + XSalsa20-Poly1305 — claves efímeras por mensaje, forward secrecy, verificación de número de seguridad estilo Signal |
 | 🗝️ Servidor de conocimiento cero | El servidor solo almacena texto cifrado; las claves privadas nunca abandonan el dispositivo |
-| 📹 Videollamadas y llamadas de voz | WebRTC P2P (1:1) + Mesh (grupo), Cloudflare TURN para traversal de NAT |
+| 📹 Reuniones de vídeo y voz | WebRTC P2P (1:1) + SFU LiveKit (hasta 100 participantes), silenciar a todos y modo clase |
 | 🎙️ Modificador de voz | Efectos de voz en tiempo real para mensajes de voz, llamadas 1:1 y llamadas grupales — 3 modos (0.8x grave / 1.0x normal / 1.2x agudo), basado en Web Audio API |
 | 👥 Chat grupal | Hasta 2000 miembros, modos "Cifrado" / "Sin cifrar" conmutables (solo propietario, al cambiar se borra el historial del chat). El modo cifrado usa el protocolo Sender Key estilo Signal (cifrado simétrico XSalsa20-Poly1305 + distribución de claves ECDH) — solo los miembros del grupo pueden descifrar los mensajes; los bots están desactivados en modo cifrado. Modo No Molestar, gestión de miembros |
 | 👫 Sistema de amigos | Las solicitudes de amistad requieren aprobación con hasta 512 caracteres de mensaje; apodos personalizados; agrupación por etiquetas |
@@ -100,6 +100,8 @@ Capa criptográfica
 
 ### Opción 0: Despliegue en la nube con Zeabur en un clic
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
+
+> **Limitación de red de Zeabur:** la plantilla despliega LiveKit mediante WebSocket/API 7880 e ICE/TCP 7881. Zeabur actualmente no expone puertos UDP, por lo que las reuniones usan TCP como alternativa y pueden tener mayor latencia en redes débiles. UDP 7882 ya está reservado. Para reuniones de producción con 100 participantes, use LiveKit Cloud o una VM compatible con UDP.
 
 > [!TIP]
 > **Avanzado: Despliegue híbrido Zeabur + Vercel**

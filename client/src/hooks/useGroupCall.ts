@@ -1,39 +1,33 @@
-/**
- * Group Call Hook – Mesh WebRTC topology
- *
- * Each participant creates a direct P2P RTCPeerConnection with every other
- * participant. Signaling goes through the existing WebSocket server which
- * broadcasts group_call_* events to group members.
- *
- * Flow:
- *   1. Initiator sends `group_call_invite` → server broadcasts to group
- *   2. Acceptor sends `group_call_join`    → server broadcasts to group
- *   3. Existing participants send `call_offer` to new joiner (point-to-point)
- *   4. Normal ICE candidate / answer exchange per-peer
- *   5. `group_call_leave` when someone leaves
- */
-import { useState, useRef, useCallback, useEffect } from 'react'
-import { sendWs, onWs } from '../api/socket'
-import { get } from '../api/http'
-import { playCallRingtone, stopRingtone, showBrowserNotification } from '../utils/notification'
+/** Scalable group meetings backed by a LiveKit SFU (one connection per client). */
+import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  ConnectionState, LocalParticipant, Participant, RemoteParticipant, Room, RoomEvent,
+  Track, type RemoteTrack, type RemoteTrackPublication,
+} from 'livekit-client'
+import { post } from '../api/http'
+import { onWs, sendWs } from '../api/socket'
+import { playCallRingtone, showBrowserNotification, stopRingtone } from '../utils/notification'
 
 export type GroupCallStatus = 'idle' | 'ringing' | 'connecting' | 'connected'
+export type MeetingMode = 'discussion' | 'lecture'
 export type VoiceMode = 'normal' | 'slow' | 'fast'
-
-const VOICE_RATES: Record<VoiceMode, number> = { slow: 0.8, normal: 1.0, fast: 1.2 }
 
 export interface PeerInfo {
   peerId: string
   nickname?: string
   avatar?: string
   stream: MediaStream | null
-  pc: RTCPeerConnection | null
+  isMuted: boolean
+  isCameraOff: boolean
+  isSpeaking: boolean
+  isHost: boolean
 }
 
-const DEFAULT_ICE_SERVERS: RTCIceServer[] = [
-  { urls: 'stun:stun.l.google.com:19302' },
-  { urls: 'stun:stun.cloudflare.com:3478' },
-]
+type TokenResponse = { url: string; token: string; is_host: boolean; max_participants: number }
+type MeetingCommand = { kind: 'mute-all' | 'mode'; mode?: MeetingMode }
+
+const decoder = new TextDecoder()
+const encoder = new TextEncoder()
 
 export function useGroupCall(userId: string | undefined) {
   const [status, setStatus] = useState<GroupCallStatus>('idle')
@@ -42,507 +36,208 @@ export function useGroupCall(userId: string | undefined) {
   const [isVideo, setIsVideo] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
   const [isCameraOff, setIsCameraOff] = useState(false)
-  const [voiceMode, setVoiceMode] = useState<VoiceMode>('normal')
   const [duration, setDuration] = useState(0)
   const [peers, setPeers] = useState<Map<string, PeerInfo>>(new Map())
   const [inviterName, setInviterName] = useState('')
   const [inviterAvatar, setInviterAvatar] = useState('')
   const [groupName, setGroupName] = useState('')
+  const [isHost, setIsHost] = useState(false)
+  const [meetingMode, setMeetingMode] = useState<MeetingMode>('discussion')
+  const [error, setError] = useState('')
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null)
 
-  const localStreamRef = useRef<MediaStream | null>(null)
-  const peersRef = useRef<Map<string, PeerInfo>>(new Map())
-  const durationTimer = useRef<ReturnType<typeof setInterval> | null>(null)
-  const statusRef = useRef<GroupCallStatus>('idle')
+  const roomRef = useRef<Room | null>(null)
   const callIdRef = useRef<string | null>(null)
   const groupIdRef = useRef<string | null>(null)
-  const isVideoRef = useRef(false)
-  const iceCandidateQueues = useRef<Map<string, RTCIceCandidateInit[]>>(new Map())
-  const audioCtxRef = useRef<AudioContext | null>(null)
-  const voiceModeRef = useRef<VoiceMode>('normal')
+  const statusRef = useRef<GroupCallStatus>('idle')
+  const videoRef = useRef(false)
+  const hostRef = useRef(false)
+  const modeRef = useRef<MeetingMode>('discussion')
+  const durationTimer = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  statusRef.current = status
   callIdRef.current = callId
   groupIdRef.current = groupId
-  isVideoRef.current = isVideo
-  voiceModeRef.current = voiceMode
+  statusRef.current = status
+  videoRef.current = isVideo
+  hostRef.current = isHost
+  modeRef.current = meetingMode
 
-  // ── Fetch TURN credentials ──
-  const getIceServers = async (): Promise<RTCIceServer[]> => {
-    try {
-      const res = await get<{ iceServers: any }>('/api/calls/turn-credentials')
-      const raw = res.iceServers
-      if (Array.isArray(raw) && raw.length > 0) {
-        const servers = raw.map((s: any) => ({
-          urls: s.urls || s.url || '',
-          ...(s.username ? { username: s.username } : {}),
-          ...(s.credential ? { credential: s.credential } : {}),
-        })).filter((s: any) => s.urls)
-        if (servers.length > 0) return servers
-      }
-      return DEFAULT_ICE_SERVERS
-    } catch {
-      return DEFAULT_ICE_SERVERS
-    }
+  const metadata = (p: Participant) => {
+    try { return JSON.parse(p.metadata || '{}') } catch { return {} }
   }
 
-  // ── Get local media ──
-  const getLocalMedia = async (video: boolean): Promise<MediaStream | null> => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: video ? { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } : false,
+  const participantStream = (p: RemoteParticipant) => {
+    const tracks: MediaStreamTrack[] = []
+    p.trackPublications.forEach(pub => { if (pub.track?.mediaStreamTrack) tracks.push(pub.track.mediaStreamTrack) })
+    return tracks.length ? new MediaStream(tracks) : null
+  }
+
+  const syncPeers = useCallback((room: Room) => {
+    const next = new Map<string, PeerInfo>()
+    room.remoteParticipants.forEach(p => {
+      const meta = metadata(p)
+      next.set(p.identity, {
+        peerId: p.identity, nickname: p.name || p.identity, avatar: meta.avatar,
+        stream: participantStream(p), isMuted: !p.isMicrophoneEnabled,
+        isCameraOff: !p.isCameraEnabled, isSpeaking: p.isSpeaking, isHost: meta.host === true,
       })
-      localStreamRef.current = stream
-      return stream
-    } catch (err) {
-      console.error('[GroupCall] getUserMedia failed:', err)
-      return null
-    }
+    })
+    setPeers(next)
+  }, [])
+
+  const syncLocalStream = (participant: LocalParticipant) => {
+    const tracks: MediaStreamTrack[] = []
+    participant.trackPublications.forEach(pub => { if (pub.track?.mediaStreamTrack) tracks.push(pub.track.mediaStreamTrack) })
+    setLocalStream(tracks.length ? new MediaStream(tracks) : null)
   }
 
-  // ── Voice changer: process local audio through AudioContext ──
-  const applyVoiceEffect = (stream: MediaStream): MediaStream => {
-    try {
-      const audioCtx = new AudioContext()
-      audioCtxRef.current = audioCtx
-      const source = audioCtx.createMediaStreamSource(stream)
-      const destination = audioCtx.createMediaStreamDestination()
+  const applyMute = useCallback(async () => {
+    const room = roomRef.current
+    if (!room) return
+    await room.localParticipant.setMicrophoneEnabled(false)
+    setIsMuted(true)
+    syncLocalStream(room.localParticipant)
+  }, [])
 
-      const bufferSize = 4096
-      const processor = audioCtx.createScriptProcessor(bufferSize, 1, 1)
-      let outputPhase = 0
+  const sendCommand = useCallback(async (command: MeetingCommand) => {
+    if (!hostRef.current || !roomRef.current) return
+    await roomRef.current.localParticipant.publishData(encoder.encode(JSON.stringify(command)), {
+      reliable: true, topic: 'paperphone-meeting-control',
+    })
+  }, [])
 
-      processor.onaudioprocess = (e) => {
-        const input = e.inputBuffer.getChannelData(0)
-        const output = e.outputBuffer.getChannelData(0)
-        const rate = VOICE_RATES[voiceModeRef.current]
-
-        for (let i = 0; i < output.length; i++) {
-          const readIndex = outputPhase
-          const intIndex = Math.floor(readIndex)
-          const frac = readIndex - intIndex
-
-          if (intIndex < input.length - 1) {
-            output[i] = input[intIndex] * (1 - frac) + input[intIndex + 1] * frac
-          } else if (intIndex < input.length) {
-            output[i] = input[intIndex]
-          } else {
-            output[i] = 0
-          }
-          outputPhase += rate
-        }
-        outputPhase = outputPhase % input.length
-      }
-
-      source.connect(processor)
-      processor.connect(destination)
-
-      const processedStream = new MediaStream()
-      destination.stream.getAudioTracks().forEach(t => processedStream.addTrack(t))
-      stream.getVideoTracks().forEach(t => processedStream.addTrack(t))
-
-      return processedStream
-    } catch (err) {
-      console.warn('[GroupCall] Voice effect failed, using original stream:', err)
-      return stream
-    }
-  }
-
-  // ── Create peer connection for a specific peer ──
-  const createPeerConnection = async (peerId: string): Promise<RTCPeerConnection> => {
-    const iceServers = await getIceServers()
-    const pc = new RTCPeerConnection({ iceServers })
-
-    const remoteStream = new MediaStream()
-
-    pc.ontrack = (e) => {
-      e.streams[0]?.getTracks().forEach(track => {
-        remoteStream.addTrack(track)
-      })
-      updatePeer(peerId, { stream: remoteStream })
-    }
-
-    pc.onicecandidate = (e) => {
-      if (e.candidate) {
-        sendWs({
-          type: 'ice_candidate',
-          to: peerId,
-          call_id: callIdRef.current,
-          group_id: groupIdRef.current,
-          candidate: e.candidate.toJSON(),
-        })
-      }
-    }
-
-    pc.onconnectionstatechange = () => {
-      console.log(`[GroupCall] Peer ${peerId} connection: ${pc.connectionState}`)
-      if (pc.connectionState === 'connected') {
-        if (statusRef.current === 'connecting') {
-          setStatus('connected')
-          startDurationTimer()
-        }
-      } else if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
-        removePeer(peerId)
-      }
-    }
-
-    // Add local tracks (use voice-processed stream for audio)
-    if (localStreamRef.current) {
-      const processedStream = applyVoiceEffect(localStreamRef.current)
-      processedStream.getTracks().forEach(track => {
-        pc.addTrack(track, processedStream)
-      })
-    }
-
-    const info: PeerInfo = { peerId, stream: remoteStream, pc }
-    peersRef.current.set(peerId, info)
-    setPeers(new Map(peersRef.current))
-
-    return pc
-  }
-
-  const updatePeer = (peerId: string, updates: Partial<PeerInfo>) => {
-    const existing = peersRef.current.get(peerId)
-    if (existing) {
-      const updated = { ...existing, ...updates }
-      peersRef.current.set(peerId, updated)
-      setPeers(new Map(peersRef.current))
-    }
-  }
-
-  const removePeer = (peerId: string) => {
-    const peer = peersRef.current.get(peerId)
-    if (peer?.pc) {
-      peer.pc.close()
-    }
-    peersRef.current.delete(peerId)
-    iceCandidateQueues.current.delete(peerId)
-    setPeers(new Map(peersRef.current))
-
-    // If no peers left and we're in a call, end it
-    if (peersRef.current.size === 0 && statusRef.current === 'connected') {
-      cleanup()
-    }
-  }
-
-  const startDurationTimer = () => {
-    if (durationTimer.current) clearInterval(durationTimer.current)
-    setDuration(0)
-    durationTimer.current = setInterval(() => {
-      setDuration(d => d + 1)
-    }, 1000)
-  }
-
-  // ── Cleanup ──
   const cleanup = useCallback(() => {
     stopRingtone()
-
-    peersRef.current.forEach((peer) => {
-      peer.pc?.close()
-    })
-    peersRef.current.clear()
-    iceCandidateQueues.current.clear()
-    setPeers(new Map())
-
-    localStreamRef.current?.getTracks().forEach(t => t.stop())
-    localStreamRef.current = null
-
-    // Close AudioContext for voice effect
-    if (audioCtxRef.current) {
-      audioCtxRef.current.close().catch(() => {})
-      audioCtxRef.current = null
-    }
-
     if (durationTimer.current) clearInterval(durationTimer.current)
     durationTimer.current = null
-
-    setStatus('idle')
-    setCallId(null)
-    setGroupId(null)
-    setIsVideo(false)
-    setIsMuted(false)
-    setIsCameraOff(false)
-    setDuration(0)
-    setInviterName('')
-    setInviterAvatar('')
-    setGroupName('')
-    setVoiceMode('normal')
+    const room = roomRef.current
+    roomRef.current = null
+    if (room) room.disconnect()
+    setStatus('idle'); setCallId(null); setGroupId(null); setIsVideo(false)
+    setIsMuted(false); setIsCameraOff(false); setDuration(0); setPeers(new Map())
+    setLocalStream(null); setInviterName(''); setInviterAvatar(''); setGroupName('')
+    setIsHost(false); setMeetingMode('discussion')
+    setError('')
   }, [])
 
-  // ── Start group call (initiator) ──
+  const connectMeeting = useCallback(async (gid: string, cid: string, video: boolean) => {
+    setError('')
+    const auth = await post<TokenResponse>('/api/calls/meeting-token', { group_id: gid, call_id: cid })
+    const room = new Room({ adaptiveStream: true, dynacast: true, disconnectOnPageLeave: true })
+    roomRef.current = room
+    setIsHost(auth.is_host)
+
+    const refresh = () => syncPeers(room)
+    room.on(RoomEvent.ParticipantConnected, async () => {
+      refresh()
+      if (hostRef.current) await sendCommand({ kind: 'mode', mode: modeRef.current })
+    })
+    room.on(RoomEvent.ParticipantDisconnected, refresh)
+    room.on(RoomEvent.TrackSubscribed, (_t: RemoteTrack, _p: RemoteTrackPublication, _rp: RemoteParticipant) => refresh())
+    room.on(RoomEvent.TrackUnsubscribed, refresh)
+    room.on(RoomEvent.TrackMuted, refresh)
+    room.on(RoomEvent.TrackUnmuted, refresh)
+    room.on(RoomEvent.ActiveSpeakersChanged, refresh)
+    room.on(RoomEvent.DataReceived, async (payload, participant, _kind, topic) => {
+      if (topic !== 'paperphone-meeting-control' || !participant || metadata(participant).host !== true) return
+      try {
+        const command = JSON.parse(decoder.decode(payload)) as MeetingCommand
+        if (command.kind === 'mute-all') await applyMute()
+        if (command.kind === 'mode' && command.mode) {
+          setMeetingMode(command.mode)
+          if (command.mode === 'lecture') await applyMute()
+        }
+      } catch { /* malformed control packet */ }
+    })
+    room.on(RoomEvent.ConnectionStateChanged, state => {
+      if (state === ConnectionState.Disconnected && statusRef.current !== 'idle') cleanup()
+    })
+
+    await room.connect(auth.url, auth.token, { autoSubscribe: true })
+    await room.localParticipant.setMicrophoneEnabled(true)
+    if (video) await room.localParticipant.setCameraEnabled(true)
+    syncLocalStream(room.localParticipant)
+    syncPeers(room)
+    setStatus('connected')
+    setDuration(0)
+    durationTimer.current = setInterval(() => setDuration(v => v + 1), 1000)
+  }, [applyMute, cleanup, sendCommand, syncPeers])
+
   const startGroupCall = useCallback(async (gid: string, video: boolean, gname?: string) => {
     if (statusRef.current !== 'idle') return
-
     const cid = `gc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
-    setCallId(cid)
-    setGroupId(gid)
-    setIsVideo(video)
-    setGroupName(gname || '')
-    setStatus('connecting')
-
-    const stream = await getLocalMedia(video)
-    if (!stream) {
+    setCallId(cid); setGroupId(gid); setIsVideo(video); setGroupName(gname || ''); setStatus('connecting')
+    try {
+      await connectMeeting(gid, cid, video)
+      sendWs({ type: 'group_call_invite', group_id: gid, call_id: cid, is_video: video })
+    } catch (e) {
       cleanup()
-      return
+      setError(e instanceof Error ? e.message : '无法连接会议服务器')
     }
+  }, [cleanup, connectMeeting])
 
-    sendWs({
-      type: 'group_call_invite',
-      group_id: gid,
-      call_id: cid,
-      is_video: video,
-    })
-  }, [cleanup])
-
-  // ── Accept group call (responder) ──
   const acceptGroupCall = useCallback(async () => {
-    if (statusRef.current !== 'ringing') return
-
-    stopRingtone()
-    setStatus('connecting')
-
-    const stream = await getLocalMedia(isVideoRef.current)
-    if (!stream) {
+    if (!groupIdRef.current || !callIdRef.current) return
+    stopRingtone(); setStatus('connecting')
+    try {
+      await connectMeeting(groupIdRef.current, callIdRef.current, videoRef.current)
+      sendWs({ type: 'group_call_join', group_id: groupIdRef.current, call_id: callIdRef.current })
+    } catch (e) {
       cleanup()
-      return
+      setError(e instanceof Error ? e.message : '无法连接会议服务器')
     }
-
-    // Notify group that we're joining
-    sendWs({
-      type: 'group_call_join',
-      group_id: groupIdRef.current,
-      call_id: callIdRef.current,
-      is_video: isVideoRef.current,
-    })
-  }, [cleanup])
-
-  // ── Reject / Leave ──
-  const rejectGroupCall = useCallback(() => {
-    cleanup()
-  }, [cleanup])
+  }, [cleanup, connectMeeting])
 
   const leaveGroupCall = useCallback(() => {
-    if (groupIdRef.current && callIdRef.current) {
-      sendWs({
-        type: 'group_call_leave',
-        group_id: groupIdRef.current,
-        call_id: callIdRef.current,
-      })
-    }
+    if (groupIdRef.current && callIdRef.current) sendWs({ type: 'group_call_leave', group_id: groupIdRef.current, call_id: callIdRef.current })
     cleanup()
   }, [cleanup])
 
-  // ── Toggle mute / camera ──
-  const toggleMute = useCallback(() => {
-    localStreamRef.current?.getAudioTracks().forEach(t => { t.enabled = !t.enabled })
-    setIsMuted(m => !m)
-  }, [])
+  const toggleMute = useCallback(async () => {
+    const room = roomRef.current
+    if (!room) return
+    const enable = isMuted
+    if (enable && meetingMode === 'lecture' && !isHost) return
+    await room.localParticipant.setMicrophoneEnabled(enable)
+    setIsMuted(!enable); syncLocalStream(room.localParticipant)
+  }, [isHost, isMuted, meetingMode])
 
-  const toggleCamera = useCallback(() => {
-    localStreamRef.current?.getVideoTracks().forEach(t => { t.enabled = !t.enabled })
-    setIsCameraOff(c => !c)
-  }, [])
+  const toggleCamera = useCallback(async () => {
+    const room = roomRef.current
+    if (!room) return
+    await room.localParticipant.setCameraEnabled(isCameraOff)
+    setIsCameraOff(!isCameraOff); syncLocalStream(room.localParticipant)
+  }, [isCameraOff])
 
-  const toggleVoiceMode = useCallback(() => {
-    setVoiceMode(m => {
-      const modes: VoiceMode[] = ['normal', 'slow', 'fast']
-      const idx = modes.indexOf(m)
-      return modes[(idx + 1) % modes.length]
-    })
-  }, [])
+  const muteAll = useCallback(async () => { await applyMute(); await sendCommand({ kind: 'mute-all' }) }, [applyMute, sendCommand])
+  const setMode = useCallback(async (mode: MeetingMode) => {
+    if (!hostRef.current) return
+    setMeetingMode(mode); modeRef.current = mode
+    if (mode === 'lecture') await muteAll()
+    await sendCommand({ kind: 'mode', mode })
+  }, [muteAll, sendCommand])
 
-  // ── WebSocket signaling listeners ──
   useEffect(() => {
-    // Incoming group call invite
-    const unsubInvite = onWs('group_call_invite', (data) => {
-      if (data.from === userId) return
-      if (statusRef.current !== 'idle') return
-
-      setCallId(data.call_id)
-      setGroupId(data.group_id)
-      setIsVideo(data.is_video || false)
-      setInviterName(data.from_nickname || data.from || '')
-      setInviterAvatar(data.from_avatar || '')
-      setGroupName(data.group_name || '')
-      setStatus('ringing')
-
-      playCallRingtone()
-      const callType = data.is_video ? 'Group Video Call' : 'Group Voice Call'
-      showBrowserNotification('PaperPhonePlus', `${callType}`, () => window.focus())
+    const off = onWs('group_call_invite', data => {
+      if (data.from === userId || statusRef.current !== 'idle') return
+      setCallId(data.call_id); setGroupId(data.group_id); setIsVideo(!!data.is_video)
+      setInviterName(data.from_nickname || data.from || ''); setInviterAvatar(data.from_avatar || '')
+      setGroupName(data.group_name || ''); setStatus('ringing'); playCallRingtone()
+      showBrowserNotification('PaperPhonePlus', data.is_video ? '群视频会议' : '群语音会议', () => window.focus())
     })
+    return off
+  }, [userId])
 
-    // Someone joined the group call → send them an offer if we're in the call
-    const unsubJoin = onWs('group_call_join', async (data) => {
-      if (data.from === userId) return
-      if (!callIdRef.current || data.call_id !== callIdRef.current) return
-      if (statusRef.current !== 'connecting' && statusRef.current !== 'connected') return
+  useEffect(() => () => cleanup(), [cleanup])
 
-      console.log(`[GroupCall] ${data.from} joined, creating offer`)
-      try {
-        const pc = await createPeerConnection(data.from)
-        const offer = await pc.createOffer()
-        await pc.setLocalDescription(offer)
-
-        sendWs({
-          type: 'call_offer',
-          to: data.from,
-          call_id: callIdRef.current,
-          group_id: groupIdRef.current,
-          is_video: isVideoRef.current,
-          sdp: offer.sdp,
-          sdp_type: offer.type,
-        })
-      } catch (err) {
-        console.error('[GroupCall] Failed to create offer for joiner:', err)
-      }
-    })
-
-    // Receive an offer from an existing participant
-    const unsubOffer = onWs('call_offer', async (data) => {
-      if (data.from === userId) return
-      // Only handle if it's a group call offer (has call_id matching ours)
-      if (!data.call_id || !callIdRef.current || data.call_id !== callIdRef.current) return
-      if (!data.group_id) return
-
-      console.log(`[GroupCall] Received offer from ${data.from}`)
-      try {
-        const pc = await createPeerConnection(data.from)
-
-        if (data.sdp && data.sdp_type) {
-          await pc.setRemoteDescription(new RTCSessionDescription({
-            type: data.sdp_type,
-            sdp: data.sdp,
-          }))
-        }
-
-        // Flush queued ICE candidates
-        const queued = iceCandidateQueues.current.get(data.from) || []
-        for (const c of queued) {
-          await pc.addIceCandidate(new RTCIceCandidate(c)).catch(() => {})
-        }
-        iceCandidateQueues.current.delete(data.from)
-
-        const answer = await pc.createAnswer()
-        await pc.setLocalDescription(answer)
-
-        sendWs({
-          type: 'call_answer',
-          to: data.from,
-          call_id: callIdRef.current,
-          group_id: groupIdRef.current,
-          sdp: answer.sdp,
-          sdp_type: answer.type,
-        })
-
-        if (statusRef.current === 'connecting') {
-          setStatus('connected')
-          startDurationTimer()
-        }
-      } catch (err) {
-        console.error('[GroupCall] Failed to handle offer:', err)
-      }
-    })
-
-    // Receive answer
-    const unsubAnswer = onWs('call_answer', async (data) => {
-      if (data.from === userId) return
-      if (!data.call_id || !callIdRef.current || data.call_id !== callIdRef.current) return
-
-      const peer = peersRef.current.get(data.from)
-      if (!peer?.pc) return
-
-      try {
-        await peer.pc.setRemoteDescription(new RTCSessionDescription({
-          type: data.sdp_type || 'answer',
-          sdp: data.sdp,
-        }))
-
-        // Flush queued ICE candidates
-        const queued = iceCandidateQueues.current.get(data.from) || []
-        for (const c of queued) {
-          await peer.pc.addIceCandidate(new RTCIceCandidate(c)).catch(() => {})
-        }
-        iceCandidateQueues.current.delete(data.from)
-
-        if (statusRef.current === 'connecting') {
-          setStatus('connected')
-          startDurationTimer()
-        }
-      } catch (err) {
-        console.error('[GroupCall] Failed to handle answer:', err)
-      }
-    })
-
-    // ICE candidates (for group calls with call_id)
-    const unsubIce = onWs('ice_candidate', async (data) => {
-      if (data.from === userId) return
-      if (!data.call_id || !callIdRef.current || data.call_id !== callIdRef.current) return
-
-      const peer = peersRef.current.get(data.from)
-      if (data.candidate) {
-        if (peer?.pc && peer.pc.remoteDescription) {
-          await peer.pc.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(() => {})
-        } else {
-          // Queue it
-          if (!iceCandidateQueues.current.has(data.from)) {
-            iceCandidateQueues.current.set(data.from, [])
-          }
-          iceCandidateQueues.current.get(data.from)!.push(data.candidate)
-        }
-      }
-    })
-
-    // Someone left the group call
-    const unsubLeave = onWs('group_call_leave', (data) => {
-      if (data.from === userId) return
-      if (!data.call_id || !callIdRef.current || data.call_id !== callIdRef.current) return
-
-      console.log(`[GroupCall] ${data.from} left`)
-      removePeer(data.from)
-    })
-
-    return () => {
-      unsubInvite()
-      unsubJoin()
-      unsubOffer()
-      unsubAnswer()
-      unsubIce()
-      unsubLeave()
-    }
-  }, [userId, cleanup])
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => { cleanup() }
-  }, [cleanup])
-
-  return {
-    status,
-    callId,
-    groupId,
-    isVideo,
-    isMuted,
-    isCameraOff,
-    duration,
-    peers,
-    localStream: localStreamRef.current,
-    inviterName,
-    inviterAvatar,
-    groupName,
-    voiceMode,
-    startGroupCall,
-    acceptGroupCall,
-    rejectGroupCall,
-    leaveGroupCall,
-    toggleMute,
-    toggleCamera,
-    toggleVoiceMode,
-    cleanup,
+  return { status, callId, groupId, isVideo, isMuted, isCameraOff, duration, peers, localStream,
+    inviterName, inviterAvatar, groupName, isHost, meetingMode, error, maxParticipants: 100,
+    startGroupCall, acceptGroupCall, rejectGroupCall: cleanup, leaveGroupCall, toggleMute,
+    toggleCamera, muteAll, setMeetingMode: setMode, cleanup,
   }
 }
 
 export function formatDuration(sec: number): string {
-  const m = Math.floor(sec / 60)
-  const s = sec % 60
-  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+  const h = Math.floor(sec / 3600); const m = Math.floor((sec % 3600) / 60); const s = sec % 60
+  return [h, m, s].filter((_, i) => h > 0 || i > 0).map(v => String(v).padStart(2, '0')).join(':')
 }

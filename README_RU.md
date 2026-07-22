@@ -2,7 +2,7 @@
 
 Мессенджер со сквозным шифрованием в стиле WeChat. Бессостоянный ECDH + XSalsa20-Poly1305 шифрование для каждого сообщения, видеозвонки в реальном времени, хранение файлов Cloudflare R2, поддержка нескольких языков и развёртывание iOS PWA.
 
-[![Rust](https://img.shields.io/badge/Rust-1.83+-orange)](#) [![React](https://img.shields.io/badge/React-19-blue)](#) [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](#) [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)](#) [![Redis](https://img.shields.io/badge/Redis-7.x-red)](#) [![WebRTC](https://img.shields.io/badge/WebRTC-P2P%20%2B%20Mesh-orange)](#) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
+[![Rust](https://img.shields.io/badge/Rust-1.83+-orange)](#) [![React](https://img.shields.io/badge/React-19-blue)](#) [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](#) [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)](#) [![Redis](https://img.shields.io/badge/Redis-7.x-red)](#) [![WebRTC](https://img.shields.io/badge/WebRTC-P2P%20%2B%20SFU-orange)](#) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
@@ -43,7 +43,7 @@
 |---------|----------|
 | 🔐 Сквозное шифрование | Бессостоянный ECDH + XSalsa20-Poly1305 — эфемерные ключи для каждого сообщения, прямая секретность, верификация номера безопасности в стиле Signal |
 | 🗝️ Сервер с нулевым знанием | Сервер хранит только зашифрованный текст; приватные ключи никогда не покидают устройство |
-| 📹 Видео- и голосовые звонки | WebRTC P2P (1:1) + Mesh (групповые), Cloudflare TURN для обхода NAT |
+| 📹 Видео- и аудиоконференции | WebRTC P2P (1:1) + LiveKit SFU (до 100 участников), отключение микрофонов и режим лекции |
 | 🎙️ Изменение голоса | Эффекты голоса в реальном времени для голосовых сообщений, звонков 1:1 и групповых звонков — 3 режима (0.8x низкий / 1.0x обычный / 1.2x высокий), на основе Web Audio API |
 | 👥 Групповой чат | До 2000 участников, переключаемые режимы «Зашифрованный» / «Незашифрованный» (только владелец, при переключении история чата очищается). Зашифрованный режим использует протокол Sender Key в стиле Signal (симметричное шифрование XSalsa20-Poly1305 + распределение ключей ECDH) — только участники группы могут расшифровать сообщения; боты недоступны в зашифрованном режиме. Режим «Не беспокоить», управление участниками |
 | 👫 Система друзей | Заявки в друзья требуют одобрения с сообщением до 512 символов; пользовательские никнеймы; группировка по нескольким тегам |
@@ -100,6 +100,8 @@
 
 ### Вариант 0: Zeabur — облачное развёртывание в один клик
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
+
+> **Сетевое ограничение Zeabur:** шаблон развёртывает LiveKit через WebSocket/API 7880 и ICE/TCP 7881. Сейчас Zeabur не предоставляет UDP-порты сервисов, поэтому конференции используют TCP и могут иметь большую задержку в слабых сетях. UDP 7882 уже предусмотрен в конфигурации. Для производственных конференций на 100 участников используйте LiveKit Cloud или виртуальную машину с поддержкой UDP.
 
 > [!TIP]
 > **Продвинутый вариант: гибридное развёртывание Zeabur + Vercel**

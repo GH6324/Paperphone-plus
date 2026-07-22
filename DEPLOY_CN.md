@@ -2,7 +2,7 @@
 
 本文档详细介绍 PaperPhonePlus 的两种推荐部署方式，以及各平台客户端的服务器地址配置方法。
 
-> **核心思路**：后端（server）、数据库（MySQL）、缓存（Redis）部署在服务器端；前端（client）可独立部署到 Vercel 等 CDN 平台以获得更好的全球访问速度。客户端（iOS / Android / Web / Windows / macOS）通过填写 **server 的地址** 来连接后端服务。
+> **核心思路**：后端（server）、数据库（MySQL）、缓存（Redis）和会议 SFU（LiveKit）部署在服务器端；前端（client）可独立部署到 Vercel。客户端通过 **server 地址** 连接业务后端，并通过 `LIVEKIT_URL` 连接会议服务。
 
 ---
 
@@ -16,7 +16,7 @@
 
 ## 方式一：Zeabur 模版 + Vercel 前端（推荐）
 
-此方案将 server、MySQL、Redis 部署在 Zeabur 云平台，前端部署到 Vercel CDN，实现全球加速访问。
+此方案将 server、MySQL、Redis、LiveKit 部署在 Zeabur，前端部署到 Vercel。Zeabur 当前不支持 UDP 服务端口，LiveKit 会使用 ICE/TCP 7881 回退；功能可用，但弱网质量不等同于开放 UDP 的生产部署。
 
 ### 第一步：使用 Zeabur 模版部署
 
@@ -26,12 +26,12 @@
 
 2. 登录 Zeabur 账号（支持 GitHub 登录）
 3. 选择部署区域（建议选择离目标用户最近的区域）
-4. 按提示填写环境变量（`JWT_SECRET`、`R2_*` 等），详见 [README](README.md) 中的环境变量说明
+4. 按提示填写环境变量。`LIVEKIT_API_SECRET` 应为至少 32 字节的随机值；模板会自动把相同密钥传给 server 和 LiveKit
 5. 等待所有服务启动完成
 
 ### 第二步：删除 Zeabur 上的 client 服务
 
-部署完成后，Zeabur 会自动创建 `client`（前端）、`server`（后端）、`MySQL`、`Redis` 四个服务。由于我们要将前端单独部署到 Vercel，需要删除 Zeabur 上的 client 服务：
+部署完成后，Zeabur 会创建 `client`、`server`、`MySQL`、`Redis`、`LiveKit` 五个服务。由于前端单独部署到 Vercel，需要删除 Zeabur 上的 client 服务：
 
 1. 进入 [Zeabur Dashboard](https://dash.zeabur.com)
 2. 找到刚部署的项目
@@ -39,7 +39,14 @@
 4. 进入服务设置 → 底部找到 **Delete Service**（删除服务）
 5. 确认删除
 
-> ⚠️ 仅删除 `client` 服务，**不要** 删除 `server`、`MySQL`、`Redis` 服务。
+> ⚠️ 仅删除 `client`，**不要**删除 `server`、`MySQL`、`Redis` 或 `LiveKit`。
+
+### Zeabur 上的会议限制与升级路径
+
+- 当前模板公开 LiveKit WebSocket/API 7880 和 ICE/TCP 7881，UDP 7882 仅保留在内部配置。
+- TCP 回退适合功能验证和一般网络；百人生产会议建议使用 LiveKit Cloud，或将 LiveKit 单独部署到具有公网 IP、可开放 UDP 7882 的主机。
+- 外置 LiveKit 时，在 Zeabur 的 `server` 服务中设置 `LIVEKIT_URL=wss://meeting.example.com`，并保证 `LIVEKIT_API_KEY`、`LIVEKIT_API_SECRET` 与外置 LiveKit 完全一致。
+- Zeabur 将来支持 UDP 后，在 LiveKit 服务声明 UDP 7882，并在防火墙开放该端口即可；客户端无需修改。
 
 ### 第三步：记录 server 服务的域名
 
@@ -123,6 +130,9 @@ cp server/.env.example server/.env
 JWT_SECRET=你的随机密钥字符串          # 生产环境必须更改
 DB_PASS=你的数据库密码                 # 与 docker-compose.yml 中保持一致
 ADMIN_PASSWORD=你的管理后台密码        # 生产环境必须更改
+LIVEKIT_URL=wss://meeting.example.com
+LIVEKIT_API_KEY=你的会议API密钥
+LIVEKIT_API_SECRET=至少32字节随机密钥
 
 # 可选配置（按需填写）
 R2_ACCOUNT_ID=...                     # Cloudflare R2 文件存储
@@ -154,7 +164,7 @@ VAPID_PRIVATE_KEY=...
     restart: unless-stopped
 ```
 
-删除后，`docker-compose.yml` 中应只保留 `server`、`mysql`、`redis` 三个服务。
+删除后应保留 `server`、`mysql`、`redis`、`livekit` 四个服务。不要删除 `livekit`，否则群会议令牌接口会返回未配置错误。
 
 ### 第四步：启动 Docker 服务
 

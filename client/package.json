@@ -12,6 +12,7 @@
     "crystals-kyber-js": "^2.7.0",
     "jsqr": "^1.4.0",
     "libsodium-wrappers-sumo": "^0.7.15",
+    "livekit-client": "^2.20.2",
     "lottie-web": "^5.13.0",
     "lucide-react": "^1.8.0",
     "pako": "^2.1.0",

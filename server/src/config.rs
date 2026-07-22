@@ -30,6 +30,11 @@ pub struct Config {
     // Metered.ca TURN (free tier)
     pub metered_turn_api_key: Option<String>,
 
+    // LiveKit SFU (required for scalable group meetings)
+    pub livekit_url: Option<String>,
+    pub livekit_api_key: Option<String>,
+    pub livekit_api_secret: Option<String>,
+
     // Web Push (VAPID)
     pub vapid_public_key: Option<String>,
     pub vapid_private_key: Option<String>,
@@ -106,6 +111,9 @@ impl Config {
             cf_calls_app_secret: env_opt("CF_CALLS_APP_SECRET"),
 
             metered_turn_api_key: env_opt("METERED_TURN_API_KEY"),
+            livekit_url: env_opt("LIVEKIT_URL"),
+            livekit_api_key: env_opt("LIVEKIT_API_KEY"),
+            livekit_api_secret: env_opt("LIVEKIT_API_SECRET"),
 
             vapid_public_key: env_opt("VAPID_PUBLIC_KEY"),
             vapid_private_key: env_opt("VAPID_PRIVATE_KEY"),

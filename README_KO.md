@@ -2,7 +2,7 @@
 
 WeChat 스타일의 종단간 암호화 메신저. 무상태 ECDH + XSalsa20-Poly1305 메시지별 암호화, 실시간 영상 통화, Cloudflare R2 파일 저장, 다국어 지원 및 iOS PWA 배포 지원.
 
-[![Rust](https://img.shields.io/badge/Rust-1.83+-orange)](#) [![React](https://img.shields.io/badge/React-19-blue)](#) [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](#) [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)](#) [![Redis](https://img.shields.io/badge/Redis-7.x-red)](#) [![WebRTC](https://img.shields.io/badge/WebRTC-P2P%20%2B%20Mesh-orange)](#) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
+[![Rust](https://img.shields.io/badge/Rust-1.83+-orange)](#) [![React](https://img.shields.io/badge/React-19-blue)](#) [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](#) [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)](#) [![Redis](https://img.shields.io/badge/Redis-7.x-red)](#) [![WebRTC](https://img.shields.io/badge/WebRTC-P2P%20%2B%20SFU-orange)](#) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
@@ -43,7 +43,7 @@ WeChat 스타일의 종단간 암호화 메신저. 무상태 ECDH + XSalsa20-Pol
 |------|------|
 | 🔐 종단간 암호화 | 무상태 ECDH + XSalsa20-Poly1305 — 메시지별 임시 키 생성, 순방향 비밀성, Signal 방식 안전 번호 검증 |
 | 🗝️ 제로 지식 서버 | 서버에는 암호문만 저장됩니다. 개인 키는 절대 기기 밖으로 유출되지 않습니다 |
-| 📹 영상 및 음성 통화 | WebRTC P2P (1:1) + Mesh (그룹), NAT 통과를 위한 Cloudflare TURN |
+| 📹 영상 및 음성 회의 | WebRTC P2P (1:1) + LiveKit SFU (최대 100명), 전체 음소거 및 강의 모드 |
 | 🎙️ 음성 변조 | 음성 메시지, 1:1 통화, 그룹 통화에서 실시간 음성 효과 — 3가지 모드 (0.8x 저음 / 1.0x 일반 / 1.2x 고음), Web Audio API 기반 |
 | 👥 그룹 채팅 | 최대 2000명, "암호화" / "비암호화" 모드 전환 가능 (그룹 소유자만 전환 가능, 전환 시 채팅 기록 삭제). 암호화 모드는 Signal 스타일 Sender Key 프로토콜 (XSalsa20-Poly1305 대칭 암호화 + ECDH 키 배포) 사용 — 그룹 멤버만 메시지 복호화 가능, 암호화 모드에서는 봇 사용 불가. 방해 금지 모드, 멤버 관리 |
 | 👫 친구 시스템 | 친구 요청 시 최대 512자 메시지와 함께 승인 필요; 사용자 지정 별명; 다중 태그 분류 |
@@ -100,6 +100,8 @@ WeChat 스타일의 종단간 암호화 메신저. 무상태 ECDH + XSalsa20-Pol
 
 ### 옵션 0: Zeabur 원클릭 클라우드 배포
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
+
+> **Zeabur 회의 네트워크 제한:** 템플릿은 WebSocket/API 7880과 ICE/TCP 7881로 LiveKit을 배포합니다. 현재 Zeabur는 UDP 서비스 포트를 노출하지 않으므로 회의는 TCP 폴백을 사용하며 약한 네트워크에서 지연이나 품질 저하가 발생할 수 있습니다. UDP 7882 설정은 미리 준비되어 있습니다. 현재 프로덕션 100인 회의에는 LiveKit Cloud 또는 UDP를 지원하는 VM을 사용하십시오.
 
 > [!TIP]
 > **고급: Zeabur + Vercel 하이브리드 배포**

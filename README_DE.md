@@ -2,7 +2,7 @@
 
 Eine WeChat-ähnliche Ende-zu-Ende-verschlüsselte Instant-Messaging-App mit zustandslosem ECDH + XSalsa20-Poly1305 Pro-Nachricht-Verschlüsselung, Echtzeit-Videoanrufen, Cloudflare R2 Dateispeicher, Mehrsprachigkeit und iOS PWA-Bereitstellung.
 
-[![Rust](https://img.shields.io/badge/Rust-1.83+-orange)](#) [![React](https://img.shields.io/badge/React-19-blue)](#) [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](#) [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)](#) [![Redis](https://img.shields.io/badge/Redis-7.x-red)](#) [![WebRTC](https://img.shields.io/badge/WebRTC-P2P%20%2B%20Mesh-orange)](#) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
+[![Rust](https://img.shields.io/badge/Rust-1.83+-orange)](#) [![React](https://img.shields.io/badge/React-19-blue)](#) [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](#) [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)](#) [![Redis](https://img.shields.io/badge/Redis-7.x-red)](#) [![WebRTC](https://img.shields.io/badge/WebRTC-P2P%20%2B%20SFU-orange)](#) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
@@ -43,7 +43,7 @@ Eine WeChat-ähnliche Ende-zu-Ende-verschlüsselte Instant-Messaging-App mit zus
 |----------|--------------|
 | 🔐 Ende-zu-Ende-Verschlüsselung | Zustandsloses ECDH + XSalsa20-Poly1305 — Einmalschlüssel pro Nachricht, Forward Secrecy, Signal-ähnliche Sicherheitsnummernverifizierung |
 | 🗝️ Zero-Knowledge-Server | Server speichert nur Chiffretext; private Schlüssel verlassen niemals das Gerät |
-| 📹 Video- & Sprachanrufe | WebRTC P2P (1:1) + Mesh (Gruppe), Cloudflare TURN für NAT-Traversal |
+| 📹 Video- & Audiokonferenzen | WebRTC P2P (1:1) + LiveKit-SFU (bis zu 100 Teilnehmer), Alle stummschalten und Vortragsmodus |
 | 🎙️ Stimmverzerrer | Echtzeit-Stimmeffekte für Sprachnachrichten, 1:1-Anrufe und Gruppenanrufe — 3 Modi (0.8x tief / 1.0x normal / 1.2x hoch), basierend auf Web Audio API |
 | 👥 Gruppenchat | Bis zu 2000 Mitglieder, umschaltbare Modi „Verschlüsselt" / „Unverschlüsselt" (nur Besitzer, Umschalten löscht den Chatverlauf). Verschlüsselter Modus verwendet das Signal-Sender-Key-Protokoll (XSalsa20-Poly1305 symmetrische Verschlüsselung + ECDH-Schlüsselverteilung) — nur Gruppenmitglieder können Nachrichten entschlüsseln; Bots sind im verschlüsselten Modus deaktiviert. Nicht-stören-Modus, Mitgliederverwaltung |
 | 👫 Freundesystem | Freundschaftsanfragen erfordern Genehmigung mit bis zu 512 Zeichen Nachricht; Spitznamen; Multi-Tag-Gruppierung |
@@ -100,6 +100,8 @@ Kryptographische Schicht
 
 ### Option 0: Zeabur One-Click Cloud-Bereitstellung
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
+
+> **Zeabur-Netzwerkeinschränkung:** Die Vorlage stellt LiveKit über WebSocket/API 7880 und ICE/TCP 7881 bereit. Zeabur unterstützt derzeit keine öffentlichen UDP-Dienstports; Konferenzen verwenden daher TCP-Fallback und können in schwachen Netzen höhere Latenz haben. UDP 7882 ist bereits vorbereitet. Für produktive Konferenzen mit 100 Teilnehmern empfiehlt sich LiveKit Cloud oder eine VM mit UDP-Unterstützung.
 
 > [!TIP]
 > **Erweitert: Zeabur + Vercel Hybrid-Bereitstellung**

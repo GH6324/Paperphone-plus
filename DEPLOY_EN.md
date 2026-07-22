@@ -2,7 +2,7 @@
 
 This document provides detailed instructions for two recommended deployment methods for PaperPhonePlus, along with client-side server address configuration for all platforms.
 
-> **Key Concept**: The backend (server), database (MySQL), and cache (Redis) are deployed on a server; the frontend (client) can be independently deployed to CDN platforms like Vercel for better global performance. All clients (iOS / Android / Web / Windows / macOS) connect to the backend by entering the **server's address**.
+> **Key concept**: server, MySQL, Redis, and the LiveKit meeting SFU run on server infrastructure. The frontend may run on Vercel. Clients use the **server address** for application APIs and the server-provided `LIVEKIT_URL` for meetings.
 
 ---
 
@@ -16,7 +16,7 @@ This document provides detailed instructions for two recommended deployment meth
 
 ## Method 1: Zeabur Template + Vercel Frontend (Recommended)
 
-This approach deploys server, MySQL, and Redis on the Zeabur cloud platform, while the frontend is deployed to Vercel CDN for globally accelerated access.
+This approach deploys server, MySQL, Redis, and LiveKit on Zeabur, with the frontend on Vercel. Zeabur currently does not expose UDP service ports, so LiveKit falls back to ICE/TCP 7881. Meetings work, but weak-network quality is not equivalent to a production UDP deployment.
 
 ### Step 1: Deploy Using the Zeabur Template
 
@@ -26,12 +26,12 @@ This approach deploys server, MySQL, and Redis on the Zeabur cloud platform, whi
 
 2. Log in to your Zeabur account (GitHub login supported)
 3. Select a deployment region (choose the region closest to your target users)
-4. Fill in the environment variables as prompted (`JWT_SECRET`, `R2_*`, etc.) — see the [README](README_EN.md) for environment variable details
+4. Fill in the prompted variables. Use at least 32 random bytes for `LIVEKIT_API_SECRET`; the template supplies the same credentials to server and LiveKit
 5. Wait for all services to finish starting
 
 ### Step 2: Delete the client Service on Zeabur
 
-After deployment, Zeabur will automatically create four services: `client` (frontend), `server` (backend), `MySQL`, and `Redis`. Since we want to deploy the frontend separately on Vercel, we need to delete the client service on Zeabur:
+Zeabur creates five services: `client`, `server`, `MySQL`, `Redis`, and `LiveKit`. Delete only the client service when moving the frontend to Vercel:
 
 1. Go to the [Zeabur Dashboard](https://dash.zeabur.com)
 2. Find the project you just deployed
@@ -39,7 +39,14 @@ After deployment, Zeabur will automatically create four services: `client` (fron
 4. Go to Service Settings → scroll to the bottom and find **Delete Service**
 5. Confirm the deletion
 
-> ⚠️ Only delete the `client` service. **Do NOT** delete the `server`, `MySQL`, or `Redis` services.
+> ⚠️ Delete only `client`. Do **not** delete `server`, `MySQL`, `Redis`, or `LiveKit`.
+
+### Zeabur meeting limitation and upgrade path
+
+- The template exposes LiveKit WebSocket/API 7880 and ICE/TCP 7881. UDP 7882 remains configured internally but is not declared as a Zeabur port.
+- TCP fallback is suitable for functional testing and ordinary networks. For production-quality 100-person meetings, use LiveKit Cloud or host LiveKit on a public VM that exposes UDP 7882.
+- For external LiveKit, set `LIVEKIT_URL=wss://meeting.example.com` on the Zeabur server service and use identical `LIVEKIT_API_KEY` and `LIVEKIT_API_SECRET` values on both services.
+- When Zeabur adds UDP support, declare UDP 7882 on the LiveKit service and open it in the firewall. No client update is required.
 
 ### Step 3: Note the server Service Domain
 
@@ -123,6 +130,9 @@ Edit the `server/.env` file and configure the necessary environment variables:
 JWT_SECRET=your_random_secret_string          # Must change for production
 DB_PASS=your_database_password                # Keep consistent with docker-compose.yml
 ADMIN_PASSWORD=your_admin_panel_password      # Must change for production
+LIVEKIT_URL=wss://meeting.example.com
+LIVEKIT_API_KEY=your_meeting_api_key
+LIVEKIT_API_SECRET=at_least_32_random_bytes
 
 # Optional configuration (fill in as needed)
 R2_ACCOUNT_ID=...                             # Cloudflare R2 file storage
@@ -154,7 +164,7 @@ Edit `docker-compose.yml` and **delete the following block**:
     restart: unless-stopped
 ```
 
-After deletion, `docker-compose.yml` should only contain the `server`, `mysql`, and `redis` services.
+After deletion, keep the `server`, `mysql`, `redis`, and `livekit` services. Removing LiveKit makes the group-meeting token endpoint report that the SFU is not configured.
 
 ### Step 4: Start Docker Services
 

@@ -2,7 +2,7 @@
 
 一款微信风格的端对端加密即时通讯应用，采用无状态 ECDH + XSalsa20-Poly1305 逐消息加密，支持 iOS PWA 永久免签与 Cloudflare R2 文件存储。
 
-[![Rust](https://img.shields.io/badge/Rust-1.83+-orange)](#) [![React](https://img.shields.io/badge/React-19-blue)](#) [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](#) [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)](#) [![Redis](https://img.shields.io/badge/Redis-7.x-red)](#) [![WebRTC](https://img.shields.io/badge/WebRTC-P2P%20%2B%20Mesh-orange)](#) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
+[![Rust](https://img.shields.io/badge/Rust-1.83+-orange)](#) [![React](https://img.shields.io/badge/React-19-blue)](#) [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](#) [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)](#) [![Redis](https://img.shields.io/badge/Redis-7.x-red)](#) [![WebRTC](https://img.shields.io/badge/WebRTC-P2P%20%2B%20SFU-orange)](#) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
@@ -43,7 +43,7 @@
 |------|------|
 | 🔐 端对端加密 | 无状态 ECDH + XSalsa20-Poly1305，逐消息临时密钥，前向保密，Signal 风格安全号码验证 |
 | 🗝️ 零知识服务器 | 服务器只存储密文，私钥仅在设备本地（四层持久化） |
-| 📹 视频/语音通话 | WebRTC P2P（1:1）+ Mesh（多人），Cloudflare TURN 穿透 |
+| 📹 视频/语音会议 | WebRTC P2P（1:1）+ LiveKit SFU（最多100人），主席全员静音、讲课模式、Cloudflare TURN 穿透 |
 | 🎙️ 变声功能 | 语音消息 / 1v1 通话 / 群组通话均支持实时变声，3 档可选（0.8x 低沉 / 1.0x 正常 / 1.2x 尖锐），基于 Web Audio API 音频处理链 |
 | 👥 群聊 | 最多 2000 人群组，支持「加密」与「未加密」两种模式（群主可切换，切换清空历史消息）。加密模式采用 Signal 风格 Sender Key 协议（XSalsa20-Poly1305 对称加密 + ECDH 密钥分发），仅群成员可解密消息；加密模式下无法使用群机器人。免打扰模式，成员管理 |
 | 👫 好友系统 | 添加好友需对方审核，支持 512 字验证消息；备注名称；好友标签分组 |
@@ -100,6 +100,8 @@
 
 ### 方式零：Zeabur 一键云部署
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
+
+> **Zeabur 会议网络限制：** 模板会部署 LiveKit，并通过 WebSocket/API 7880 与 ICE/TCP 7881 提供会议连接。Zeabur 当前不支持 UDP 服务端口，因此可以使用 TCP 回退，但弱网延迟和画质可能下降。模板已预留 UDP 7882 配置；平台未来支持 UDP 后只需开放该端口。当前生产级百人会议建议使用 LiveKit Cloud，或将 LiveKit 部署到支持 UDP 的云主机。
 
 > [!TIP]
 > **进阶方案：Zeabur + Vercel 混合部署**
@@ -200,7 +202,7 @@ METERED_TURN_API_KEY=your_metered_api_key_here
 |------|----------|----------|
 | 私聊 1:1 视频 | WebRTC P2P + TURN | 所有场景 |
 | 私聊 1:1 语音 | WebRTC P2P + TURN | 所有场景 |
-| 群组多人语音/视频 | WebRTC Mesh（全连接） | ≤ 6 人 |
+| 群组多人语音/视频 | LiveKit SFU（自适应订阅、动态编码） | 最多 100 人（上线前按带宽和并发开摄像头数压测） |
 
 ### 变声功能说明
 
