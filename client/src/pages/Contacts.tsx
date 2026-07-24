@@ -116,7 +116,13 @@ export default function Contacts() {
       const params = new URLSearchParams({ q: query })
       const res = await get(`/api/users/search?${params.toString()}`)
       setSearchResults(res)
-    } catch {}
+      if (res.length === 0) {
+        alert(t('contacts.search_no_results'))
+      }
+    } catch (error: any) {
+      console.error('[Contacts] User search failed:', error)
+      alert(`${t('contacts.search_failed')}: ${error?.message || t('common.error')}`)
+    }
   }
 
   const sendFriendRequest = async (friendId: string) => {

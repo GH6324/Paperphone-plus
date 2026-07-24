@@ -75,6 +75,8 @@ export const zh: Record<string, string> = {
   'contacts.requests': '好友请求',
   'contacts.add': '添加好友',
   'contacts.search_user': '搜索用户...',
+  'contacts.search_no_results': '没有找到匹配的用户',
+  'contacts.search_failed': '搜索失败',
   'contacts.add_friend': '添加',
   'contacts.request_message_hint': '写一段验证消息（最多512字）',
   'contacts.pending': '等待确认',

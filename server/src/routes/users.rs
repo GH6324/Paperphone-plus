@@ -40,16 +40,34 @@ async fn search_users(
     let rows: Vec<(String, String, String, Option<String>, i8)> = sqlx::query_as(
         "SELECT id, username, nickname, avatar, is_online \
          FROM users \
-         WHERE username LIKE CONCAT('%', ?, '%') \
-            OR nickname LIKE CONCAT('%', ?, '%') \
+         WHERE CONVERT(username USING utf8mb4) COLLATE utf8mb4_unicode_ci \
+                   LIKE CONCAT('%', CONVERT(? USING utf8mb4) COLLATE utf8mb4_unicode_ci, '%') \
+            OR CONVERT(nickname USING utf8mb4) COLLATE utf8mb4_unicode_ci \
+                   LIKE CONCAT('%', CONVERT(? USING utf8mb4) COLLATE utf8mb4_unicode_ci, '%') \
          LIMIT 20"
     )
-    // Bind the original UTF-8 text rather than constructing a wildcard string
-    // in the application. This keeps the value and its connection encoding
-    // under MySQL/sqlx control.
     .bind(query).bind(query)
     .fetch_all(&state.db).await
-    .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
+    .map_err(|e| {
+        // Log only lengths, not the searched username itself.
+        tracing::error!(
+            query_bytes = query.len(),
+            query_chars = query.chars().count(),
+            error = %e,
+            "User search query failed"
+        );
+        (
+            axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({ "error": "User search failed" })),
+        )
+    })?;
+
+    tracing::debug!(
+        query_bytes = query.len(),
+        query_chars = query.chars().count(),
+        result_count = rows.len(),
+        "User search completed"
+    );
 
     let users: Vec<serde_json::Value> = rows.iter().map(|(id, username, nickname, avatar, online)| {
         serde_json::json!({ "id": id, "username": username, "nickname": nickname, "avatar": avatar, "is_online": *online == 1 })

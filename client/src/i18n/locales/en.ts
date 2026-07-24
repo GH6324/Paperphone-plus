@@ -70,6 +70,8 @@ export const en: Record<string, string> = {
   'contacts.requests': 'Friend Requests',
   'contacts.add': 'Add Friend',
   'contacts.search_user': 'Search users...',
+  'contacts.search_no_results': 'No matching users found',
+  'contacts.search_failed': 'Search failed',
   'contacts.add_friend': 'Add',
   'contacts.request_message_hint': 'Write a message (up to 512 chars)',
   'contacts.pending': 'Pending',
