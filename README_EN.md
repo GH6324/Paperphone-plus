@@ -6,7 +6,7 @@ A WeChat-style end-to-end encrypted instant messaging app with stateless ECDH + 
 
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
-[![Version](https://img.shields.io/badge/Version-2.4.7-orange)](client/package.json)
+[![Version](https://img.shields.io/badge/Version-2.5.1-orange)](client/package.json)
 
 [![Google Play](https://img.shields.io/badge/Google%20Play-Download-green?logo=google-play)](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus)
 [![App Store](https://img.shields.io/badge/App%20Store-Download-blue?logo=apple)](https://apps.apple.com/us/app/paperphoneplus/id6769265178)
@@ -55,7 +55,7 @@ A WeChat-style end-to-end encrypted instant messaging app with stateless ECDH + 
 | 👥 Group Chat | Up to 2000 members, switchable "Encrypted" / "Unencrypted" modes (owner-only toggle, switching clears chat history). Encrypted mode uses Signal-style Sender Key protocol (XSalsa20-Poly1305 symmetric encryption + ECDH key distribution) — only group members can decrypt messages; bots are disabled in encrypted mode. Do Not Disturb mode, member management |
 | 👫 Friend System | Friend requests require approval with up to 512-char message; custom nicknames; multi-tag grouping |
 | ⏱️ Auto-Delete Messages | 5 tiers (never / 1 day / 3 days / 1 week / 1 month), settable by either party in DMs, owner-only in groups |
-| 🔔 Push Notifications | Web Push (VAPID) + FCM + OneSignal + ntfy + APNS five-channel — reach users even when offline (iOS native + Chinese Android without Google Services supported) |
+| 🔔 Native push notifications | FCM + ntfy + APNS for Android and iOS clients |
 | 🌐 Multi-Language | Chinese, English, Japanese, Korean, French, German, Russian, Spanish — auto-detect + manual switch |
 | 📱 Native iOS Client | Uses operating-system secure storage and APNS; connects to the self-hosted backend |
 | 📱 Android Native App | Available on [Google Play](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus), with FCM push notification support |
@@ -197,20 +197,12 @@ Under **Profile > Message privacy**, you can enable an extra password for every 
 | `LIVEKIT_URL` | Public LiveKit WebSocket URL used by all calls | — |
 | `LIVEKIT_API_KEY` | API key shared by the server and LiveKit | — |
 | `LIVEKIT_API_SECRET` | API secret shared by the server and LiveKit | — |
-| `VAPID_PUBLIC_KEY` | Web Push VAPID public key (optional) | — |
-| `VAPID_PRIVATE_KEY` | Web Push VAPID private key (optional) | — |
-| `VAPID_SUBJECT` | VAPID contact email (optional) | `mailto:admin@paperphoneplus.app` |
 | `FCM_PROJECT_ID` | Firebase project ID (optional, Capacitor Android) | — |
 | `FCM_CLIENT_EMAIL` | Firebase service account email (optional) | — |
 | `FCM_PRIVATE_KEY` | Firebase service account private key (optional, supports both `\n` escape and real newlines; see below) | — |
 | `FCM_RELAY_SECRET` | FCM push relay secret (optional, set on relay host to enable endpoint) | — |
 | `FCM_RELAY_URL` | FCM push relay URL (optional, self-hosted servers point to relay host) | — |
 | `FCM_RELAY_KEY` | FCM push relay auth key (optional, must match relay host's `FCM_RELAY_SECRET`) | — |
-| `ONESIGNAL_APP_ID` | OneSignal App ID (optional) | — |
-| `ONESIGNAL_REST_KEY` | OneSignal REST API Key (optional) | — |
-| `ONESIGNAL_RELAY_SECRET` | OneSignal push relay secret (optional, set on relay host to enable endpoint) | — |
-| `ONESIGNAL_RELAY_URL` | OneSignal push relay URL (optional, self-hosted servers point to relay host) | — |
-| `ONESIGNAL_RELAY_KEY` | OneSignal push relay auth key (optional, must match relay host's `ONESIGNAL_RELAY_SECRET`) | — |
 | `NTFY_BASE_URL` | ntfy server URL (optional, uses public ntfy.sh by default) | `https://ntfy.sh` |
 | `NTFY_TOKEN` | ntfy auth token (optional, for self-hosted servers) | — |
 | `APNS_TEAM_ID` | Apple Developer Team ID (optional, iOS native push) | — |
@@ -348,11 +340,9 @@ APNS_RELAY_KEY=the_shared_secret_from_step_1
 
 > **Security note**: The relay only transmits push notification titles and summaries (e.g. "Someone sent you a message"), not actual message content. Device tokens cannot be used to read user data.
 
-### Push Relay (All Channels)
+### Native Push Relay
 
-For self-hosted server operators using someone else's published app (e.g. from the App Store/Google Play), you don't have the developer's push credentials (Apple .p8 Key / Firebase service account / OneSignal API Key).
 
-The Push Relay system provides relay capability for **APNS, FCM, and OneSignal** channels:
 
 **App developer** enables relay endpoints on their server:
 
@@ -360,7 +350,6 @@ The Push Relay system provides relay capability for **APNS, FCM, and OneSignal**
 # App developer's server .env
 APNS_RELAY_SECRET=a_long_random_string
 FCM_RELAY_SECRET=a_long_random_string
-ONESIGNAL_RELAY_SECRET=a_long_random_string
 ```
 
 **Self-hosted users** only need relay URL and key — **no push service credentials required**:
@@ -375,9 +364,6 @@ APNS_RELAY_KEY=shared_secret
 FCM_RELAY_URL=https://app-developer-server.com
 FCM_RELAY_KEY=shared_secret
 
-# OneSignal (Median.co-wrapped apps)
-ONESIGNAL_RELAY_URL=https://app-developer-server.com
-ONESIGNAL_RELAY_KEY=shared_secret
 ```
 
 > **Priority**: Local credentials → Push Relay → skip (silent). If both are configured, local direct connection takes priority.
@@ -394,8 +380,6 @@ APNS_RELAY_URL=https://619.chat
 APNS_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
 FCM_RELAY_URL=https://619.chat
 FCM_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
-ONESIGNAL_RELAY_URL=https://619.chat
-ONESIGNAL_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
 ```
 
 Add these lines to your self-hosted server's `.env` file.

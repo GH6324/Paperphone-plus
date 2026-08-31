@@ -6,7 +6,7 @@
 
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
-[![Version](https://img.shields.io/badge/Версия-2.4.7-orange)](client/package.json)
+[![Version](https://img.shields.io/badge/Версия-2.5.1-orange)](client/package.json)
 
 [![Google Play](https://img.shields.io/badge/Google%20Play-Скачать-green?logo=google-play)](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus)
 [![App Store](https://img.shields.io/badge/App%20Store-Скачать-blue?logo=apple)](https://apps.apple.com/us/app/paperphoneplus/id6769265178)
@@ -55,7 +55,7 @@
 | 👥 Групповой чат | До 2000 участников, переключаемые режимы «Зашифрованный» / «Незашифрованный» (только владелец, при переключении история чата очищается). Зашифрованный режим использует протокол Sender Key в стиле Signal (симметричное шифрование XSalsa20-Poly1305 + распределение ключей ECDH) — только участники группы могут расшифровать сообщения; боты недоступны в зашифрованном режиме. Режим «Не беспокоить», управление участниками |
 | 👫 Система друзей | Заявки в друзья требуют одобрения с сообщением до 512 символов; пользовательские никнеймы; группировка по нескольким тегам |
 | ⏱️ Автоудаление сообщений | 5 уровней (никогда / 1 день / 3 дня / 1 неделя / 1 месяц), настраивается любой стороной в личных сообщениях, только владельцем в группах |
-| 🔔 Push-уведомления | Web Push (VAPID) + FCM + OneSignal + ntfy + APNS пятиканальная доставка — доступность пользователей даже в офлайне (поддержка нативного iOS + китайских Android без Google Services) |
+| 🔔 Native push notifications | FCM + ntfy + APNS for Android and iOS clients |
 | 🌐 Мультиязычность | Китайский, английский, японский, корейский, французский, немецкий, русский, испанский — автоопределение + ручное переключение |
 | 📱 Нативный клиент iOS | Подключается к самостоятельно размещённому серверу |
 | 📱 Нативное Android-приложение | Доступно в [Google Play](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus), с поддержкой FCM push-уведомлений |
@@ -197,20 +197,12 @@ cd client && npm install && npm run dev  # shared frontend source only
 | `LIVEKIT_URL` | Публичный WebSocket URL LiveKit для всех звонков | — |
 | `LIVEKIT_API_KEY` | API Key, общий для сервера и LiveKit | — |
 | `LIVEKIT_API_SECRET` | API Secret, общий для сервера и LiveKit | — |
-| `VAPID_PUBLIC_KEY` | Публичный ключ Web Push VAPID (опционально) | — |
-| `VAPID_PRIVATE_KEY` | Приватный ключ Web Push VAPID (опционально) | — |
-| `VAPID_SUBJECT` | Контактный email VAPID (опционально) | `mailto:admin@paperphoneplus.app` |
 | `FCM_PROJECT_ID` | ID проекта Firebase (опционально, Capacitor Android) | — |
 | `FCM_CLIENT_EMAIL` | Email сервисного аккаунта Firebase (опционально) | — |
 | `FCM_PRIVATE_KEY` | Приватный ключ сервисного аккаунта Firebase (опционально, поддерживает как экранирование `\n`, так и реальные переводы строк; см. ниже) | — |
 | `FCM_RELAY_SECRET` | Секрет relay FCM push (опционально, установите на relay-хосте для активации эндпоинта) | — |
 | `FCM_RELAY_URL` | URL relay FCM push (опционально, self-hosted серверы указывают на relay-хост) | — |
 | `FCM_RELAY_KEY` | Ключ авторизации relay FCM push (опционально, должен совпадать с `FCM_RELAY_SECRET` relay-хоста) | — |
-| `ONESIGNAL_APP_ID` | OneSignal App ID (опционально) | — |
-| `ONESIGNAL_REST_KEY` | OneSignal REST API Key (опционально) | — |
-| `ONESIGNAL_RELAY_SECRET` | Секрет relay OneSignal push (опционально, установите на relay-хосте для активации эндпоинта) | — |
-| `ONESIGNAL_RELAY_URL` | URL relay OneSignal push (опционально, self-hosted серверы указывают на relay-хост) | — |
-| `ONESIGNAL_RELAY_KEY` | Ключ авторизации relay OneSignal push (опционально, должен совпадать с `ONESIGNAL_RELAY_SECRET` relay-хоста) | — |
 | `NTFY_BASE_URL` | URL сервера ntfy (опционально, по умолчанию используется публичный ntfy.sh) | `https://ntfy.sh` |
 | `NTFY_TOKEN` | Токен авторизации ntfy (опционально, для self-hosted серверов) | — |
 | `APNS_TEAM_ID` | Team ID разработчика Apple (опционально, нативный iOS push) | — |
@@ -349,11 +341,9 @@ APNS_RELAY_KEY=the_shared_secret_from_step_1
 
 > **Примечание по безопасности**: Relay передаёт только заголовки и краткие описания push-уведомлений (например, «Вам пришло новое сообщение»), а не фактическое содержание сообщений. Токены устройств не могут использоваться для чтения данных пользователей.
 
-### Push Relay (Все каналы)
+### Native Push Relay
 
-Для операторов self-hosted серверов, использующих чужое опубликованное приложение (например, из App Store/Google Play), у вас нет учётных данных push разработчика (Apple .p8 Key / сервисный аккаунт Firebase / API-ключ OneSignal).
 
-Система Push Relay обеспечивает возможность ретрансляции для каналов **APNS, FCM и OneSignal**:
 
 **Разработчик приложения** включает эндпоинты relay на своём сервере:
 
@@ -361,7 +351,6 @@ APNS_RELAY_KEY=the_shared_secret_from_step_1
 # .env сервера разработчика приложения
 APNS_RELAY_SECRET=a_long_random_string
 FCM_RELAY_SECRET=a_long_random_string
-ONESIGNAL_RELAY_SECRET=a_long_random_string
 ```
 
 **Пользователи self-hosted серверов** указывают только URL relay и ключ — **учётные данные push-сервисов не требуются**:
@@ -376,9 +365,6 @@ APNS_RELAY_KEY=shared_secret
 FCM_RELAY_URL=https://app-developer-server.com
 FCM_RELAY_KEY=shared_secret
 
-# OneSignal (приложения, обёрнутые через Median.co)
-ONESIGNAL_RELAY_URL=https://app-developer-server.com
-ONESIGNAL_RELAY_KEY=shared_secret
 ```
 
 > **Приоритет**: Локальные учётные данные → Push Relay → пропуск (без уведомления). Если оба варианта настроены, приоритет имеет прямое локальное подключение.
@@ -395,8 +381,6 @@ APNS_RELAY_URL=https://619.chat
 APNS_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
 FCM_RELAY_URL=https://619.chat
 FCM_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
-ONESIGNAL_RELAY_URL=https://619.chat
-ONESIGNAL_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
 ```
 
 Добавьте эти строки в файл `.env` вашего self-hosted сервера.

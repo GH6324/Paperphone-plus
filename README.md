@@ -6,7 +6,7 @@
 
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
-[![Version](https://img.shields.io/badge/版本-2.4.7-orange)](client/package.json)
+[![Version](https://img.shields.io/badge/版本-2.5.1-orange)](client/package.json)
 
 [![Google Play](https://img.shields.io/badge/Google%20Play-下载-green?logo=google-play)](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus)
 [![App Store](https://img.shields.io/badge/App%20Store-下载-blue?logo=apple)](https://apps.apple.com/us/app/paperphoneplus/id6769265178)
@@ -55,7 +55,7 @@
 | 👥 群聊 | 最多 2000 人群组，支持「加密」与「未加密」两种模式（群主可切换，切换清空历史消息）。加密模式采用 Signal 风格 Sender Key 协议（XSalsa20-Poly1305 对称加密 + ECDH 密钥分发），仅群成员可解密消息；加密模式下无法使用群机器人。免打扰模式，成员管理 |
 | 👫 好友系统 | 添加好友需对方审核，支持 512 字验证消息；备注名称；好友标签分组 |
 | ⏱️ 消息自动删除 | 5 档可选（永不/1天/3天/1周/1月），私聊双方均可设置，群聊群主专属 |
-| 🔔 消息推送 | Web Push (VAPID) + FCM + OneSignal + ntfy + APNS 五通道，离线也能收到通知（iOS 原生 + 国产安卓免 Google 服务） |
+| 🔔 原生消息推送 | FCM + ntfy + APNS，支持 Android 与 iOS 客户端离线通知 |
 | 🌐 多语言 | 中文、英文、日语、韩语、法语、德语、俄语、西班牙语（自动检测 + 手动切换） |
 | 📱 iOS 原生客户端 | 使用系统安全存储与 APNS，连接自托管后端 |
 | 📱 Android 原生 App | 已上架 [Google Play](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus)，支持 FCM 推送通知 |
@@ -192,43 +192,15 @@ cd client && npm install && npm run dev  # 仅调试共享前端代码
 
 ---
 
-离线消息通知通过**五通道**推送，最大化消息送达率：
+## 原生消息推送
+
+离线消息通知通过三个原生通道发送：
 
 | 通道 | 适用场景 | 配置 |
 |------|----------|------|
 | FCM (Firebase) | Capacitor 打包的原生 Android App | Firebase 服务账号 JSON |
-| OneSignal | Median.co 打包的原生 Android/iOS App | OneSignal App ID + REST Key |
 | ntfy | 国产安卓设备（华为/小米/OPPO/vivo 等无 Google 服务） | 无需配置（默认使用 ntfy.sh 公共服务） |
 | APNS | Capacitor 打包的原生 iOS App | Apple .p8 Key 或 Push Relay |
-
-### 配置 Web Push
-1. 生成 VAPID 密钥（仅需一次）：
-
-```bash
-npx web-push generate-vapid-keys
-```
-
-2. 填入 `server/.env`：
-
-```env
-VAPID_PUBLIC_KEY=your_public_key_here
-VAPID_PRIVATE_KEY=your_private_key_here
-VAPID_SUBJECT=mailto:admin@your-domain.com
-```
-
-3. 重启服务器，用户可在设置页开启通知
-
-> **iOS 用户**需先将应用「添加到主屏幕」，且仅 iOS 16.4+ 支持。
-
-### 配置 OneSignal（Median.co 原生 App）
-1. 在 [OneSignal Dashboard](https://onesignal.com) 创建 App 并配置 Firebase
-2. 在 Median.co 中启用 OneSignal 并填入 App ID
-3. 将 OneSignal 的 **App ID** 和 **REST API Key** 填入 `server/.env`：
-
-```env
-ONESIGNAL_APP_ID=your_onesignal_app_id
-ONESIGNAL_REST_KEY=your_onesignal_rest_api_key
-```
 
 ### 配置 FCM（Capacitor 原生 Android App）
 1. 在 [Firebase Console](https://console.firebase.google.com) 创建项目并添加 Android 应用
@@ -387,15 +359,12 @@ APNS_RELAY_KEY=与开发者约定的共享密钥
 
 ### Push Relay 推送中继
 
-对于自建服务器用户，如果你使用别人发布的 App（如从 App Store/Google Play 下载），你没有 App 开发者的推送凭据（Apple .p8 Key / Firebase 服务账号 / OneSignal API Key），无法直接发送推送通知。
 
-Push Relay 系统为 **APNS、FCM、OneSignal** 三个通道统一提供了推送中继能力：
 
 ```
 ┌──────────────────────┐       ┌─────────────────────────┐       ┌──────────────┐
 │  自建服务器            │  HTTP  │  App 开发者的服务器       │       │  推送服务      │
 │  (无推送凭据)          │──────→│  (有凭据 + Relay)        │──────→│  Apple/Google │
-│                      │       │                         │       │  OneSignal    │
 │  *_RELAY_URL=...     │       │  *_RELAY_SECRET=...     │       └──────────────┘
 │  *_RELAY_KEY=...     │       │                         │
 └──────────────────────┘       └─────────────────────────┘
@@ -407,7 +376,6 @@ Push Relay 系统为 **APNS、FCM、OneSignal** 三个通道统一提供了推�
 # App 开发者的服务器 .env
 APNS_RELAY_SECRET=一个长随机字符串
 FCM_RELAY_SECRET=一个长随机字符串
-ONESIGNAL_RELAY_SECRET=一个长随机字符串
 ```
 
 **自建用户**只需配置指向 Relay 的 URL 和密钥，**无需任何推送服务凭据**：
@@ -422,9 +390,6 @@ APNS_RELAY_KEY=与开发者约定的共享密钥
 FCM_RELAY_URL=https://app-developer-server.com
 FCM_RELAY_KEY=与开发者约定的共享密钥
 
-# OneSignal (Median.co 打包的 App)
-ONESIGNAL_RELAY_URL=https://app-developer-server.com
-ONESIGNAL_RELAY_KEY=与开发者约定的共享密钥
 ```
 
 > **优先级**：本地凭据 → Push Relay → 跳过（静默）。如果同时配置了本地凭据和 Relay，优先使用本地直连。
@@ -469,7 +434,6 @@ paperphoneplus/
 │       │   ├── timeline.rs          # 时间线（公开发帖/点赞/评论/匿名）
 │       │   ├── calls.rs             # LiveKit 私聊/会议令牌
 │       │   ├── push.rs              # 推送订阅管理
-│       │   ├── push_relay.rs        # APNS / FCM / OneSignal 推送中继端点
 │       │   ├── stickers.rs          # Telegram 贴纸包代理（缓存）
 │       │   ├── totp.rs              # TOTP 两步验证
 │       │   ├── sessions.rs          # 会话管理（多设备登录）
@@ -477,9 +441,7 @@ paperphoneplus/
 │       │   ├── report.rs            # 内容举报
 │       │   └── admin/               # 管理后台（内嵌 HTML SPA + API）
 │       ├── services/
-│       │   ├── push.rs              # Web Push VAPID 服务
 │       │   ├── fcm.rs               # Firebase Cloud Messaging 服务（直连 + Relay）
-│       │   ├── onesignal.rs         # OneSignal REST API 服务（直连 + Relay）
 │       │   ├── ntfy.rs              # ntfy 推送服务（国产安卓）
 │       │   └── apns.rs              # APNS 推送服务（iOS 原生 + Relay）
 │       └── ws/
@@ -546,9 +508,7 @@ paperphoneplus/
 | `moment_comments` | 评论（最多 512 字/条） |
 | `moment_visibility` | 动态可见性规则 |
 | `moment_privacy` | 朋友圈用户级隐私设置（不看/不让看） |
-| `push_subscriptions` | Web Push 推送订阅（VAPID） |
 | `fcm_tokens` | FCM 设备令牌（Capacitor Android） |
-| `onesignal_players` | OneSignal 设备注册（Median.co） |
 | `ntfy_subscriptions` | ntfy 推送订阅（国产安卓设备） |
 | `apns_tokens` | APNS 设备令牌（Capacitor iOS） |
 | `user_totp` | TOTP 两步验证密钥与恢复码 |
@@ -598,20 +558,12 @@ paperphoneplus/
 | `LIVEKIT_URL` | 所有音视频通话使用的 LiveKit 公网 WebSocket 地址 | — |
 | `LIVEKIT_API_KEY` | 服务端与 LiveKit 共享的 API Key | — |
 | `LIVEKIT_API_SECRET` | 服务端与 LiveKit 共享的 API Secret | — |
-| `VAPID_PUBLIC_KEY` | Web Push VAPID 公钥（可选） | — |
-| `VAPID_PRIVATE_KEY` | Web Push VAPID 私钥（可选） | — |
-| `VAPID_SUBJECT` | VAPID 联系邮箱（可选） | `mailto:admin@paperphoneplus.app` |
 | `FCM_PROJECT_ID` | Firebase 项目 ID（可选，Capacitor Android） | — |
 | `FCM_CLIENT_EMAIL` | Firebase 服务账号邮箱（可选） | — |
 | `FCM_PRIVATE_KEY` | Firebase 服务账号私钥（可选，支持 `\n` 转义和真实换行两种格式，详见[FCM 配置说明](#配置-fcmcapacitor-原生-android-app)） | — |
 | `FCM_RELAY_SECRET` | FCM 推送中继密钥（可选，在 Relay 主机上设置以启用中继端点） | — |
 | `FCM_RELAY_URL` | FCM 推送中继 URL（可选，自建服务器指向 Relay 主机） | — |
 | `FCM_RELAY_KEY` | FCM 推送中继认证密钥（可选，与 Relay 主机的 `FCM_RELAY_SECRET` 一致） | — |
-| `ONESIGNAL_APP_ID` | OneSignal App ID（可选，Median.co） | — |
-| `ONESIGNAL_REST_KEY` | OneSignal REST API Key（可选） | — |
-| `ONESIGNAL_RELAY_SECRET` | OneSignal 推送中继密钥（可选，在 Relay 主机上设置以启用中继端点） | — |
-| `ONESIGNAL_RELAY_URL` | OneSignal 推送中继 URL（可选，自建服务器指向 Relay 主机） | — |
-| `ONESIGNAL_RELAY_KEY` | OneSignal 推送中继认证密钥（可选，与 Relay 主机的 `ONESIGNAL_RELAY_SECRET` 一致） | — |
 | `NTFY_BASE_URL` | ntfy 服务器地址（可选，默认使用 ntfy.sh 公共服务） | `https://ntfy.sh` |
 | `NTFY_TOKEN` | ntfy 认证 Token（可选，自建服务器时使用） | — |
 | `APNS_TEAM_ID` | Apple Developer Team ID（可选，iOS 原生推送） | — |
@@ -639,8 +591,6 @@ APNS_RELAY_URL=https://619.chat
 APNS_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
 FCM_RELAY_URL=https://619.chat
 FCM_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
-ONESIGNAL_RELAY_URL=https://619.chat
-ONESIGNAL_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
 ```
 
 将以上内容添加到自建服务器的 `.env` 文件中即可。

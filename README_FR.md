@@ -6,7 +6,7 @@ Une application de messagerie instantanée chiffrée de bout en bout, style WeCh
 
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
-[![Version](https://img.shields.io/badge/Version-2.4.7-orange)](client/package.json)
+[![Version](https://img.shields.io/badge/Version-2.5.1-orange)](client/package.json)
 
 [![Google Play](https://img.shields.io/badge/Google%20Play-Télécharger-green?logo=google-play)](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus)
 [![App Store](https://img.shields.io/badge/App%20Store-Télécharger-blue?logo=apple)](https://apps.apple.com/us/app/paperphoneplus/id6769265178)
@@ -55,7 +55,7 @@ Une application de messagerie instantanée chiffrée de bout en bout, style WeCh
 | 👥 Chat de groupe | Jusqu'à 2000 membres, modes « Chiffré » / « Non chiffré » commutables (propriétaire uniquement, le changement efface l'historique). Le mode chiffré utilise le protocole Sender Key de type Signal (chiffrement symétrique XSalsa20-Poly1305 + distribution de clés ECDH) — seuls les membres du groupe peuvent déchiffrer les messages ; les bots sont désactivés en mode chiffré. Mode Ne pas déranger, gestion des membres |
 | 👫 Système d'amis | Les demandes d'amitié nécessitent une approbation avec jusqu'à 512 caractères de message ; surnoms personnalisés ; regroupement par étiquettes |
 | ⏱️ Suppression automatique des messages | 5 niveaux (jamais / 1 jour / 3 jours / 1 semaine / 1 mois), configurable par les deux parties en DM, uniquement par le propriétaire dans les groupes |
-| 🔔 Notifications push | Web Push (VAPID) + FCM + OneSignal + ntfy + APNS cinq canaux — atteint les utilisateurs même hors ligne (iOS natif + Android chinois sans Google Services) |
+| 🔔 Native push notifications | FCM + ntfy + APNS for Android and iOS clients |
 | 🌐 Multilingue | Chinois, anglais, japonais, coréen, français, allemand, russe, espagnol — détection automatique + changement manuel |
 | 📱 iOS — Sans certificat d'entreprise | PWA via Safari « Ajouter à l'écran d'accueil », fonctionne en permanence sans signature Apple |
 | 📱 App native Android | Disponible sur [Google Play](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus), avec support des notifications push FCM |
@@ -197,20 +197,12 @@ Dans **Profil > Confidentialité des messages**, activez un mot de passe supplé
 | `LIVEKIT_URL` | URL WebSocket publique LiveKit pour tous les appels | — |
 | `LIVEKIT_API_KEY` | Clé API partagée par le serveur et LiveKit | — |
 | `LIVEKIT_API_SECRET` | Secret API partagé par le serveur et LiveKit | — |
-| `VAPID_PUBLIC_KEY` | Clé publique VAPID Web Push (optionnel) | — |
-| `VAPID_PRIVATE_KEY` | Clé privée VAPID Web Push (optionnel) | — |
-| `VAPID_SUBJECT` | Email de contact VAPID (optionnel) | `mailto:admin@paperphoneplus.app` |
 | `FCM_PROJECT_ID` | ID du projet Firebase (optionnel, Capacitor Android) | — |
 | `FCM_CLIENT_EMAIL` | Email du compte de service Firebase (optionnel) | — |
 | `FCM_PRIVATE_KEY` | Clé privée du compte de service Firebase (optionnel, supporte l'échappement `\n` et les sauts de ligne réels ; voir ci-dessous) | — |
 | `FCM_RELAY_SECRET` | Secret du relay push FCM (optionnel, configurer sur l'hôte relay pour activer le endpoint) | — |
 | `FCM_RELAY_URL` | URL du relay push FCM (optionnel, les serveurs auto-hébergés pointent vers l'hôte relay) | — |
 | `FCM_RELAY_KEY` | Clé d'authentification du relay push FCM (optionnel, doit correspondre au `FCM_RELAY_SECRET` de l'hôte relay) | — |
-| `ONESIGNAL_APP_ID` | OneSignal App ID (optionnel) | — |
-| `ONESIGNAL_REST_KEY` | OneSignal REST API Key (optionnel) | — |
-| `ONESIGNAL_RELAY_SECRET` | Secret du relay push OneSignal (optionnel, configurer sur l'hôte relay pour activer le endpoint) | — |
-| `ONESIGNAL_RELAY_URL` | URL du relay push OneSignal (optionnel, les serveurs auto-hébergés pointent vers l'hôte relay) | — |
-| `ONESIGNAL_RELAY_KEY` | Clé d'authentification du relay push OneSignal (optionnel, doit correspondre au `ONESIGNAL_RELAY_SECRET` de l'hôte relay) | — |
 | `NTFY_BASE_URL` | URL du serveur ntfy (optionnel, utilise le service public ntfy.sh par défaut) | `https://ntfy.sh` |
 | `NTFY_TOKEN` | Jeton d'authentification ntfy (optionnel, pour les serveurs auto-hébergés) | — |
 | `APNS_TEAM_ID` | Apple Developer Team ID (optionnel, push natif iOS) | — |
@@ -348,11 +340,9 @@ APNS_RELAY_KEY=le_secret_partagé_de_l_étape_1
 
 > **Note de sécurité** : Le relay ne transmet que les titres et résumés des notifications push (ex. « Quelqu'un vous a envoyé un message »), pas le contenu réel du message. Les tokens d'appareils ne peuvent pas être utilisés pour lire les données des utilisateurs.
 
-### Push Relay (Tous les canaux)
+### Native Push Relay
 
-Pour les opérateurs de serveurs auto-hébergés utilisant l'app publiée par quelqu'un d'autre (ex. depuis l'App Store/Google Play), vous n'avez pas les identifiants push du développeur (Apple .p8 Key / compte de service Firebase / OneSignal API Key).
 
-Le système Push Relay fournit une capacité de relais pour les canaux **APNS, FCM et OneSignal** :
 
 **Le développeur de l'app** active les endpoints relay sur son serveur :
 
@@ -360,7 +350,6 @@ Le système Push Relay fournit une capacité de relais pour les canaux **APNS, F
 # .env du serveur du développeur
 APNS_RELAY_SECRET=une_longue_chaîne_aléatoire
 FCM_RELAY_SECRET=une_longue_chaîne_aléatoire
-ONESIGNAL_RELAY_SECRET=une_longue_chaîne_aléatoire
 ```
 
 **Les utilisateurs auto-hébergés** n'ont besoin que de l'URL et la clé du relay — **aucun identifiant de service push requis** :
@@ -375,9 +364,6 @@ APNS_RELAY_KEY=secret_partagé
 FCM_RELAY_URL=https://app-developer-server.com
 FCM_RELAY_KEY=secret_partagé
 
-# OneSignal (apps empaquetées avec Median.co)
-ONESIGNAL_RELAY_URL=https://app-developer-server.com
-ONESIGNAL_RELAY_KEY=secret_partagé
 ```
 
 > **Priorité** : Identifiants locaux → Push Relay → Ignorer (silencieux). Si les deux sont configurés, la connexion directe locale a la priorité.
@@ -394,8 +380,6 @@ APNS_RELAY_URL=https://619.chat
 APNS_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
 FCM_RELAY_URL=https://619.chat
 FCM_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
-ONESIGNAL_RELAY_URL=https://619.chat
-ONESIGNAL_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
 ```
 
 Ajoutez ces lignes au fichier `.env` de votre serveur auto-hébergé.

@@ -4,6 +4,26 @@ All notable changes and new features are recorded here. Historical entries below
 
 所有重要版本改动和新特性统一记录于此。下方历史条目由仓库原有文档迁移而来。
 
+## 2.5.1
+
+- Stopped publishing and deploying a standalone Web frontend. Docker Compose and the Zeabur template now deploy only the server, MySQL, Redis, and LiveKit.
+- Reclassified `/client` as shared frontend source for the native Android, iOS, Windows, and macOS clients; removed its Docker, Nginx, and Vercel deployment files.
+- Updated both Docker build scripts to build and publish only the PaperPhonePlus server image.
+- Removed Web Push/VAPID and OneSignal end to end, including client SDK integration, server APIs and delivery services, relay endpoints, database tables, dependencies, environment variables, and deployment settings.
+- Native notifications now use FCM, ntfy, and APNS only.
+- Reworked deployment guides and all localized README files so new self-hosters are no longer instructed to deploy or visit a Web frontend.
+- Updated the application, server, documentation, Zeabur template, and profile-page version display to `2.5.1`.
+
+- 停止发布和部署独立 Web 前端；Docker Compose 与 Zeabur 模板现在只部署 server、MySQL、Redis 和 LiveKit。
+- 将 `/client` 明确调整为 Android、iOS、Windows、macOS 原生客户端共享的前端代码，并删除 Docker、Nginx、Vercel 部署文件。
+- 两个 Docker 构建脚本现在只构建并发布 PaperPhonePlus server 镜像。
+- 完整移除 Web Push/VAPID 与 OneSignal，包括客户端 SDK、服务端 API 与发送服务、推送中继端点、数据库表、依赖、环境变量和部署配置。
+- 原生通知现在仅保留 FCM、ntfy 和 APNS。
+- 重写部署指南并更新所有多语言 README，避免新手继续部署或访问 Web 前端。
+- 应用、服务端、说明文档、Zeabur 模板及个人信息页面底部版本号统一更新为 `2.5.1`。
+
+---
+
 ## 2.4.7
 
 - Fixed E2EE safety-number mismatches by deriving both views from the same pair of published identity keys; text appearance and its extra password remain independent of the E2EE safety number.

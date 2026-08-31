@@ -1,7 +1,7 @@
 /**
  * Capacitor Native Push Notifications (FCM)
  *
- * Used on Android (Capacitor) instead of Web Push / OneSignal.
+ * Used by the native Android client for FCM registration.
  * Registers the device's FCM token with our server and handles
  * incoming push notification events.
  */

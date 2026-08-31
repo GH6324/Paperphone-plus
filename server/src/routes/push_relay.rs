@@ -5,13 +5,11 @@ use serde::Deserialize;
 use crate::AppState;
 use crate::services::apns::{send_push as apns_send_push, SendResult as ApnsSendResult};
 use crate::services::fcm::{send_push as fcm_send_push, SendResult as FcmSendResult};
-use crate::services::onesignal::{send_push as onesignal_send_push};
 
 pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/apns", post(relay_apns))
         .route("/fcm", post(relay_fcm))
-        .route("/onesignal", post(relay_onesignal))
 }
 
 // ── APNS Relay ──────────────────────────────────────────────────
@@ -180,74 +178,5 @@ async fn relay_fcm(
         "ok": true,
         "sent": sent,
         "stale_tokens": stale_tokens,
-    })))
-}
-
-// ── OneSignal Relay ─────────────────────────────────────────────
-
-#[derive(Deserialize)]
-struct RelayOneSignalReq {
-    relay_key: String,
-    player_ids: Vec<String>,
-    title: String,
-    body: String,
-}
-
-/// Push relay endpoint for OneSignal.
-///
-/// Self-hosted PaperPhonePlus servers call this endpoint to send push
-/// notifications through the relay's OneSignal credentials.
-///
-/// Authentication: The request must include a `relay_key` matching
-/// the relay server's `ONESIGNAL_RELAY_SECRET` environment variable.
-async fn relay_onesignal(
-    State(state): State<Arc<AppState>>,
-    Json(body): Json<RelayOneSignalReq>,
-) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    // Validate relay secret is configured on this server
-    let secret = match &state.config.onesignal_relay_secret {
-        Some(s) if !s.is_empty() => s.clone(),
-        _ => {
-            return Err((
-                axum::http::StatusCode::FORBIDDEN,
-                Json(serde_json::json!({"error": "OneSignal relay not enabled on this server"})),
-            ));
-        }
-    };
-
-    // Validate the caller's key
-    if body.relay_key != secret {
-        return Err((
-            axum::http::StatusCode::UNAUTHORIZED,
-            Json(serde_json::json!({"error": "Invalid relay key"})),
-        ));
-    }
-
-    // Ensure this server has OneSignal credentials configured
-    if state.config.onesignal_app_id.is_none()
-        || state.config.onesignal_rest_key.is_none()
-    {
-        return Err((
-            axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-            Json(serde_json::json!({"error": "OneSignal credentials not configured on relay server"})),
-        ));
-    }
-
-    if body.player_ids.is_empty() {
-        return Ok(Json(serde_json::json!({"ok": true, "sent": 0})));
-    }
-
-    let result = onesignal_send_push(&state.config, &body.player_ids, &body.title, &body.body).await;
-
-    let sent = matches!(result, crate::services::onesignal::SendResult::Sent);
-
-    tracing::info!(
-        "[OneSignal-Relay] Processed {} players: success={}",
-        body.player_ids.len(), sent
-    );
-
-    Ok(Json(serde_json::json!({
-        "ok": true,
-        "sent": if sent { body.player_ids.len() } else { 0 },
     })))
 }

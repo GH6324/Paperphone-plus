@@ -47,8 +47,8 @@ FROM debian:bookworm-slim AS runtime
 
 # Install ONLY the minimal runtime libraries needed:
 #   - ca-certificates : TLS root certs
-#   - libssl3         : OpenSSL shared lib (required by web-push/ece)
-#   - libcurl4        : HTTP client lib   (required by web-push/isahc)
+#   - libssl3         : OpenSSL shared library
+#   - libcurl4        : HTTP client library
 #   - curl            : CLI for healthcheck (libcurl4 already present, adds ~200KB)
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \

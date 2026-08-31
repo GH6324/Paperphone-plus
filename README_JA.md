@@ -6,7 +6,7 @@ WeChat スタイルのエンドツーエンド暗号化メッセンジャー。�
 
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
-[![Version](https://img.shields.io/badge/バージョン-2.4.7-orange)](client/package.json)
+[![Version](https://img.shields.io/badge/バージョン-2.5.1-orange)](client/package.json)
 
 [![Google Play](https://img.shields.io/badge/Google%20Play-ダウンロード-green?logo=google-play)](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus)
 [![App Store](https://img.shields.io/badge/App%20Store-ダウンロード-blue?logo=apple)](https://apps.apple.com/us/app/paperphoneplus/id6769265178)
@@ -55,7 +55,7 @@ WeChat スタイルのエンドツーエンド暗号化メッセンジャー。�
 | 👥 グループチャット | 最大 2000 人、「暗号化」/「非暗号化」モード切替可能（オーナーのみ、切替時にチャット履歴クリア）。暗号化モードは Signal 風 Sender Key プロトコル（XSalsa20-Poly1305 対称暗号 + ECDH 鍵配布）を使用 — グループメンバーのみ復号可能、暗号化モードではボット使用不可。おやすみモード、メンバー管理 |
 | 👫 フレンドシステム | 友達リクエストは承認制（最大 512 文字のメッセージ付き）、ニックネーム設定、マルチタググループ化 |
 | ⏱️ メッセージ自動削除 | 5 段階（なし / 1 日 / 3 日 / 1 週間 / 1 ヶ月）、DM では双方が設定可能、グループではオーナーのみ |
-| 🔔 プッシュ通知 | Web Push (VAPID) + FCM + OneSignal + ntfy + APNS 5 チャネル — オフラインでも通知到達（iOS ネイティブ + Google サービスなしの中国製 Android 対応） |
+| 🔔 Native push notifications | FCM + ntfy + APNS for Android and iOS clients |
 | 🌐 多言語対応 | 中国語、英語、日本語、韓国語、フランス語、ドイツ語、ロシア語、スペイン語 — 自動検出 + 手動切替 |
 | 📱 iOS ネイティブクライアント | セルフホストしたバックエンドに接続 |
 | 📱 Android ネイティブアプリ | [Google Play](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus) で公開中、FCM プッシュ通知対応 |
@@ -197,20 +197,12 @@ cd client && npm install && npm run dev  # shared frontend source only
 | `LIVEKIT_URL` | すべての通話で使用する公開 LiveKit WebSocket URL | — |
 | `LIVEKIT_API_KEY` | サーバーと LiveKit で共有する API Key | — |
 | `LIVEKIT_API_SECRET` | サーバーと LiveKit で共有する API Secret | — |
-| `VAPID_PUBLIC_KEY` | Web Push VAPID 公開鍵（オプション） | — |
-| `VAPID_PRIVATE_KEY` | Web Push VAPID 秘密鍵（オプション） | — |
-| `VAPID_SUBJECT` | VAPID 連絡先メール（オプション） | `mailto:admin@paperphoneplus.app` |
 | `FCM_PROJECT_ID` | Firebase プロジェクト ID（オプション、Capacitor Android） | — |
 | `FCM_CLIENT_EMAIL` | Firebase サービスアカウントメール（オプション） | — |
 | `FCM_PRIVATE_KEY` | Firebase サービスアカウント秘密鍵（オプション、`\n` エスケープと実際の改行の両方に対応。下記参照） | — |
 | `FCM_RELAY_SECRET` | FCM プッシュリレーシークレット（オプション、リレーホストでエンドポイントを有効化） | — |
 | `FCM_RELAY_URL` | FCM プッシュリレー URL（オプション、セルフホストサーバーがリレーホストを指定） | — |
 | `FCM_RELAY_KEY` | FCM プッシュリレー認証キー（オプション、リレーホストの `FCM_RELAY_SECRET` と一致が必要） | — |
-| `ONESIGNAL_APP_ID` | OneSignal App ID（オプション） | — |
-| `ONESIGNAL_REST_KEY` | OneSignal REST API Key（オプション） | — |
-| `ONESIGNAL_RELAY_SECRET` | OneSignal プッシュリレーシークレット（オプション、リレーホストでエンドポイントを有効化） | — |
-| `ONESIGNAL_RELAY_URL` | OneSignal プッシュリレー URL（オプション、セルフホストサーバーがリレーホストを指定） | — |
-| `ONESIGNAL_RELAY_KEY` | OneSignal プッシュリレー認証キー（オプション、リレーホストの `ONESIGNAL_RELAY_SECRET` と一致が必要） | — |
 | `NTFY_BASE_URL` | ntfy サーバー URL（オプション、デフォルトは公開 ntfy.sh サービス） | `https://ntfy.sh` |
 | `NTFY_TOKEN` | ntfy 認証トークン（オプション、セルフホストサーバー用） | — |
 | `APNS_TEAM_ID` | Apple Developer Team ID（オプション、iOS ネイティブプッシュ） | — |
@@ -348,11 +340,9 @@ APNS_RELAY_KEY=ステップ1の共有シークレット
 
 > **セキュリティ注意**: Relay はプッシュ通知のタイトルと概要のみを転送します（例：「誰かからメッセージが届きました」）。実際のメッセージ内容は含まれません。デバイストークンではユーザーデータの読み取りはできません。
 
-### Push Relay（全チャネル）
+### Native Push Relay
 
-セルフホストサーバー運営者が他の人が公開したアプリ（App Store/Google Play からダウンロード等）を使用している場合、開発者のプッシュ認証情報（Apple .p8 Key / Firebase サービスアカウント / OneSignal API Key）がありません。
 
-Push Relay システムは **APNS、FCM、OneSignal** チャネルのリレー機能を提供します：
 
 **アプリ開発者**がサーバーでリレーエンドポイントを有効化：
 
@@ -360,7 +350,6 @@ Push Relay システムは **APNS、FCM、OneSignal** チャネルのリレー�
 # アプリ開発者のサーバー .env
 APNS_RELAY_SECRET=長いランダムな文字列
 FCM_RELAY_SECRET=長いランダムな文字列
-ONESIGNAL_RELAY_SECRET=長いランダムな文字列
 ```
 
 **セルフホストユーザー**はリレー URL とキーのみ必要 — **プッシュサービス認証情報は不要**：
@@ -375,9 +364,6 @@ APNS_RELAY_KEY=共有シークレット
 FCM_RELAY_URL=https://app-developer-server.com
 FCM_RELAY_KEY=共有シークレット
 
-# OneSignal（Median.co でパッケージされたアプリ）
-ONESIGNAL_RELAY_URL=https://app-developer-server.com
-ONESIGNAL_RELAY_KEY=共有シークレット
 ```
 
 > **優先順位**: ローカル認証情報 → Push Relay → スキップ（サイレント）。両方設定されている場合、ローカル直接接続が優先されます。
@@ -394,8 +380,6 @@ APNS_RELAY_URL=https://619.chat
 APNS_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
 FCM_RELAY_URL=https://619.chat
 FCM_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
-ONESIGNAL_RELAY_URL=https://619.chat
-ONESIGNAL_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
 ```
 
 上記の行をセルフホストサーバーの `.env` ファイルに追加してください。

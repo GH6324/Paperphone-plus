@@ -6,7 +6,7 @@ WeChat 스타일의 종단간 암호화 메신저. 무상태 ECDH + XSalsa20-Pol
 
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
-[![Version](https://img.shields.io/badge/버전-2.4.7-orange)](client/package.json)
+[![Version](https://img.shields.io/badge/버전-2.5.1-orange)](client/package.json)
 
 [![Google Play](https://img.shields.io/badge/Google%20Play-다운로드-green?logo=google-play)](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus)
 [![App Store](https://img.shields.io/badge/App%20Store-다운로드-blue?logo=apple)](https://apps.apple.com/us/app/paperphoneplus/id6769265178)
@@ -55,7 +55,7 @@ WeChat 스타일의 종단간 암호화 메신저. 무상태 ECDH + XSalsa20-Pol
 | 👥 그룹 채팅 | 최대 2000명, "암호화" / "비암호화" 모드 전환 가능 (그룹 소유자만 전환 가능, 전환 시 채팅 기록 삭제). 암호화 모드는 Signal 스타일 Sender Key 프로토콜 (XSalsa20-Poly1305 대칭 암호화 + ECDH 키 배포) 사용 — 그룹 멤버만 메시지 복호화 가능, 암호화 모드에서는 봇 사용 불가. 방해 금지 모드, 멤버 관리 |
 | 👫 친구 시스템 | 친구 요청 시 최대 512자 메시지와 함께 승인 필요; 사용자 지정 별명; 다중 태그 분류 |
 | ⏱️ 메시지 자동 삭제 | 5단계 (없음 / 1일 / 3일 / 1주일 / 1개월), DM에서는 양쪽 모두 설정 가능, 그룹에서는 소유자만 설정 가능 |
-| 🔔 푸시 알림 | Web Push (VAPID) + FCM + OneSignal + ntfy + APNS 5채널 — 오프라인 사용자에게도 전달 (iOS 네이티브 + Google 서비스 없는 중국산 Android 지원) |
+| 🔔 Native push notifications | FCM + ntfy + APNS for Android and iOS clients |
 | 🌐 다국어 지원 | 중국어, 영어, 일본어, 한국어, 프랑스어, 독일어, 러시아어, 스페인어 — 자동 감지 + 수동 전환 |
 | 📱 iOS 네이티브 클라이언트 | 자체 호스팅 백엔드에 연결 |
 | 📱 Android 네이티브 앱 | [Google Play](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus)에서 다운로드 가능, FCM 푸시 알림 지원 |
@@ -197,20 +197,12 @@ cd client && npm install && npm run dev  # shared frontend source only
 | `LIVEKIT_URL` | 모든 통화에 사용하는 공개 LiveKit WebSocket URL | — |
 | `LIVEKIT_API_KEY` | 서버와 LiveKit이 공유하는 API Key | — |
 | `LIVEKIT_API_SECRET` | 서버와 LiveKit이 공유하는 API Secret | — |
-| `VAPID_PUBLIC_KEY` | Web Push VAPID 공개 키 (선택 사항) | — |
-| `VAPID_PRIVATE_KEY` | Web Push VAPID 개인 키 (선택 사항) | — |
-| `VAPID_SUBJECT` | VAPID 연락처 이메일 (선택 사항) | `mailto:admin@paperphoneplus.app` |
 | `FCM_PROJECT_ID` | Firebase 프로젝트 ID (선택 사항, Capacitor Android) | — |
 | `FCM_CLIENT_EMAIL` | Firebase 서비스 계정 이메일 (선택 사항) | — |
 | `FCM_PRIVATE_KEY` | Firebase 서비스 계정 개인 키 (선택 사항, `\n` 이스케이프 및 실제 줄바꿈 모두 지원; 아래 참조) | — |
 | `FCM_RELAY_SECRET` | FCM 푸시 릴레이 시크릿 (선택 사항, 릴레이 호스트에 설정하여 엔드포인트 활성화) | — |
 | `FCM_RELAY_URL` | FCM 푸시 릴레이 URL (선택 사항, 셀프 호스팅 서버에서 릴레이 호스트로 연결) | — |
 | `FCM_RELAY_KEY` | FCM 푸시 릴레이 인증 키 (선택 사항, 릴레이 호스트의 `FCM_RELAY_SECRET`과 일치해야 합니다) | — |
-| `ONESIGNAL_APP_ID` | OneSignal App ID (선택 사항) | — |
-| `ONESIGNAL_REST_KEY` | OneSignal REST API Key (선택 사항) | — |
-| `ONESIGNAL_RELAY_SECRET` | OneSignal 푸시 릴레이 시크릿 (선택 사항, 릴레이 호스트에 설정하여 엔드포인트 활성화) | — |
-| `ONESIGNAL_RELAY_URL` | OneSignal 푸시 릴레이 URL (선택 사항, 셀프 호스팅 서버에서 릴레이 호스트로 연결) | — |
-| `ONESIGNAL_RELAY_KEY` | OneSignal 푸시 릴레이 인증 키 (선택 사항, 릴레이 호스트의 `ONESIGNAL_RELAY_SECRET`과 일치해야 합니다) | — |
 | `NTFY_BASE_URL` | ntfy 서버 URL (선택 사항, 기본적으로 공개 ntfy.sh 사용) | `https://ntfy.sh` |
 | `NTFY_TOKEN` | ntfy 인증 토큰 (선택 사항, 셀프 호스팅 서버용) | — |
 | `APNS_TEAM_ID` | Apple Developer Team ID (선택 사항, iOS 네이티브 푸시) | — |
@@ -350,9 +342,7 @@ APNS_RELAY_KEY=the_shared_secret_from_step_1
 
 ### 푸시 릴레이 (전체 채널)
 
-다른 사람이 게시한 앱 (예: App Store/Google Play에서)을 사용하는 셀프 호스팅 서버 운영자의 경우, 개발자의 푸시 자격 증명 (Apple .p8 Key / Firebase 서비스 계정 / OneSignal API Key)이 없습니다.
 
-푸시 릴레이 시스템은 **APNS, FCM, OneSignal** 채널에 대한 릴레이 기능을 제공합니다:
 
 **앱 개발자**가 서버에서 릴레이 엔드포인트를 활성화합니다:
 
@@ -360,7 +350,6 @@ APNS_RELAY_KEY=the_shared_secret_from_step_1
 # 앱 개발자 서버 .env
 APNS_RELAY_SECRET=a_long_random_string
 FCM_RELAY_SECRET=a_long_random_string
-ONESIGNAL_RELAY_SECRET=a_long_random_string
 ```
 
 **셀프 호스팅 사용자**는 릴레이 URL과 키만 필요합니다 — **푸시 서비스 자격 증명이 필요 없습니다**:
@@ -375,9 +364,6 @@ APNS_RELAY_KEY=shared_secret
 FCM_RELAY_URL=https://app-developer-server.com
 FCM_RELAY_KEY=shared_secret
 
-# OneSignal (Median.co 래핑 앱)
-ONESIGNAL_RELAY_URL=https://app-developer-server.com
-ONESIGNAL_RELAY_KEY=shared_secret
 ```
 
 > **우선순위**: 로컬 자격 증명 → 푸시 릴레이 → 건너뛰기 (무음). 둘 다 설정된 경우 로컬 직접 연결이 우선합니다.
@@ -394,8 +380,6 @@ APNS_RELAY_URL=https://619.chat
 APNS_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
 FCM_RELAY_URL=https://619.chat
 FCM_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
-ONESIGNAL_RELAY_URL=https://619.chat
-ONESIGNAL_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
 ```
 
 위 줄을 셀프 호스팅 서버의 `.env` 파일에 추가하세요.

@@ -8,15 +8,13 @@ import { disconnectWs } from '../api/socket'
 import { get, post, put, del, uploadFile } from '../api/http'
 import { allLangs, langNames, LangCode } from '../i18n'
 import { QRCodeCanvas } from '../components/QRCode'
-import { isPushSupported, isPushSubscribed, subscribePush, unsubscribePush } from '../api/push'
-import { logoutOneSignal } from '../api/onesignal'
-import { Camera, ChevronLeft, ChevronRight, Smartphone, Check, Copy, KeyRound, Shield, Fingerprint, Moon, Globe, Bell, Download as DownloadIcon, Monitor, CheckCircle, FileText, ExternalLink, Wifi, Trash2, AlertTriangle } from 'lucide-react'
+import { Camera, ChevronLeft, ChevronRight, Smartphone, Check, Copy, KeyRound, Shield, Fingerprint, Moon, Globe, Bell, Monitor, CheckCircle, FileText, ExternalLink, Wifi, Trash2, AlertTriangle } from 'lucide-react'
 import { clearOfflineCache } from '../utils/offlineCache'
 import { PRESENTATION_CODECS, type PresentationCodecId } from '../crypto/presentationCodec'
 import { disablePresentationCrypto, enablePresentationCrypto, getPresentationSettings, isPresentationUnlocked, lockPresentationCrypto, unlockPresentationCrypto, updatePresentationSettings } from '../crypto/presentationCrypto'
 
 type SubView = null | 'password' | 'avatar' | '2fa' | 'sessions' | 'language' | 'fingerprint' | 'myqr' | 'proxy' | 'message-privacy'
-const APP_VERSION = '2.4.7'
+const APP_VERSION = '2.5.1'
 
 export default function Profile() {
   const { t } = useI18n()
@@ -31,20 +29,6 @@ export default function Profile() {
 
   const [subView, setSubView] = useState<SubView>(null)
   const [clearingCache, setClearingCache] = useState(false)
-
-  // Push notifications state
-  const [pushEnabled, setPushEnabled] = useState(false)
-  const [pushLoading, setPushLoading] = useState(false)
-  const pushSupported = isPushSupported()
-
-  // iOS standalone detection
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
-  const isStandalone = (window.navigator as any).standalone === true || window.matchMedia('(display-mode: standalone)').matches
-  const showIOSInstall = isIOS && !isStandalone
-
-  useEffect(() => {
-    isPushSubscribed().then(setPushEnabled)
-  }, [])
 
   // ntfy state
   const [ntfyTopic, setNtfyTopic] = useState('')
@@ -70,30 +54,6 @@ export default function Profile() {
       .catch(() => {})
   }, [])
 
-  const togglePush = async () => {
-    setPushLoading(true)
-    try {
-      if (pushEnabled) {
-        await unsubscribePush()
-        setPushEnabled(false)
-      } else {
-        const ok = await subscribePush()
-        setPushEnabled(ok)
-        if (!ok) {
-          // Check why it failed
-          if ('Notification' in window && Notification.permission === 'denied') {
-            alert(t('profile.push_blocked') || 'Notifications are blocked. Please enable them in your browser settings.')
-          } else {
-            alert(t('profile.push_failed') || 'Failed to enable notifications. Check console for details.')
-          }
-        }
-      }
-    } catch (e) {
-      console.error('[Push] Toggle failed:', e)
-    }
-    setPushLoading(false)
-  }
-
   const handleLogout = async () => {
     // Revoke the durable device session before removing local credentials.
     // If offline, local logout still completes and the token expires server-side.
@@ -108,7 +68,6 @@ export default function Profile() {
     // breaking sender key distributions for all group members.
     // Only clear sender key cache (it will be re-fetched on next login).
     clearAllSenderKeys()
-    logoutOneSignal()
     logout()
     navigate('/login')
   }
@@ -142,7 +101,6 @@ export default function Profile() {
       await post('/api/users/delete', { password: deletePassword })
       disconnectWs()
       clearKeys()
-      logoutOneSignal()
       logout()
       navigate('/login')
     } catch (err: any) {
@@ -237,35 +195,6 @@ export default function Profile() {
           <span className="label"><Trash2 size={16} /> {t('profile.clear_cache')}</span>
           <span className="value">{clearingCache ? t('common.loading') : ''}</span>
         </div>
-
-        {/* Push notifications */}
-        {pushSupported && (
-          <div className="settings-item" onClick={togglePush} style={{ opacity: pushLoading ? 0.5 : 1 }}>
-            <span className="label"><Bell size={16} /> {t('profile.notifications')}</span>
-            <div className={`toggle ${pushEnabled ? 'active' : ''}`} />
-          </div>
-        )}
-
-        {/* iOS PWA Install Guide */}
-        {showIOSInstall && (
-          <>
-            <div className="divider" />
-            <div style={{
-              margin: '0 16px', padding: '16px', borderRadius: 12,
-              background: 'linear-gradient(135deg, rgba(99,102,241,0.12), rgba(168,85,247,0.12))',
-              border: '1px solid rgba(99,102,241,0.2)',
-            }}>
-              <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 8 }}>
-                <DownloadIcon size={16} /> {t('pwa.install_title')}
-              </div>
-              <div style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>
-                {t('pwa.install_step1')}<br />
-                {t('pwa.install_step2')}<br />
-                {t('pwa.install_step3')}
-              </div>
-            </div>
-          </>
-        )}
 
         {/* ntfy Push for Chinese Android */}
         {isAndroid && ntfyTopic && (

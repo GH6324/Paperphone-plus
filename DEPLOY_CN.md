@@ -36,7 +36,7 @@ LIVEKIT_API_KEY=请替换为通话API密钥
 LIVEKIT_API_SECRET=请替换为至少32字节的随机密钥
 ```
 
-确保数据库、Redis 和 LiveKit 的密码/密钥与 `docker-compose.yml` 使用的值一致。R2、FCM、OneSignal、ntfy、APNS 等配置均为按需启用。
+确保数据库、Redis 和 LiveKit 的密码/密钥与 `docker-compose.yml` 使用的值一致。R2、FCM、ntfy、APNS 等配置均为按需启用。
 
 ### 启动后端服务
 

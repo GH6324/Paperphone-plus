@@ -36,7 +36,7 @@ LIVEKIT_API_KEY=replace_with_the_call_api_key
 LIVEKIT_API_SECRET=replace_with_at_least_32_random_bytes
 ```
 
-Keep database, Redis, and LiveKit credentials consistent with `docker-compose.yml`. R2, FCM, OneSignal, ntfy, and APNS settings are optional.
+Keep database, Redis, and LiveKit credentials consistent with `docker-compose.yml`. R2, FCM, ntfy, and APNS settings are optional.
 
 ### Start backend services
 

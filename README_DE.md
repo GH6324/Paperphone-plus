@@ -6,7 +6,7 @@ Eine WeChat-ähnliche Ende-zu-Ende-verschlüsselte Instant-Messaging-App mit zus
 
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
-[![Version](https://img.shields.io/badge/Version-2.4.7-orange)](client/package.json)
+[![Version](https://img.shields.io/badge/Version-2.5.1-orange)](client/package.json)
 
 [![Google Play](https://img.shields.io/badge/Google%20Play-Herunterladen-green?logo=google-play)](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus)
 [![App Store](https://img.shields.io/badge/App%20Store-Herunterladen-blue?logo=apple)](https://apps.apple.com/us/app/paperphoneplus/id6769265178)
@@ -55,7 +55,7 @@ Eine WeChat-ähnliche Ende-zu-Ende-verschlüsselte Instant-Messaging-App mit zus
 | 👥 Gruppenchat | Bis zu 2000 Mitglieder, umschaltbare Modi „Verschlüsselt" / „Unverschlüsselt" (nur Besitzer, Umschalten löscht den Chatverlauf). Verschlüsselter Modus verwendet das Signal-Sender-Key-Protokoll (XSalsa20-Poly1305 symmetrische Verschlüsselung + ECDH-Schlüsselverteilung) — nur Gruppenmitglieder können Nachrichten entschlüsseln; Bots sind im verschlüsselten Modus deaktiviert. Nicht-stören-Modus, Mitgliederverwaltung |
 | 👫 Freundesystem | Freundschaftsanfragen erfordern Genehmigung mit bis zu 512 Zeichen Nachricht; Spitznamen; Multi-Tag-Gruppierung |
 | ⏱️ Automatisches Löschen | 5 Stufen (nie / 1 Tag / 3 Tage / 1 Woche / 1 Monat), von beiden Seiten in DMs einstellbar, nur Besitzer in Gruppen |
-| 🔔 Push-Benachrichtigungen | Web Push (VAPID) + FCM + OneSignal + ntfy + APNS Fünf-Kanal — Benachrichtigungen auch offline (iOS nativ + chinesische Android-Geräte ohne Google-Dienste) |
+| 🔔 Native push notifications | FCM + ntfy + APNS for Android and iOS clients |
 | 🌐 Mehrsprachig | Chinesisch, Englisch, Japanisch, Koreanisch, Französisch, Deutsch, Russisch, Spanisch — Autoerkennung + manueller Wechsel |
 | 📱 Nativer iOS-Client | Verbindet sich mit dem selbst gehosteten Backend |
 | 📱 Android Native App | Verfügbar bei [Google Play](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus), mit FCM-Push-Unterstützung |
@@ -197,20 +197,12 @@ Unter **Profil > Nachrichtenschutz** kann ein Zusatzpasswort für alle Chats auf
 | `LIVEKIT_URL` | Öffentliche LiveKit-WebSocket-Adresse für alle Anrufe | — |
 | `LIVEKIT_API_KEY` | Gemeinsamer API-Schlüssel für Server und LiveKit | — |
 | `LIVEKIT_API_SECRET` | Gemeinsames API-Secret für Server und LiveKit | — |
-| `VAPID_PUBLIC_KEY` | Web Push VAPID Public Key (optional) | — |
-| `VAPID_PRIVATE_KEY` | Web Push VAPID Private Key (optional) | — |
-| `VAPID_SUBJECT` | VAPID Kontakt-E-Mail (optional) | `mailto:admin@paperphoneplus.app` |
 | `FCM_PROJECT_ID` | Firebase Projekt-ID (optional, Capacitor Android) | — |
 | `FCM_CLIENT_EMAIL` | Firebase-Dienstkonto-E-Mail (optional) | — |
 | `FCM_PRIVATE_KEY` | Firebase-Dienstkonto Private Key (optional, unterstützt sowohl `\n`-Escape als auch echte Zeilenumbrüche; siehe unten) | — |
 | `FCM_RELAY_SECRET` | FCM Push-Relay-Geheimnis (optional, auf Relay-Host setzen) | — |
 | `FCM_RELAY_URL` | FCM Push-Relay-URL (optional, selbstgehostete Server zeigen auf Relay-Host) | — |
 | `FCM_RELAY_KEY` | FCM Push-Relay-Auth-Schlüssel (optional, muss mit `FCM_RELAY_SECRET` des Relay-Hosts übereinstimmen) | — |
-| `ONESIGNAL_APP_ID` | OneSignal App ID (optional) | — |
-| `ONESIGNAL_REST_KEY` | OneSignal REST API Key (optional) | — |
-| `ONESIGNAL_RELAY_SECRET` | OneSignal Push-Relay-Geheimnis (optional, auf Relay-Host setzen) | — |
-| `ONESIGNAL_RELAY_URL` | OneSignal Push-Relay-URL (optional, selbstgehostete Server zeigen auf Relay-Host) | — |
-| `ONESIGNAL_RELAY_KEY` | OneSignal Push-Relay-Auth-Schlüssel (optional, muss mit `ONESIGNAL_RELAY_SECRET` des Relay-Hosts übereinstimmen) | — |
 | `NTFY_BASE_URL` | ntfy Server-URL (optional, nutzt standardmäßig öffentlichen ntfy.sh-Dienst) | `https://ntfy.sh` |
 | `NTFY_TOKEN` | ntfy Auth-Token (optional, für selbstgehostete Server) | — |
 | `APNS_TEAM_ID` | Apple Developer Team ID (optional, iOS native Push) | — |
@@ -348,11 +340,9 @@ APNS_RELAY_KEY=gemeinsamer_Schlüssel_aus_Schritt_1
 
 > **Sicherheitshinweis**: Der Relay überträgt nur Push-Benachrichtigungstitel und Zusammenfassungen (z.B. „Jemand hat Ihnen eine Nachricht gesendet"), nicht den eigentlichen Nachrichteninhalt. Geräte-Tokens können nicht zum Lesen von Benutzerdaten verwendet werden.
 
-### Push Relay (Alle Kanäle)
+### Native Push Relay
 
-Für selbstgehostete Server-Betreiber, die die veröffentlichte App eines anderen verwenden (z.B. aus dem App Store/Google Play), haben Sie keine Push-Zugangsdaten des Entwicklers (Apple .p8 Key / Firebase-Dienstkonto / OneSignal API Key).
 
-Das Push-Relay-System bietet Relay-Fähigkeit für **APNS, FCM und OneSignal** Kanäle:
 
 **App-Entwickler** aktiviert Relay-Endpunkte auf seinem Server:
 
@@ -360,7 +350,6 @@ Das Push-Relay-System bietet Relay-Fähigkeit für **APNS, FCM und OneSignal** K
 # Server des App-Entwicklers .env
 APNS_RELAY_SECRET=ein_langer_zufälliger_String
 FCM_RELAY_SECRET=ein_langer_zufälliger_String
-ONESIGNAL_RELAY_SECRET=ein_langer_zufälliger_String
 ```
 
 **Selbstgehostete Benutzer** benötigen nur Relay-URL und Schlüssel — **keine Push-Service-Zugangsdaten erforderlich**:
@@ -375,9 +364,6 @@ APNS_RELAY_KEY=gemeinsamer_Schlüssel
 FCM_RELAY_URL=https://app-developer-server.com
 FCM_RELAY_KEY=gemeinsamer_Schlüssel
 
-# OneSignal (Median.co-verpackte Apps)
-ONESIGNAL_RELAY_URL=https://app-developer-server.com
-ONESIGNAL_RELAY_KEY=gemeinsamer_Schlüssel
 ```
 
 > **Priorität**: Lokale Zugangsdaten → Push Relay → Überspringen (still). Wenn beide konfiguriert sind, hat die lokale Direktverbindung Vorrang.
@@ -394,8 +380,6 @@ APNS_RELAY_URL=https://619.chat
 APNS_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
 FCM_RELAY_URL=https://619.chat
 FCM_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
-ONESIGNAL_RELAY_URL=https://619.chat
-ONESIGNAL_RELAY_KEY=EzmpqftbsENaRUO6BTABxLV96q7RuEDyokXJr1DWdDjL54cLg7yXVUQqydCQvxrX
 ```
 
 Diese Zeilen zur `.env`-Datei Ihres selbstgehosteten Servers hinzufügen.

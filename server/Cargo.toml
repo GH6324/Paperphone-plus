@@ -1,6 +1,6 @@
 [package]
 name = "paperphone-plus-server"
-version = "1.0.0"
+version = "2.5.1"
 edition = "2021"
 description = "PaperPhonePlus IM Backend — Secure messaging server in Rust"
 
@@ -47,9 +47,6 @@ aws-sdk-s3 = "1"
 aws-config = "1"
 aws-credential-types = "1"
 
-# Push notifications
-web-push = "0.10"
-
 # TOTP
 totp-rs = { version = "5", features = ["qr", "gen_secret"] }
 
@@ -58,7 +55,7 @@ qrcode = "0.14"
 image = "0.25"
 base64 = "0.22"
 
-# HTTP client (for Telegram sticker proxy, OneSignal, CF TURN)
+# HTTP client (for Telegram sticker proxy, push relays, and other HTTPS APIs)
 reqwest = { version = "0.12", default-features = false, features = ["json", "multipart", "rustls-tls", "http2"] }
 
 # Logging
