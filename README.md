@@ -1,6 +1,6 @@
 🌐 **其他语言 / Other Languages:** [English](README_EN.md) · [日本語](README_JA.md) · [한국어](README_KO.md) · [Français](README_FR.md) · [Deutsch](README_DE.md) · [Русский](README_RU.md) · [Español](README_ES.md)
 
-一款微信风格的端对端加密即时通讯应用，采用无状态 ECDH + XSalsa20-Poly1305 逐消息加密，支持 iOS PWA 永久免签与 Cloudflare R2 文件存储。
+一款微信风格的端对端加密即时通讯应用，采用无状态 ECDH + XSalsa20-Poly1305 逐消息加密，支持 Android、iOS、Windows、macOS 原生客户端与 Cloudflare R2 文件存储。
 
 [![Rust](https://img.shields.io/badge/Rust-1.83+-orange)](#) [![React](https://img.shields.io/badge/React-19-blue)](#) [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](#) [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)](#) [![Redis](https://img.shields.io/badge/Redis-7.x-red)](#) [![WebRTC](https://img.shields.io/badge/WebRTC-LiveKit%20SFU-orange)](#) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 
@@ -57,7 +57,7 @@
 | ⏱️ 消息自动删除 | 5 档可选（永不/1天/3天/1周/1月），私聊双方均可设置，群聊群主专属 |
 | 🔔 消息推送 | Web Push (VAPID) + FCM + OneSignal + ntfy + APNS 五通道，离线也能收到通知（iOS 原生 + 国产安卓免 Google 服务） |
 | 🌐 多语言 | 中文、英文、日语、韩语、法语、德语、俄语、西班牙语（自动检测 + 手动切换） |
-| 📱 iOS 永久免签 | PWA H5 → Safari「添加到主屏幕」，无需企业证书 |
+| 📱 iOS 原生客户端 | 使用系统安全存储与 APNS，连接自托管后端 |
 | 📱 Android 原生 App | 已上架 [Google Play](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus)，支持 FCM 推送通知 |
 | 📱 iOS 原生 App | 已上架 [App Store](https://apps.apple.com/us/app/paperphoneplus/id6769265178)，支持 APNS 推送通知 |
 | 🖥️ Windows 桌面客户端 | 原生 Windows 桌面应用，[点击下载](https://github.com/619dev/ppp-win/releases) |
@@ -71,7 +71,7 @@
 | 🗂️ R2 对象存储 | Cloudflare R2 存储图片/语音，可选公开 CDN 直链 |
 | 🔑 两步验证 (2FA) | Google Authenticator 兼容 TOTP 验证，8 个一次性恢复码，登录时强制验证 |
 | 📷 扫码加好友/入群 | 扫一扫二维码添加好友、加入群聊，群二维码可设置有效期（1 周/1 月/3 月） |
-| 🏗️ 可自托管 | Docker Compose 一键部署，Zeabur 一键云部署，前端可部署至 Vercel |
+| 🏗️ 可自托管 | Docker Compose 或 Zeabur 部署后端，使用官方原生客户端连接 |
 | 🌐 代理设置 | 支持 SOCKS5 / HTTP / HTTPS 代理协议，可在登录页和设置页配置代理服务器地址、端口、用户名和密码，方便受限网络环境下使用 |
 | 🛡️ 内容审核 | 用户举报（6 类原因）+ 拉黑用户（即时屏蔽动态/消息）+ 使用条款 EULA |
 | 🔧 管理后台 | 内嵌 Web 管理面板（`/admin`，路径可自定义），密码保护，审核举报、删除违规内容、封禁用户，支持 8 种语言 |
@@ -108,13 +108,12 @@ PaperPhonePlus 将“本地账号状态”“实时连接状态”和“消息�
   aws-sdk-s3 — Cloudflare R2 文件存储（S3 兼容 API）
   argon2 + jsonwebtoken 认证
 
-前端 (client/)
+共享前端代码 (client/，不独立部署)
   React 19 + TypeScript + Vite 6
   Zustand 状态管理
   libsodium-wrappers-sumo (WebAssembly, Curve25519 / XSalsa20-Poly1305)
   WebRTC API — 视频/语音通话
   Web Audio API — 实时变声处理（ScriptProcessorNode 音频链）
-  PWA: manifest.json + Service Worker
 
 加密层
   无状态 ECDH + XSalsa20-Poly1305 — 逐消息临时 ECDH 密钥对，前向保密
@@ -124,80 +123,28 @@ PaperPhonePlus 将“本地账号状态”“实时连接状态”和“消息�
 
 ---
 
-> 📖 **[详细部署文档 / Deployment Guide](DEPLOY_CN.md)** — 包含 Zeabur + Vercel 混合部署、Docker Compose + Nginx 本地部署的完整步骤，以及各客户端服务器地址配置说明。
+> 📖 **[详细部署文档 / Deployment Guide](DEPLOY_CN.md)** — 仅后端的 Zeabur、Docker Compose + Nginx 部署，以及原生客户端服务器地址配置。
+>
+> **重要：不再部署 Web 前端。** `/client` 仅作为 Android、iOS、Windows 和 macOS 客户端共享前端代码；不要部署到 Docker、Zeabur、Vercel 或 Nginx。
 
-### 方式零：Zeabur 一键云部署
+### Zeabur 一键部署
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
-> **Zeabur 通话网络限制：** 模板会部署 LiveKit，并通过 WebSocket/API 7880 与 ICE/TCP 7881 提供私聊及群会议连接。Zeabur 当前不支持 UDP 服务端口，因此可以使用 TCP 回退，但弱网延迟和画质可能下降。模板已预留 UDP 7882 配置；平台未来支持 UDP 后只需开放该端口。当前生产级通话建议使用 LiveKit Cloud，或将 LiveKit 部署到支持 UDP 的云主机。
+模板只创建 `server`、MySQL、Redis 和 LiveKit。记录 `server` 的公网 HTTPS 域名，并在官方原生客户端登录页填写该地址。
 
-#### 服务端 Nginx 配置
-
-仓库提供双域名生产配置：[deploy/nginx/paperphone-plus.conf](deploy/nginx/paperphone-plus.conf)。将 `api.example.com` 和 `meeting.example.com` 替换为实际域名，申请对应 TLS 证书，然后复制到 `/etc/nginx/sites-available/paperphone-plus`，创建启用链接并执行 `sudo nginx -t && sudo systemctl reload nginx`。后端设置 `LIVEKIT_URL=wss://meeting.example.com`。Nginx 仅代理 API 与 WebSocket；LiveKit 的 TCP 7881、UDP 7882 必须在主机和云防火墙直接开放。
-
-> [!TIP]
-> **进阶方案：Zeabur + Vercel 混合部署**
-> 可以在 Zeabur 部署完成后，手动删除 Zeabur 上的 **client** 服务，改用 Vercel 部署前端（参见下方“方式二”）。
-> 这样 server/MySQL/Redis 由 Zeabur 托管，前端由 Vercel CDN 加速，全球访问更快。
-> Vercel 上无需设置任何环境变量，用户在前端登录界面填写后端服务器地址即可连接。
-
-**已知注意事项：**
-- 首次启动 server 会自动创建数据库表（`CREATE TABLE IF NOT EXISTS`），无需手动导入 schema
-- Redis 在集群内无需密码，已默认关闭认证
-- 若需配置 MySQL root 密码，可在 server 服务的 `DB_PASS` 里手动填写 MySQL 服务的 `MYSQL_ROOT_PASSWORD`
-
----
-
-### 方式一：Docker Compose（推荐）
+### Docker Compose（推荐）
 ```bash
-# 克隆仓库
 git clone <repo-url> && cd paperphone-plus
-
-# 复制并编辑环境变量
 cp server/.env.example server/.env
-# 按需编辑：DB_PASS / JWT_SECRET / LIVEKIT_URL 等
-
-# 一键启动（含前端、后端、MySQL、Redis）
+# 编辑 DB_PASS / REDIS_PASS / JWT_SECRET / LIVEKIT_URL 等
 docker compose up -d
-
-# 查看服务状态
-docker compose ps
-
-# 访问
-open http://localhost
+curl -fsS http://localhost:3000/health
 ```
 
-> **注意**：server 首次启动会自动初始化数据库 schema，无需手动导入 SQL 文件。
-
-### 方式二：前端部署至 Vercel
+### 本地开发（不是 Web 部署）
 ```bash
-# 1. Fork 本仓库
-
-# 2. 在 Vercel 中导入前端项目
-#    - Root Directory: client/
-#    - Build Command: npm run build
-#    - Output Directory: dist/
-#    - 无需设置任何环境变量
-
-# 3. 后端使用 Docker 部署或 Zeabur 部署
-
-# 4. 打开 Vercel 部署的前端页面，在登录界面填写后端服务器地址即可
-#    例如：https://your-server.zeabur.app
-```
-
-### 方式三：本地手动启动
-#### 1. 启动后端（Rust）
-```bash
-cd server
-cp .env.example .env  # 编辑环境变量
-cargo run --release    # → http://localhost:3000
-```
-
-#### 2. 启动前端
-```bash
-cd client
-npm install
-npm run dev            # → http://localhost:5173
+cd server && cp .env.example .env && cargo run --release
+cd client && npm install && npm run dev  # 仅调试共享前端代码
 ```
 
 ---
@@ -249,7 +196,6 @@ npm run dev            # → http://localhost:5173
 
 | 通道 | 适用场景 | 配置 |
 |------|----------|------|
-| Web Push (VAPID) | 浏览器 (Chrome/Edge/Firefox) + iOS PWA (Safari 16.4+) | VAPID 密钥 |
 | FCM (Firebase) | Capacitor 打包的原生 Android App | Firebase 服务账号 JSON |
 | OneSignal | Median.co 打包的原生 Android/iOS App | OneSignal App ID + REST Key |
 | ntfy | 国产安卓设备（华为/小米/OPPO/vivo 等无 Google 服务） | 无需配置（默认使用 ntfy.sh 公共服务） |
@@ -341,7 +287,7 @@ MIIEvQIBADANBgkqhkiG9w0BAQE...
 |----------|----------|----------|
 | **Zeabur** | 单行（`\n` 转义） | 在 Variables 面板直接粘贴 JSON 中的原始值即可 |
 | **Docker / docker-compose** | 单行或多行均可 | YAML 多行用 `\|` 语法；`.env` 文件建议用单行 |
-| **Vercel / Railway** | 单行（`\n` 转义） | 环境变量输入框通常不支持真实多行 |
+| **Railway / Docker** | 单行（`\n` 转义） | 环境变量输入框通常不支持真实多行 |
 | **Linux .env 文件** | 多行（引号包裹） | 确保引号闭合，注意 shell 转义 |
 
 **排查方法**：如果配置了 FCM 环境变量但 Android 仍收不到推送，可检查服务端日志：
@@ -487,47 +433,9 @@ ONESIGNAL_RELAY_KEY=与开发者约定的共享密钥
 
 ---
 
-## iOS 永久免签部署
-1. 部署到有 HTTPS 域名的服务器（WebRTC 和加密 API 需要 HTTPS）
-2. 用 **Safari** 打开 `https://your.domain.com`
-3. 点击底部分享按钮 ⬆️
-4. 选择「添加到主屏幕」→「添加」
-
-即可获得与原生 App 相同的体验，无需 Apple 企业证书，永久有效！
-
----
-
 ## 生产部署（Nginx）
-```nginx
-server {
-    listen 443 ssl http2;
-    server_name your.domain.com;
 
-    ssl_certificate     /path/to/cert.pem;
-    ssl_certificate_key /path/to/key.pem;
-
-    # 前端静态文件（或使用 Vercel 单独部署）
-    location / {
-        root /path/to/paperphoneplus/client/dist;
-        try_files $uri /index.html;
-    }
-
-    # API
-    location /api/ {
-        proxy_pass http://localhost:3000;
-        proxy_set_header Host $host;
-    }
-
-    # WebSocket 信令
-    location /ws {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_read_timeout 3600s;
-    }
-}
-```
+Nginx 只负责反向代理后端 API、管理后台、IM WebSocket 和 LiveKit WebSocket，不提供前端页面。请直接使用 [部署指南](DEPLOY_CN.md) 和 [双域名 Nginx 配置](deploy/nginx/paperphone-plus.conf)。
 
 ---
 
@@ -577,10 +485,8 @@ paperphoneplus/
 │       └── ws/
 │           └── server.rs            # WebSocket 路由（消息/通话信令/已读/推送）
 │
-└── client/                          # React + TypeScript + Vite 前端
+└── client/                          # 原生客户端共享的 React + TypeScript 前端代码（不独立部署）
     ├── package.json
-    ├── Dockerfile
-    ├── vercel.json                  # Vercel 部署配置（SPA 路由 + 安全头，无需环境变量）
     ├── vite.config.ts
     ├── tsconfig.json
     ├── index.html

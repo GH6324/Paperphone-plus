@@ -1,6 +1,6 @@
 🌐 **Autres langues :** [中文](README.md) · [English](README_EN.md) · [日本語](README_JA.md) · [한국어](README_KO.md) · [Deutsch](README_DE.md) · [Русский](README_RU.md) · [Español](README_ES.md)
 
-Une application de messagerie instantanée chiffrée de bout en bout, style WeChat, avec chiffrement ECDH + XSalsa20-Poly1305 sans état par message, appels vidéo en temps réel, stockage de fichiers Cloudflare R2, support multilingue et déploiement PWA iOS.
+Une application de messagerie instantanée chiffrée de bout en bout, style WeChat, avec chiffrement ECDH + XSalsa20-Poly1305 sans état par message, appels vidéo en temps réel, stockage de fichiers Cloudflare R2, support multilingue et clients natifs Android, iOS, Windows et macOS.
 
 [![Rust](https://img.shields.io/badge/Rust-1.83+-orange)](#) [![React](https://img.shields.io/badge/React-19-blue)](#) [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](#) [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)](#) [![Redis](https://img.shields.io/badge/Redis-7.x-red)](#) [![WebRTC](https://img.shields.io/badge/WebRTC-LiveKit%20SFU-orange)](#) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 
@@ -71,7 +71,7 @@ Une application de messagerie instantanée chiffrée de bout en bout, style WeCh
 | 🗂️ Stockage d'objets R2 | Cloudflare R2 pour les fichiers image/audio — URL CDN publique optionnelle |
 | 🔑 Authentification à deux facteurs (2FA) | TOTP compatible Google Authenticator, 8 codes de récupération, obligatoire à la connexion |
 | 📷 Scanner et partager des QR codes | Scanner des QR codes pour ajouter des amis ou rejoindre des groupes avec expiration configurable |
-| 🏗️ Auto-hébergeable | Docker Compose, Zeabur en un clic, ou frontend sur Vercel |
+| 🏗️ Self-hosting | Deploy the backend with Docker Compose or Zeabur; connect using an official native client |
 | 🌐 Paramètres de proxy | Support proxy SOCKS5 / HTTP / HTTPS — configurable sur les pages de connexion et de paramètres avec adresse serveur, port, identifiant et mot de passe pour les environnements réseau restreints |
 | 🛡️ Modération de contenu | Signalements utilisateurs (6 catégories) + blocage d'utilisateurs (masquage instantané des publications/messages) + Conditions d'utilisation (EULA) |
 | 🔧 Panneau d'administration | Dashboard web d'administration intégré (`/admin`, chemin configurable), protégé par mot de passe, examiner les signalements, supprimer le contenu problématique, bannir des utilisateurs — 8 langues |
@@ -108,13 +108,12 @@ Backend (server/)
   aws-sdk-s3 — Stockage fichiers Cloudflare R2 (API compatible S3)
   Authentification argon2 + jsonwebtoken
 
-Frontend (client/)
+Shared frontend source (client/, not deployed independently)
   React 19 + TypeScript + Vite 6
   Gestion d'état Zustand
   libsodium-wrappers-sumo (WebAssembly — Curve25519 / XSalsa20-Poly1305)
   WebRTC API — appels vidéo / audio
   Web Audio API — modificateur de voix en temps réel (chaîne audio ScriptProcessorNode)
-  PWA : manifest.json + Service Worker
 
 Couche cryptographique
   ECDH sans état + XSalsa20-Poly1305 — paire de clés éphémère par message
@@ -124,49 +123,28 @@ Couche cryptographique
 
 ---
 
-> 📖 **[Guide de déploiement détaillé (中文)](DEPLOY_CN.md)** | **[Deployment Guide (English)](DEPLOY_EN.md)** — Instructions étape par étape complètes pour le déploiement hybride Zeabur + Vercel, le déploiement local avec Docker Compose + Nginx, et la configuration de l'adresse du serveur client.
+> 📖 **[Deployment Guide](DEPLOY_EN.md)** — backend-only Zeabur and Docker Compose + Nginx instructions, plus native-client server address configuration.
+>
+> **Important: the Web frontend is no longer deployed.** `/client` is shared frontend source for Android, iOS, Windows, and macOS. Do not deploy it to Docker, Zeabur, Vercel, or Nginx.
 
-### Option 0 : Déploiement cloud Zeabur en un clic
+### Zeabur one-click deployment
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
-> **Limitation réseau des appels sur Zeabur :** le modèle déploie LiveKit avec WebSocket/API 7880 et ICE/TCP 7881. Zeabur n’expose actuellement pas de ports UDP ; les appels 1:1 et les réunions utilisent donc le repli TCP. Pour les appels en production, utilisez LiveKit Cloud ou une VM prenant en charge UDP.
+The template creates only `server`, MySQL, Redis, and LiveKit. Record the public HTTPS domain of `server` and enter it in an official native client.
 
-#### Configuration Nginx côté serveur
-
-Utilisez la configuration de production à deux domaines [deploy/nginx/paperphone-plus.conf](deploy/nginx/paperphone-plus.conf). Remplacez `api.example.com` et `meeting.example.com`, obtenez les certificats TLS, copiez le fichier dans `/etc/nginx/sites-available/paperphone-plus`, activez-le, puis exécutez `sudo nginx -t && sudo systemctl reload nginx`. Définissez `LIVEKIT_URL=wss://meeting.example.com`. Nginx ne relaie que l’API et WebSocket ; exposez directement TCP 7881 et UDP 7882 dans les pare-feu.
-
-> [!TIP]
-> **Avancé : Déploiement hybride Zeabur + Vercel**
-> Après le déploiement sur Zeabur, vous pouvez supprimer manuellement le service **client** et déployer le frontend sur Vercel à la place (voir Option 2 ci-dessous).
-> Ainsi, server/MySQL/Redis sont hébergés sur Zeabur tandis que le frontend est accéléré par le CDN mondial de Vercel.
-> Le frontend ne nécessite **aucune variable d'environnement sur Vercel** — les utilisateurs saisissent simplement l'adresse du serveur backend sur la page de connexion.
-
-### Option 1 : Docker Compose (Recommandé)
+### Docker Compose (recommended)
 ```bash
 git clone <repo-url> && cd paperphone-plus
 cp server/.env.example server/.env
-# Modifier : DB_PASS / JWT_SECRET / LIVEKIT_URL etc.
+# Edit DB_PASS / REDIS_PASS / JWT_SECRET / LIVEKIT_URL, then:
 docker compose up -d
-open http://localhost
+curl -fsS http://localhost:3000/health
 ```
 
-### Option 2 : Frontend sur Vercel
+### Local development (not a Web deployment)
 ```bash
-# 1. Forker ce dépôt
-# 2. Importer dans Vercel : Root Directory = client/, Build = npm run build, Output = dist/
-#    Aucune variable d'environnement requise
-# 3. Déployer le backend via Docker ou Zeabur
-# 4. Ouvrir le frontend déployé sur Vercel, saisir l'adresse du serveur backend sur la page de connexion
-#    ex. https://your-server.zeabur.app
-```
-
-### Option 3 : Développement local
-```bash
-# Backend (Rust)
 cd server && cp .env.example .env && cargo run --release
-
-# Frontend (React)
-cd client && npm install && npm run dev
+cd client && npm install && npm run dev  # shared frontend source only
 ```
 
 ---
@@ -250,7 +228,7 @@ Dans **Profil > Confidentialité des messages**, activez un mot de passe supplé
 
 ### Gestion des sauts de ligne de la clé privée FCM
 
-Le champ `private_key` dans le JSON du compte de service Firebase contient une clé privée RSA au format PEM, qui nécessite des **sauts de ligne réels** (`\n`, ASCII 0x0A) entre chaque ligne de 64 caractères. Cependant, de nombreuses plateformes de déploiement (Zeabur, Vercel, Railway, Docker) stockent les variables d'environnement sous forme de chaînes sur une seule ligne, convertissant `\n` en la séquence littérale de deux caractères `\` + `n`.
+Le champ `private_key` dans le JSON du compte de service Firebase contient une clé privée RSA au format PEM, qui nécessite des **sauts de ligne réels** (`\n`, ASCII 0x0A) entre chaque ligne de 64 caractères. Cependant, de nombreuses plateformes de déploiement (Zeabur, Railway, Docker) stockent les variables d'environnement sous forme de chaînes sur une seule ligne, convertissant `\n` en la séquence littérale de deux caractères `\` + `n`.
 
 **C'est la cause la plus fréquente d'échec des notifications push FCM** — le parseur PEM échoue silencieusement et aucune notification push n'est envoyée, sans journaux d'erreur.
 
@@ -272,7 +250,7 @@ Le champ `private_key` dans le JSON du compte de service Firebase contient une c
 |------------|-------------------|-------|
 | **Zeabur** | Ligne unique (`\n` échappé) | Coller la valeur JSON directement dans le panneau Variables |
 | **Docker / docker-compose** | Les deux | Utiliser la syntaxe YAML `\|` pour multi-lignes ; ligne unique dans `.env` |
-| **Vercel / Railway** | Ligne unique (`\n` échappé) | Les champs de saisie ne supportent généralement pas les sauts de ligne réels |
+| **Railway / Docker** | Ligne unique (`\n` échappé) | Les champs de saisie ne supportent généralement pas les sauts de ligne réels |
 | **Fichier .env Linux** | Multi-lignes (entre guillemets) | S'assurer que les guillemets sont correctement fermés |
 
 **Dépannage** : Si les variables FCM sont configurées mais que le push Android ne fonctionne pas, vérifier les journaux du serveur :

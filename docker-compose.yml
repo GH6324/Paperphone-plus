@@ -1,17 +1,6 @@
 version: "3.8"
 
 services:
-  # ── Frontend (Nginx + React SPA) ────────────────────────────
-  client:
-    container_name: paperphone-plus-client
-    image: facilisvelox/paperphone-plus-client:latest
-    ports:
-      - "80:80"
-    depends_on:
-      server:
-        condition: service_healthy
-    restart: unless-stopped
-
   # ── Backend (Rust) ──────────────────────────────────────────
   server:
     container_name: paperphone-plus-server

@@ -10,7 +10,7 @@ spec:
     featuring hybrid X25519 + ML-KEM-768 E2EE, group E2E encryption (Signal-style Sender Keys),
     LiveKit SFU voice/video calls (1:1 and meetings up to 100 participants), real-time voice changer,
     reliable cursor-based message synchronization, durable device sessions, eight password-protected text appearances, SOCKS5/HTTP/HTTPS proxy support,
-    Cloudflare R2 file storage, 8-language i18n, and iOS PWA support — fully self-hostable.
+    Cloudflare R2 file storage, 8-language i18n, and native Android, iOS, Windows, and macOS clients — fully self-hostable.
   icon: https://raw.githubusercontent.com/619dev/Paperphone-plus/main/client/public/icons/icon-512.png
   tags:
     - Chat
@@ -46,7 +46,6 @@ spec:
     - ⏱️ **Auto-Delete Messages** — 5 tiers: never / 1 day / 3 days / 1 week / 1 month
     - 🔔 **Push Notifications** — Web Push (VAPID) + FCM + OneSignal + ntfy + APNS five-channel (iOS native + Chinese Android without Google Services supported)
     - 🌐 **Multi-language** — Chinese, English, Japanese, Korean, French, German, Russian, Spanish
-    - 📱 **iOS PWA** — "Add to Home Screen" via Safari, no enterprise cert needed
     - 💬 Rich messaging: text, images, video, document files (PDF/DOCX/XLSX etc. with type icons), voice, 200+ emoji (8 categories), Telegram sticker packs, delivery receipts, typing indicators
     - 🗂️ **Cloudflare R2** file storage (images, voice & video)
     - 🏷️ **Friend Tags** — tag-based contact filtering & Moments visibility control
@@ -60,7 +59,7 @@ spec:
     - 🔧 **Admin Panel** — Embedded web dashboard (`/admin`, path customizable via `ADMIN_PATH`), password-protected, review reports, delete content, ban users — 8 languages
 
     ## After Deployment
-    1. Open the domain assigned to the **client** service.
+    1. Record the public domain assigned to the **server** service and enter it in an official native client.
     2. Register an account — cryptographic keys are generated locally on your device.
     3. (Optional) Configure Cloudflare R2 for image/voice/video uploads — set `R2_*` variables on the **server** service.
     4. (Optional) Enable push notifications — set `VAPID_*` variables for Web Push, `FCM_*` for native Android (Capacitor), `APNS_*` for native iOS.
@@ -81,21 +80,12 @@ spec:
     Zeabur adds UDP support. For production-quality 100-person meetings today, use
     LiveKit Cloud or deploy LiveKit on a VM with UDP 7882 and set `LIVEKIT_URL` on server.
 
-    ## Tip: Zeabur + Vercel Hybrid
-    You can delete the deployed **client** service on Zeabur and use **Vercel** to host the frontend instead.
-    This gives you Vercel’s global CDN for the frontend while Zeabur handles server/MySQL/Redis.
-    Just set `VITE_API_URL` in Vercel to the public domain of this server service.
-
     ## Docker Hub Images
-    - `facilisvelox/paperphone-plus-client:latest`
     - `facilisvelox/paperphone-plus-server:latest`
 
-  variables:
-    - key: PUBLIC_DOMAIN
-      type: DOMAIN
-      name: Client Domain
-      description: The public domain for the PaperPhonePlus web client (e.g. paperphoneplus.example.com).
+    The repository's `/client` directory contains frontend source code shared by the native clients. It is not a deployable Web service, and this template intentionally does not create a client service.
 
+  variables:
     - key: JWT_SECRET
       type: STRING
       name: JWT Secret
@@ -603,30 +593,12 @@ spec:
             default: ${ZEABUR_WEB_URL}
             expose: true
 
-    # ── PaperPhonePlus Client (Nginx / React PWA) ────────────────────────
-    - name: client
-      icon: https://raw.githubusercontent.com/619dev/Paperphone-plus/main/client/public/icons/icon-512.png
-      template: PREBUILT
-      domainKey: PUBLIC_DOMAIN
-      dependencies:
-        - server
-      spec:
-        source:
-          image: facilisvelox/paperphone-plus-client:latest
-        ports:
-          - id: web
-            port: 80
-            type: HTTP
-        env:
-          SERVER_URL:
-            default: ${SERVER_URL}
-
 localization:
   zh-CN:
     description: >-
       PaperPhonePlus v2.4.7 微信风格端对端加密即时通讯 App（React + Rust），支持 X25519 + ML-KEM-768 混合加密、群聊 Sender Key 端到端加密、
       消息游标可靠同步与长期设备会话、LiveKit SFU 单聊与百人会议、实时变声、8 种额外密码保护的文本外观、SOCKS5/HTTP/HTTPS 代理、
-      Cloudflare R2 文件存储、8 种语言与 iOS PWA 部署，完全可自建。
+      Cloudflare R2 文件存储、8 种语言及 Android、iOS、Windows、macOS 原生客户端，完全可自建。
     readme: |-
       # PaperPhonePlus
 
@@ -671,7 +643,7 @@ localization:
       - 🔧 **管理后台** — 内嵌 Web 管理面板（`/admin`，路径可通过 `ADMIN_PATH` 自定义），密码保护，审核举报、删除内容、封禁用户，支持 8 种语言
 
       ## 部署后操作
-      1. 打开分配给 **client** 服务的域名。
+      1. 记录 **server** 服务的公网域名，并在官方原生客户端中填写该地址。
       2. 注册账号 — 密钥在本地设备生成。
       3. （可选）在 **server** 服务设置 `R2_*` 变量，启用图片/语音/视频上传功能。
       4. （可选）设置 `VAPID_*` 变量启用浏览器推送通知，`FCM_*` 启用原生 Android 推送（Capacitor），`APNS_*` 启用 iOS 原生推送。
@@ -690,7 +662,6 @@ localization:
       模板已保留 UDP 7882 配置，待 Zeabur 支持 UDP 后即可开放。当前如需生产级百人会议，建议使用
       LiveKit Cloud，或把 LiveKit 部署到可开放 UDP 7882 的云主机，再修改 server 的 `LIVEKIT_URL`。
 
-      ## 进阶方案：Zeabur + Vercel 混合部署
-      部署完成后，可以手动删除 Zeabur 上的 **client** 服务，改用 **Vercel** 部署前端。
-      这样 server/MySQL/Redis 由 Zeabur 托管，前端由 Vercel CDN 加速，全球访问更快。
-      Vercel 中设置环境变量 `VITE_API_URL` 指向 Zeabur 上 server 服务的公网域名即可。
+      ## Web 前端说明
+      本模板只部署 server、MySQL、Redis 和 LiveKit，不创建 client 服务，也不部署 Web 前端。
+      仓库中的 `/client` 仅作为 Android、iOS、Windows 和 macOS 客户端的共享前端代码。

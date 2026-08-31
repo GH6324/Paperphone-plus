@@ -25,7 +25,6 @@ PUSH="${PUSH:-1}"
 SWAP="${SWAP:-}"                       # e.g. SWAP=4G to create swap before build
 
 SERVER_IMAGE="${REPO}/paperphone-plus-server"
-CLIENT_IMAGE="${REPO}/paperphone-plus-client"
 
 # ── Swap setup (optional, for low-memory VPS) ─────────────────────────────
 if [[ -n "$SWAP" && ! -f /swapfile ]]; then
@@ -110,14 +109,12 @@ ALSO_LATEST="no"
 [[ "$TAG" != "latest" ]] && ALSO_LATEST="yes"
 
 build_and_push "$SERVER_IMAGE" "./server" "$TAG" "$ALSO_LATEST"
-build_and_push "$CLIENT_IMAGE" "./client" "$TAG" "$ALSO_LATEST"
 
 echo ""
 echo "✅  Done!"
 echo ""
 echo "   Server : ${SERVER_IMAGE}:${TAG}"
-echo "   Client : ${CLIENT_IMAGE}:${TAG}"
-[[ "$ALSO_LATEST" == "yes" ]] && echo "   (both also tagged as :latest)"
+[[ "$ALSO_LATEST" == "yes" ]] && echo "   (also tagged as :latest)"
 echo ""
 echo "Deploy with:"
 echo "   cp server/.env.example server/.env  # fill in secrets"

@@ -21,7 +21,7 @@ LIVEKIT_API_KEY=<随机 API key>
 LIVEKIT_API_SECRET=<至少 32 字节随机 secret>
 ```
 
-- 给 `meeting.example.com` 配置可信 TLS 证书；Web/PWA 在 HTTPS 页面中不能连接 `ws://`。
+- 给 `meeting.example.com` 配置可信 TLS 证书；客户端必须使用可信 TLS，不能连接 `ws://`。
 - 对外开放 TCP 7881 和 UDP 7882；7880 应放在支持 WebSocket 的 HTTPS 反向代理后。
 - `rtc.use_external_ip` 已开启，主机必须具有可达公网 IP。复杂企业网络建议额外配置 TURN/TLS。
 - 100 人会议的实际容量取决于并发开麦/开摄像头数、出口带宽和 CPU。正式上线前应使用目标码率和设备模型进行压测。

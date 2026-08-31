@@ -1,6 +1,6 @@
 🌐 **Otros idiomas:** [中文](README.md) · [English](README_EN.md) · [日本語](README_JA.md) · [한국어](README_KO.md) · [Français](README_FR.md) · [Deutsch](README_DE.md) · [Русский](README_RU.md)
 
-Una aplicación de mensajería instantánea cifrada de extremo a extremo, estilo WeChat, con cifrado ECDH + XSalsa20-Poly1305 sin estado por mensaje, videollamadas en tiempo real, almacenamiento de archivos Cloudflare R2, soporte multilingüe y despliegue PWA para iOS.
+Una aplicación de mensajería instantánea cifrada de extremo a extremo, estilo WeChat, con cifrado ECDH + XSalsa20-Poly1305 sin estado por mensaje, videollamadas en tiempo real, almacenamiento de archivos Cloudflare R2, soporte multilingüe y clientes nativos para Android, iOS, Windows y macOS.
 
 [![Rust](https://img.shields.io/badge/Rust-1.83+-orange)](#) [![React](https://img.shields.io/badge/React-19-blue)](#) [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](#) [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)](#) [![Redis](https://img.shields.io/badge/Redis-7.x-red)](#) [![WebRTC](https://img.shields.io/badge/WebRTC-LiveKit%20SFU-orange)](#) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 
@@ -57,7 +57,7 @@ Una aplicación de mensajería instantánea cifrada de extremo a extremo, estilo
 | ⏱️ Eliminación automática de mensajes | 5 niveles (nunca / 1 día / 3 días / 1 semana / 1 mes), configurable por ambas partes en DMs, solo por el propietario en grupos |
 | 🔔 Notificaciones push | Web Push (VAPID) + FCM + OneSignal + ntfy + APNS cinco canales — alcanza usuarios incluso sin conexión (iOS nativo + Android chino sin Google Services) |
 | 🌐 Multilingüe | Chino, inglés, japonés, coreano, francés, alemán, ruso, español — detección automática + cambio manual |
-| 📱 iOS — Sin certificado empresarial | PWA vía Safari «Agregar a pantalla de inicio», funciona permanentemente sin firma de Apple |
+| 📱 Cliente iOS nativo | Se conecta al backend autoalojado |
 | 📱 App nativa Android | Disponible en [Google Play](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus), con soporte de notificaciones push FCM |
 | 📱 App nativa iOS | Disponible en [App Store](https://apps.apple.com/us/app/paperphoneplus/id6769265178), con soporte de notificaciones push APNS |
 | 🖥️ Cliente de escritorio Windows | Aplicación de escritorio Windows nativa, [descargar aquí](https://github.com/619dev/ppp-win/releases) |
@@ -71,7 +71,7 @@ Una aplicación de mensajería instantánea cifrada de extremo a extremo, estilo
 | 🗂️ Almacenamiento de objetos R2 | Cloudflare R2 para archivos de imagen/voz — URL CDN pública opcional |
 | 🔑 Autenticación de dos factores (2FA) | TOTP compatible con Google Authenticator, 8 códigos de recuperación, obligatorio al iniciar sesión |
 | 📷 Escanear y compartir código QR | Escanear códigos QR para agregar amigos o unirse a grupos con expiración configurable |
-| 🏗️ Auto-hospedable | Docker Compose, Zeabur con un clic, o frontend en Vercel |
+| 🏗️ Self-hosting | Deploy the backend with Docker Compose or Zeabur; connect using an official native client |
 | 🌐 Configuración de proxy | Soporte de proxy SOCKS5 / HTTP / HTTPS — configurable en páginas de inicio de sesión y ajustes con dirección del servidor, puerto, usuario y contraseña para entornos de red restringidos |
 | 🛡️ Moderación de contenido | Reportes de usuarios (6 categorías) + bloqueo de usuarios (oculta instantáneamente publicaciones/mensajes) + Términos de uso (EULA) |
 | 🔧 Panel de administración | Dashboard de administración web integrado (`/admin`, ruta configurable), protegido por contraseña, revisar reportes, eliminar contenido infractor, banear usuarios — 8 idiomas |
@@ -108,13 +108,12 @@ Backend (server/)
   aws-sdk-s3 — Almacenamiento de archivos Cloudflare R2 (API compatible con S3)
   Autenticación argon2 + jsonwebtoken
 
-Frontend (client/)
+Shared frontend source (client/, not deployed independently)
   React 19 + TypeScript + Vite 6
   Gestión de estado Zustand
   libsodium-wrappers-sumo (WebAssembly — Curve25519 / XSalsa20-Poly1305)
   WebRTC API — videollamadas / llamadas de voz
   Web Audio API — modificador de voz en tiempo real (cadena de audio ScriptProcessorNode)
-  PWA: manifest.json + Service Worker
 
 Capa criptográfica
   ECDH sin estado + XSalsa20-Poly1305 — par de claves efímero por mensaje
@@ -124,49 +123,28 @@ Capa criptográfica
 
 ---
 
-> 📖 **[Guía de despliegue detallada (中文)](DEPLOY_CN.md)** | **[Deployment Guide (English)](DEPLOY_EN.md)** — Instrucciones paso a paso completas para el despliegue híbrido Zeabur + Vercel, despliegue local con Docker Compose + Nginx, y configuración de la dirección del servidor del cliente.
+> 📖 **[Deployment Guide](DEPLOY_EN.md)** — backend-only Zeabur and Docker Compose + Nginx instructions, plus native-client server address configuration.
+>
+> **Important: the Web frontend is no longer deployed.** `/client` is shared frontend source for Android, iOS, Windows, and macOS. Do not deploy it to Docker, Zeabur, Vercel, or Nginx.
 
-### Opción 0: Despliegue en la nube con Zeabur en un clic
+### Zeabur one-click deployment
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
-> **Limitación de red de Zeabur:** la plantilla despliega LiveKit mediante WebSocket/API 7880 e ICE/TCP 7881. Zeabur actualmente no expone puertos UDP, por lo que las llamadas 1:1 y las reuniones usan TCP como alternativa. Para llamadas de producción, use LiveKit Cloud o una VM compatible con UDP.
+The template creates only `server`, MySQL, Redis, and LiveKit. Record the public HTTPS domain of `server` and enter it in an official native client.
 
-#### Configuración Nginx del servidor
-
-Use la configuración de producción de dos dominios [deploy/nginx/paperphone-plus.conf](deploy/nginx/paperphone-plus.conf). Sustituya `api.example.com` y `meeting.example.com`, obtenga certificados TLS, copie el archivo a `/etc/nginx/sites-available/paperphone-plus`, actívelo y ejecute `sudo nginx -t && sudo systemctl reload nginx`. Configure `LIVEKIT_URL=wss://meeting.example.com` en el backend. Nginx solo reenvía API y WebSocket; exponga TCP 7881 y UDP 7882 directamente en los cortafuegos.
-
-> [!TIP]
-> **Avanzado: Despliegue híbrido Zeabur + Vercel**
-> Después de desplegar en Zeabur, puede eliminar manualmente el servicio **client** y desplegar el frontend en Vercel en su lugar (ver Opción 2 a continuación).
-> De esta forma, server/MySQL/Redis se alojan en Zeabur mientras el frontend se acelera mediante el CDN global de Vercel.
-> El frontend no requiere **variables de entorno en Vercel** — los usuarios simplemente ingresan la dirección del servidor backend en la página de inicio de sesión.
-
-### Opción 1: Docker Compose (Recomendado)
+### Docker Compose (recommended)
 ```bash
 git clone <repo-url> && cd paperphone-plus
 cp server/.env.example server/.env
-# Editar: DB_PASS / JWT_SECRET / LIVEKIT_URL etc.
+# Edit DB_PASS / REDIS_PASS / JWT_SECRET / LIVEKIT_URL, then:
 docker compose up -d
-open http://localhost
+curl -fsS http://localhost:3000/health
 ```
 
-### Opción 2: Frontend en Vercel
+### Local development (not a Web deployment)
 ```bash
-# 1. Hacer fork de este repositorio
-# 2. Importar en Vercel: Root Directory = client/, Build = npm run build, Output = dist/
-#    No se necesitan variables de entorno
-# 3. Desplegar el backend vía Docker o Zeabur
-# 4. Abrir el frontend desplegado en Vercel, ingresar la dirección del servidor backend en la página de inicio de sesión
-#    ej. https://your-server.zeabur.app
-```
-
-### Opción 3: Desarrollo local
-```bash
-# Backend (Rust)
 cd server && cp .env.example .env && cargo run --release
-
-# Frontend (React)
-cd client && npm install && npm run dev
+cd client && npm install && npm run dev  # shared frontend source only
 ```
 
 ---
@@ -250,7 +228,7 @@ En **Perfil > Privacidad de los mensajes**, puedes activar una contraseña adici
 
 ### Manejo de saltos de línea en la clave privada FCM
 
-El campo `private_key` en el JSON de la cuenta de servicio de Firebase contiene una clave privada RSA en formato PEM, que requiere **saltos de línea reales** (`\n`, ASCII 0x0A) entre cada línea de 64 caracteres. Sin embargo, muchas plataformas de despliegue (Zeabur, Vercel, Railway, Docker) almacenan las variables de entorno como cadenas de una sola línea, convirtiendo `\n` en la secuencia literal de dos caracteres `\` + `n`.
+El campo `private_key` en el JSON de la cuenta de servicio de Firebase contiene una clave privada RSA en formato PEM, que requiere **saltos de línea reales** (`\n`, ASCII 0x0A) entre cada línea de 64 caracteres. Sin embargo, muchas plataformas de despliegue (Zeabur, Railway, Docker) almacenan las variables de entorno como cadenas de una sola línea, convirtiendo `\n` en la secuencia literal de dos caracteres `\` + `n`.
 
 **Esta es la causa más común de fallo en las notificaciones push FCM** — el parser PEM falla silenciosamente y no se envían notificaciones push, sin registros de error.
 
@@ -272,7 +250,7 @@ El campo `private_key` en el JSON de la cuenta de servicio de Firebase contiene 
 |------------|---------------------|-------|
 | **Zeabur** | Una línea (`\n` escapado) | Pegar valor JSON directamente en el panel de Variables |
 | **Docker / docker-compose** | Ambos | Usar YAML `\|` para múltiples líneas; una línea en `.env` |
-| **Vercel / Railway** | Una línea (`\n` escapado) | Los campos de entrada normalmente no soportan saltos de línea reales |
+| **Railway / Docker** | Una línea (`\n` escapado) | Los campos de entrada normalmente no soportan saltos de línea reales |
 | **Archivo .env en Linux** | Múltiples líneas (con comillas) | Asegurarse de que las comillas estén correctamente cerradas |
 
 **Solución de problemas**: Si las variables FCM están configuradas pero el push de Android no funciona, revisar los registros del servidor:

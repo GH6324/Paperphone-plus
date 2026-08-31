@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# build-and-push.sh — Build multi-arch Docker images using Depot.dev
+# build-and-push2.sh — Build the multi-arch server Docker image using Depot.dev
 set -euo pipefail
 
 REPO="${REPO:-facilisvelox}"
@@ -7,7 +7,6 @@ TAG="${TAG:-latest}"
 PUSH="${PUSH:-1}"
 
 SERVER_IMAGE="${REPO}/paperphone-plus-server"
-CLIENT_IMAGE="${REPO}/paperphone-plus-client"
 
 # 如果本地没有 depot 命令，则提示使用 CI
 if ! command -v depot &> /dev/null; then
@@ -49,10 +48,8 @@ build_and_push() {
 }
 
 build_and_push "$SERVER_IMAGE" "./server" "$TAG" "$ALSO_LATEST"
-build_and_push "$CLIENT_IMAGE" "./client" "$TAG" "$ALSO_LATEST"
 
 echo ""
 echo "✅ Done!"
 echo "Server : ${SERVER_IMAGE}:${TAG}"
-echo "Client : ${CLIENT_IMAGE}:${TAG}"
-[[ "$ALSO_LATEST" == "yes" ]] && echo "       (also tagged as :latest)"
+[[ "$ALSO_LATEST" == "yes" ]] && echo "         (also tagged as :latest)"

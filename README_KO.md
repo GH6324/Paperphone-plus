@@ -1,6 +1,6 @@
 🌐 **다른 언어:** [中文](README.md) · [English](README_EN.md) · [日本語](README_JA.md) · [Français](README_FR.md) · [Deutsch](README_DE.md) · [Русский](README_RU.md) · [Español](README_ES.md)
 
-WeChat 스타일의 종단간 암호화 메신저. 무상태 ECDH + XSalsa20-Poly1305 메시지별 암호화, 실시간 영상 통화, Cloudflare R2 파일 저장, 다국어 지원 및 iOS PWA 배포 지원.
+WeChat 스타일의 종단간 암호화 메신저. 무상태 ECDH + XSalsa20-Poly1305 메시지별 암호화, 실시간 영상 통화, Cloudflare R2 파일 저장, 다국어 지원 및 Android, iOS, Windows, macOS 네이티브 클라이언트를 지원합니다.
 
 [![Rust](https://img.shields.io/badge/Rust-1.83+-orange)](#) [![React](https://img.shields.io/badge/React-19-blue)](#) [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](#) [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)](#) [![Redis](https://img.shields.io/badge/Redis-7.x-red)](#) [![WebRTC](https://img.shields.io/badge/WebRTC-LiveKit%20SFU-orange)](#) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 
@@ -57,7 +57,7 @@ WeChat 스타일의 종단간 암호화 메신저. 무상태 ECDH + XSalsa20-Pol
 | ⏱️ 메시지 자동 삭제 | 5단계 (없음 / 1일 / 3일 / 1주일 / 1개월), DM에서는 양쪽 모두 설정 가능, 그룹에서는 소유자만 설정 가능 |
 | 🔔 푸시 알림 | Web Push (VAPID) + FCM + OneSignal + ntfy + APNS 5채널 — 오프라인 사용자에게도 전달 (iOS 네이티브 + Google 서비스 없는 중국산 Android 지원) |
 | 🌐 다국어 지원 | 중국어, 영어, 일본어, 한국어, 프랑스어, 독일어, 러시아어, 스페인어 — 자동 감지 + 수동 전환 |
-| 📱 iOS — 기업 인증서 불필요 | Safari에서 "홈 화면에 추가" PWA 방식으로 Apple 서명 없이 영구적으로 사용 가능 |
+| 📱 iOS 네이티브 클라이언트 | 자체 호스팅 백엔드에 연결 |
 | 📱 Android 네이티브 앱 | [Google Play](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus)에서 다운로드 가능, FCM 푸시 알림 지원 |
 | 📱 iOS 네이티브 앱 | [App Store](https://apps.apple.com/us/app/paperphoneplus/id6769265178)에서 다운로드 가능, APNS 푸시 알림 지원 |
 | 🖥️ Windows 데스크톱 클라이언트 | Windows 네이티브 데스크톱 앱, [여기에서 다운로드](https://github.com/619dev/ppp-win/releases) |
@@ -71,7 +71,7 @@ WeChat 스타일의 종단간 암호화 메신저. 무상태 ECDH + XSalsa20-Pol
 | 🗂️ R2 오브젝트 스토리지 | 이미지/음성 파일용 Cloudflare R2 — 선택적 공개 CDN URL |
 | 🔑 2단계 인증 (2FA) | Google Authenticator 호환 TOTP, 8개 복구 코드, 로그인 시 적용 |
 | 📷 QR 코드 스캔 및 공유 | QR 코드로 친구 추가 또는 그룹 참여, 만료 기간 설정 가능 |
-| 🏗️ 셀프 호스팅 | Docker Compose, Zeabur 원클릭, 또는 Vercel에 프론트엔드 배포 |
+| 🏗️ Self-hosting | Deploy the backend with Docker Compose or Zeabur; connect using an official native client |
 | 🌐 프록시 설정 | SOCKS5 / HTTP / HTTPS 프록시 지원 — 로그인 및 설정 페이지에서 서버 주소, 포트, 사용자 이름, 비밀번호 설정 가능 |
 | 🛡️ 콘텐츠 관리 | 사용자 신고 (6가지 카테고리) + 사용자 차단 (게시물/메시지 즉시 숨김) + 이용약관 (EULA) |
 | 🔧 관리자 패널 | 내장 웹 관리 대시보드 (`/admin`, 경로 변경 가능), 비밀번호 보호, 신고 검토, 콘텐츠 삭제, 사용자 차단 — 8개 언어 지원 |
@@ -108,13 +108,12 @@ PaperPhonePlus는 로컬 계정 상태, 실시간 연결 상태, 메시지 동�
   aws-sdk-s3 — Cloudflare R2 파일 저장소 (S3 호환 API)
   argon2 + jsonwebtoken 인증
 
-프론트엔드 (client/)
+Shared frontend source (client/, not deployed independently)
   React 19 + TypeScript + Vite 6
   Zustand 상태 관리
   libsodium-wrappers-sumo (WebAssembly — Curve25519 / XSalsa20-Poly1305)
   WebRTC API — 영상/음성 통화
   Web Audio API — 실시간 음성 변조 (ScriptProcessorNode 오디오 체인)
-  PWA: manifest.json + Service Worker
 
 암호화 레이어
   무상태 ECDH + XSalsa20-Poly1305 — 메시지별 임시 키페어 생성
@@ -124,49 +123,28 @@ PaperPhonePlus는 로컬 계정 상태, 실시간 연결 상태, 메시지 동�
 
 ---
 
-> 📖 **[상세 배포 가이드 (中文)](DEPLOY_CN.md)** | **[Deployment Guide (English)](DEPLOY_EN.md)** — Zeabur + Vercel 하이브리드 배포, Docker Compose + Nginx 로컬 배포 및 클라이언트 서버 주소 구성에 대한 단계별 전체 가이드.
+> 📖 **[Deployment Guide](DEPLOY_EN.md)** — backend-only Zeabur and Docker Compose + Nginx instructions, plus native-client server address configuration.
+>
+> **Important: the Web frontend is no longer deployed.** `/client` is shared frontend source for Android, iOS, Windows, and macOS. Do not deploy it to Docker, Zeabur, Vercel, or Nginx.
 
-### 옵션 0: Zeabur 원클릭 클라우드 배포
+### Zeabur one-click deployment
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
-> **Zeabur 통화 네트워크 제한:** 템플릿은 WebSocket/API 7880과 ICE/TCP 7881로 LiveKit을 배포합니다. 현재 Zeabur는 UDP 서비스 포트를 노출하지 않으므로 1:1 통화와 회의는 TCP 폴백을 사용합니다. 프로덕션 통화에는 LiveKit Cloud 또는 UDP를 지원하는 VM을 사용하십시오.
+The template creates only `server`, MySQL, Redis, and LiveKit. Record the public HTTPS domain of `server` and enter it in an official native client.
 
-#### 서버 Nginx 구성
-
-두 도메인용 프로덕션 설정 [deploy/nginx/paperphone-plus.conf](deploy/nginx/paperphone-plus.conf)을 사용하십시오. `api.example.com`과 `meeting.example.com`을 실제 도메인으로 바꾸고 TLS 인증서를 발급한 뒤 파일을 `/etc/nginx/sites-available/paperphone-plus`에 복사하여 활성화하고 `sudo nginx -t && sudo systemctl reload nginx`를 실행합니다. 백엔드에는 `LIVEKIT_URL=wss://meeting.example.com`을 설정합니다. Nginx는 API와 WebSocket만 프록시하므로 TCP 7881과 UDP 7882는 호스트 및 클라우드 방화벽에서 직접 개방해야 합니다.
-
-> [!TIP]
-> **고급: Zeabur + Vercel 하이브리드 배포**
-> Zeabur에 배포한 후 **client** 서비스를 수동으로 삭제하고 프론트엔드를 Vercel에 배포할 수 있습니다 (아래 옵션 2 참조).
-> 이렇게 하면 server/MySQL/Redis는 Zeabur에서 호스팅되고 프론트엔드는 Vercel의 글로벌 CDN으로 가속됩니다.
-> 프론트엔드에는 **Vercel에서 환경 변수가 필요 없습니다** — 사용자가 로그인 페이지에서 백엔드 서버 주소를 입력하기만 하면 됩니다.
-
-### 옵션 1: Docker Compose (권장)
+### Docker Compose (recommended)
 ```bash
 git clone <repo-url> && cd paperphone-plus
 cp server/.env.example server/.env
-# 편집: DB_PASS / JWT_SECRET / LIVEKIT_URL 등
+# Edit DB_PASS / REDIS_PASS / JWT_SECRET / LIVEKIT_URL, then:
 docker compose up -d
-open http://localhost
+curl -fsS http://localhost:3000/health
 ```
 
-### 옵션 2: Vercel에 프론트엔드 배포
+### Local development (not a Web deployment)
 ```bash
-# 1. 이 저장소를 포크합니다
-# 2. Vercel에서 가져오기: Root Directory = client/, Build = npm run build, Output = dist/
-#    환경 변수 설정이 필요 없습니다
-# 3. Docker 또는 Zeabur를 통해 백엔드를 배포합니다
-# 4. Vercel에 배포된 프론트엔드를 열고 로그인 페이지에서 백엔드 서버 주소를 입력합니다
-#    예: https://your-server.zeabur.app
-```
-
-### 옵션 3: 로컬 개발
-```bash
-# 백엔드 (Rust)
 cd server && cp .env.example .env && cargo run --release
-
-# 프론트엔드 (React)
-cd client && npm install && npm run dev
+cd client && npm install && npm run dev  # shared frontend source only
 ```
 
 ---
@@ -250,7 +228,7 @@ cd client && npm install && npm run dev
 
 ### FCM 개인 키 줄바꿈 처리
 
-Firebase 서비스 계정 JSON의 `private_key` 필드에는 PEM 형식의 RSA 개인 키가 포함되어 있으며, 각 64자 줄 사이에 **실제 줄바꿈 문자** (`\n`, ASCII 0x0A)가 필요합니다. 그러나 많은 배포 플랫폼 (Zeabur, Vercel, Railway, Docker)은 환경 변수를 단일 행 문자열로 저장하여 `\n`을 리터럴 두 문자 시퀀스 `\` + `n`으로 변환합니다.
+Firebase 서비스 계정 JSON의 `private_key` 필드에는 PEM 형식의 RSA 개인 키가 포함되어 있으며, 각 64자 줄 사이에 **실제 줄바꿈 문자** (`\n`, ASCII 0x0A)가 필요합니다. 그러나 많은 배포 플랫폼 (Zeabur, Railway, Docker)은 환경 변수를 단일 행 문자열로 저장하여 `\n`을 리터럴 두 문자 시퀀스 `\` + `n`으로 변환합니다.
 
 **이것이 FCM 푸시 알림 실패의 가장 흔한 원인입니다** — PEM 파서가 조용히 실패하고 푸시 알림이 전송되지 않으며, 오류 로그도 남지 않습니다.
 
@@ -272,7 +250,7 @@ Firebase 서비스 계정 JSON의 `private_key` 필드에는 PEM 형식의 RSA �
 |--------|----------|------|
 | **Zeabur** | 단일 행 (`\n` 이스케이프) | Variables 패널에 JSON 값을 직접 붙여넣기 |
 | **Docker / docker-compose** | 둘 다 가능 | 여러 행은 YAML `\|` 사용; 단일 행은 `.env`에서 |
-| **Vercel / Railway** | 단일 행 (`\n` 이스케이프) | 입력 필드는 일반적으로 실제 줄바꿈을 지원하지 않습니다 |
+| **Railway / Docker** | 단일 행 (`\n` 이스케이프) | 입력 필드는 일반적으로 실제 줄바꿈을 지원하지 않습니다 |
 | **Linux .env 파일** | 여러 행 (따옴표 사용) | 따옴표가 올바르게 닫혀 있는지 확인하세요 |
 
 **문제 해결**: FCM 변수가 설정되어 있지만 Android 푸시가 작동하지 않는 경우 서버 로그를 확인하세요:

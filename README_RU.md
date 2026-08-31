@@ -1,6 +1,6 @@
 🌐 **Другие языки:** [中文](README.md) · [English](README_EN.md) · [日本語](README_JA.md) · [한국어](README_KO.md) · [Français](README_FR.md) · [Deutsch](README_DE.md) · [Español](README_ES.md)
 
-Мессенджер со сквозным шифрованием в стиле WeChat. Бессостоянный ECDH + XSalsa20-Poly1305 шифрование для каждого сообщения, видеозвонки в реальном времени, хранение файлов Cloudflare R2, поддержка нескольких языков и развёртывание iOS PWA.
+Мессенджер со сквозным шифрованием в стиле WeChat. Бессостоянный ECDH + XSalsa20-Poly1305 шифрование для каждого сообщения, видеозвонки в реальном времени, хранение файлов Cloudflare R2, поддержка нескольких языков и нативные клиенты Android, iOS, Windows и macOS.
 
 [![Rust](https://img.shields.io/badge/Rust-1.83+-orange)](#) [![React](https://img.shields.io/badge/React-19-blue)](#) [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](#) [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)](#) [![Redis](https://img.shields.io/badge/Redis-7.x-red)](#) [![WebRTC](https://img.shields.io/badge/WebRTC-LiveKit%20SFU-orange)](#) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 
@@ -57,7 +57,7 @@
 | ⏱️ Автоудаление сообщений | 5 уровней (никогда / 1 день / 3 дня / 1 неделя / 1 месяц), настраивается любой стороной в личных сообщениях, только владельцем в группах |
 | 🔔 Push-уведомления | Web Push (VAPID) + FCM + OneSignal + ntfy + APNS пятиканальная доставка — доступность пользователей даже в офлайне (поддержка нативного iOS + китайских Android без Google Services) |
 | 🌐 Мультиязычность | Китайский, английский, японский, корейский, французский, немецкий, русский, испанский — автоопределение + ручное переключение |
-| 📱 iOS — без корпоративного сертификата | PWA через Safari «На экран Домой», работает бессрочно без подписи Apple |
+| 📱 Нативный клиент iOS | Подключается к самостоятельно размещённому серверу |
 | 📱 Нативное Android-приложение | Доступно в [Google Play](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus), с поддержкой FCM push-уведомлений |
 | 📱 Нативное iOS-приложение | Доступно в [App Store](https://apps.apple.com/us/app/paperphoneplus/id6769265178), с поддержкой APNS push-уведомлений |
 | 🖥️ Десктопный клиент Windows | Нативное настольное приложение для Windows, [скачать здесь](https://github.com/619dev/ppp-win/releases) |
@@ -71,7 +71,7 @@
 | 🗂️ Объектное хранилище R2 | Cloudflare R2 для изображений/голосовых файлов — опциональный публичный CDN URL |
 | 🔑 Двухфакторная аутентификация (2FA) | TOTP совместимый с Google Authenticator, 8 кодов восстановления, проверка при входе |
 | 📷 Сканирование и обмен QR-кодами | Сканируйте QR-коды для добавления друзей или вступления в группы с настраиваемым сроком действия |
-| 🏗️ Самостоятельный хостинг | Docker Compose, Zeabur в один клик или фронтенд на Vercel |
+| 🏗️ Self-hosting | Deploy the backend with Docker Compose or Zeabur; connect using an official native client |
 | 🌐 Настройки прокси | Поддержка SOCKS5 / HTTP / HTTPS прокси — настройка на страницах входа и настроек с указанием адреса сервера, порта, имени пользователя и пароля для ограниченных сетевых сред |
 | 🛡️ Модерация контента | Жалобы пользователей (6 категорий) + блокировка пользователей (мгновенное скрытие постов/сообщений) + Условия использования (EULA) |
 | 🔧 Панель администратора | Встроенная веб-панель администратора (`/admin`, путь настраивается), защита паролем, проверка жалоб, удаление нарушающего контента, бан пользователей — поддержка 8 языков |
@@ -108,13 +108,12 @@ PaperPhonePlus раздельно обрабатывает локальное с
   aws-sdk-s3 — Файловое хранилище Cloudflare R2 (S3-совместимый API)
   argon2 + jsonwebtoken аутентификация
 
-Фронтенд (client/)
+Shared frontend source (client/, not deployed independently)
   React 19 + TypeScript + Vite 6
   Zustand управление состоянием
   libsodium-wrappers-sumo (WebAssembly — Curve25519 / XSalsa20-Poly1305)
   WebRTC API — видео / голосовые звонки
   Web Audio API — изменение голоса в реальном времени (аудиоцепочка ScriptProcessorNode)
-  PWA: manifest.json + Service Worker
 
 Криптографический уровень
   Бессостоянный ECDH + XSalsa20-Poly1305 — эфемерная пара ключей для каждого сообщения
@@ -124,49 +123,28 @@ PaperPhonePlus раздельно обрабатывает локальное с
 
 ---
 
-> 📖 **[Подробное руководство по развёртыванию (中文)](DEPLOY_CN.md)** | **[Deployment Guide (English)](DEPLOY_EN.md)** — Полные пошаговые инструкции по гибридному развёртыванию Zeabur + Vercel, локальному развёртыванию Docker Compose + Nginx, а также настройке адреса сервера в клиентских приложениях.
+> 📖 **[Deployment Guide](DEPLOY_EN.md)** — backend-only Zeabur and Docker Compose + Nginx instructions, plus native-client server address configuration.
+>
+> **Important: the Web frontend is no longer deployed.** `/client` is shared frontend source for Android, iOS, Windows, and macOS. Do not deploy it to Docker, Zeabur, Vercel, or Nginx.
 
-### Вариант 0: Zeabur — облачное развёртывание в один клик
+### Zeabur one-click deployment
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
-> **Сетевое ограничение Zeabur:** шаблон развёртывает LiveKit через WebSocket/API 7880 и ICE/TCP 7881. Сейчас Zeabur не предоставляет UDP-порты сервисов, поэтому звонки 1:1 и конференции используют TCP. Для производственных звонков используйте LiveKit Cloud или виртуальную машину с поддержкой UDP.
+The template creates only `server`, MySQL, Redis, and LiveKit. Record the public HTTPS domain of `server` and enter it in an official native client.
 
-#### Настройка Nginx на сервере
-
-Используйте двухдоменную конфигурацию [deploy/nginx/paperphone-plus.conf](deploy/nginx/paperphone-plus.conf). Замените `api.example.com` и `meeting.example.com`, получите TLS-сертификаты, скопируйте файл в `/etc/nginx/sites-available/paperphone-plus`, включите его и выполните `sudo nginx -t && sudo systemctl reload nginx`. На сервере задайте `LIVEKIT_URL=wss://meeting.example.com`. Nginx проксирует только API и WebSocket; TCP 7881 и UDP 7882 необходимо открыть напрямую в системном и облачном межсетевых экранах.
-
-> [!TIP]
-> **Продвинутый вариант: гибридное развёртывание Zeabur + Vercel**
-> После развёртывания на Zeabur вы можете вручную удалить сервис **client** и развернуть фронтенд на Vercel (см. Вариант 2 ниже).
-> Таким образом сервер/MySQL/Redis размещаются на Zeabur, а фронтенд ускоряется глобальной CDN Vercel.
-> Фронтенд **не требует переменных окружения на Vercel** — пользователи просто вводят адрес бэкенд-сервера на странице входа.
-
-### Вариант 1: Docker Compose (Рекомендуется)
+### Docker Compose (recommended)
 ```bash
 git clone <repo-url> && cd paperphone-plus
 cp server/.env.example server/.env
-# Отредактируйте: DB_PASS / JWT_SECRET / LIVEKIT_URL и т.д.
+# Edit DB_PASS / REDIS_PASS / JWT_SECRET / LIVEKIT_URL, then:
 docker compose up -d
-open http://localhost
+curl -fsS http://localhost:3000/health
 ```
 
-### Вариант 2: Фронтенд на Vercel
+### Local development (not a Web deployment)
 ```bash
-# 1. Сделайте форк этого репозитория
-# 2. Импортируйте в Vercel: Root Directory = client/, Build = npm run build, Output = dist/
-#    Переменные окружения не требуются
-# 3. Разверните бэкенд через Docker или Zeabur
-# 4. Откройте фронтенд, развёрнутый на Vercel, и введите адрес бэкенд-сервера на странице входа
-#    например https://your-server.zeabur.app
-```
-
-### Вариант 3: Локальная разработка
-```bash
-# Бэкенд (Rust)
 cd server && cp .env.example .env && cargo run --release
-
-# Фронтенд (React)
-cd client && npm install && npm run dev
+cd client && npm install && npm run dev  # shared frontend source only
 ```
 
 ---
@@ -250,7 +228,7 @@ cd client && npm install && npm run dev
 
 ### Обработка переводов строк в приватном ключе FCM
 
-Поле `private_key` в JSON сервисного аккаунта Firebase содержит RSA-ключ в формате PEM, который требует **реальных символов перевода строки** (`\n`, ASCII 0x0A) между каждой 64-символьной строкой. Однако многие платформы развёртывания (Zeabur, Vercel, Railway, Docker) хранят переменные окружения как однострочные значения, преобразуя `\n` в буквальную двухсимвольную последовательность `\` + `n`.
+Поле `private_key` в JSON сервисного аккаунта Firebase содержит RSA-ключ в формате PEM, который требует **реальных символов перевода строки** (`\n`, ASCII 0x0A) между каждой 64-символьной строкой. Однако многие платформы развёртывания (Zeabur, Railway, Docker) хранят переменные окружения как однострочные значения, преобразуя `\n` в буквальную двухсимвольную последовательность `\` + `n`.
 
 **Это самая распространённая причина сбоя FCM push-уведомлений** — парсер PEM молча завершается с ошибкой, и push-уведомления не отправляются без каких-либо записей в логах.
 
@@ -272,7 +250,7 @@ cd client && npm install && npm run dev
 |-----------|---------------------|------------|
 | **Zeabur** | Однострочный (экранирование `\n`) | Вставьте значение JSON непосредственно в панели Variables |
 | **Docker / docker-compose** | Любой | Используйте YAML `\|` для многострочного формата; однострочный в `.env` |
-| **Vercel / Railway** | Однострочный (экранирование `\n`) | Поля ввода обычно не поддерживают реальные переводы строк |
+| **Railway / Docker** | Однострочный (экранирование `\n`) | Поля ввода обычно не поддерживают реальные переводы строк |
 | **Linux .env файл** | Многострочный (в кавычках) | Убедитесь, что кавычки правильно закрыты |
 
 **Устранение неполадок**: Если переменные FCM установлены, но push-уведомления Android не работают, проверьте логи сервера:

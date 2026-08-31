@@ -1,6 +1,6 @@
 🌐 **Andere Sprachen:** [中文](README.md) · [English](README_EN.md) · [日本語](README_JA.md) · [한국어](README_KO.md) · [Français](README_FR.md) · [Русский](README_RU.md) · [Español](README_ES.md)
 
-Eine WeChat-ähnliche Ende-zu-Ende-verschlüsselte Instant-Messaging-App mit zustandslosem ECDH + XSalsa20-Poly1305 Pro-Nachricht-Verschlüsselung, Echtzeit-Videoanrufen, Cloudflare R2 Dateispeicher, Mehrsprachigkeit und iOS PWA-Bereitstellung.
+Eine WeChat-ähnliche Ende-zu-Ende-verschlüsselte Instant-Messaging-App mit zustandslosem ECDH + XSalsa20-Poly1305 Pro-Nachricht-Verschlüsselung, Echtzeit-Videoanrufen, Cloudflare R2 Dateispeicher, Mehrsprachigkeit sowie nativen Clients für Android, iOS, Windows und macOS.
 
 [![Rust](https://img.shields.io/badge/Rust-1.83+-orange)](#) [![React](https://img.shields.io/badge/React-19-blue)](#) [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](#) [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)](#) [![Redis](https://img.shields.io/badge/Redis-7.x-red)](#) [![WebRTC](https://img.shields.io/badge/WebRTC-LiveKit%20SFU-orange)](#) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 
@@ -57,7 +57,7 @@ Eine WeChat-ähnliche Ende-zu-Ende-verschlüsselte Instant-Messaging-App mit zus
 | ⏱️ Automatisches Löschen | 5 Stufen (nie / 1 Tag / 3 Tage / 1 Woche / 1 Monat), von beiden Seiten in DMs einstellbar, nur Besitzer in Gruppen |
 | 🔔 Push-Benachrichtigungen | Web Push (VAPID) + FCM + OneSignal + ntfy + APNS Fünf-Kanal — Benachrichtigungen auch offline (iOS nativ + chinesische Android-Geräte ohne Google-Dienste) |
 | 🌐 Mehrsprachig | Chinesisch, Englisch, Japanisch, Koreanisch, Französisch, Deutsch, Russisch, Spanisch — Autoerkennung + manueller Wechsel |
-| 📱 iOS — Ohne Unternehmenszertifikat | PWA über Safari „Zum Home-Bildschirm hinzufügen", funktioniert dauerhaft ohne Apple-Signierung |
+| 📱 Nativer iOS-Client | Verbindet sich mit dem selbst gehosteten Backend |
 | 📱 Android Native App | Verfügbar bei [Google Play](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus), mit FCM-Push-Unterstützung |
 | 📱 iOS Native App | Verfügbar im [App Store](https://apps.apple.com/us/app/paperphoneplus/id6769265178), mit APNS-Push-Unterstützung |
 | 🖥️ Windows Desktop-Client | Native Windows-Desktopanwendung, [hier herunterladen](https://github.com/619dev/ppp-win/releases) |
@@ -71,7 +71,7 @@ Eine WeChat-ähnliche Ende-zu-Ende-verschlüsselte Instant-Messaging-App mit zus
 | 🗂️ R2 Objektspeicher | Cloudflare R2 für Bild-/Sprachdateien — optionale öffentliche CDN-URL |
 | 🔑 Zwei-Faktor-Authentifizierung (2FA) | Google Authenticator–kompatibles TOTP, 8 Wiederherstellungscodes, erzwungen bei Anmeldung |
 | 📷 QR-Code scannen & teilen | QR-Codes scannen zum Hinzufügen von Freunden oder Beitreten von Gruppen mit konfigurierbarem Ablaufdatum |
-| 🏗️ Selbst-Hosting | Docker Compose, Zeabur One-Click oder Frontend auf Vercel |
+| 🏗️ Self-hosting | Deploy the backend with Docker Compose or Zeabur; connect using an official native client |
 | 🌐 Proxy-Einstellungen | SOCKS5 / HTTP / HTTPS Proxy-Unterstützung — konfigurierbar auf Login- und Einstellungsseiten mit Serveradresse, Port, Benutzername und Passwort für eingeschränkte Netzwerkumgebungen |
 | 🛡️ Inhaltsmoderation | Benutzermeldungen (6 Kategorien) + Benutzer blockieren (sofortige Ausblendung von Beiträgen/Nachrichten) + Nutzungsbedingungen (EULA) |
 | 🔧 Admin-Panel | Eingebettetes Web-Admin-Dashboard (`/admin`, Pfad konfigurierbar), passwortgeschützt, Meldungen prüfen, Inhalte löschen, Benutzer sperren — 8 Sprachen |
@@ -108,13 +108,12 @@ Backend (server/)
   aws-sdk-s3 — Cloudflare R2 Dateispeicher (S3-kompatible API)
   argon2 + jsonwebtoken Authentifizierung
 
-Frontend (client/)
+Shared frontend source (client/, not deployed independently)
   React 19 + TypeScript + Vite 6
   Zustand Zustandsverwaltung
   libsodium-wrappers-sumo (WebAssembly — Curve25519 / XSalsa20-Poly1305)
   WebRTC API — Video-/Sprachanrufe
   Web Audio API — Echtzeit-Stimmverzerrer (ScriptProcessorNode Audio-Kette)
-  PWA: manifest.json + Service Worker
 
 Kryptographische Schicht
   Zustandsloses ECDH + XSalsa20-Poly1305 — Einmal-Schlüsselpaar pro Nachricht
@@ -124,49 +123,28 @@ Kryptographische Schicht
 
 ---
 
-> 📖 **[Detaillierte Bereitstellungsanleitung (中文)](DEPLOY_CN.md)** | **[Deployment Guide (English)](DEPLOY_EN.md)** — Vollständige Schritt-für-Schritt-Anleitung für Zeabur + Vercel Hybrid-Bereitstellung, Docker Compose + Nginx lokale Bereitstellung und Client-Server-Adresskonfiguration.
+> 📖 **[Deployment Guide](DEPLOY_EN.md)** — backend-only Zeabur and Docker Compose + Nginx instructions, plus native-client server address configuration.
+>
+> **Important: the Web frontend is no longer deployed.** `/client` is shared frontend source for Android, iOS, Windows, and macOS. Do not deploy it to Docker, Zeabur, Vercel, or Nginx.
 
-### Option 0: Zeabur One-Click Cloud-Bereitstellung
+### Zeabur one-click deployment
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
-> **Zeabur-Netzwerkeinschränkung:** Die Vorlage stellt LiveKit über WebSocket/API 7880 und ICE/TCP 7881 bereit. Zeabur unterstützt derzeit keine öffentlichen UDP-Dienstports; 1:1-Anrufe und Konferenzen verwenden daher TCP-Fallback. Für produktive Anrufe empfiehlt sich LiveKit Cloud oder eine VM mit UDP-Unterstützung.
+The template creates only `server`, MySQL, Redis, and LiveKit. Record the public HTTPS domain of `server` and enter it in an official native client.
 
-#### Serverseitige Nginx-Konfiguration
-
-Verwenden Sie die Zwei-Domain-Produktionskonfiguration [deploy/nginx/paperphone-plus.conf](deploy/nginx/paperphone-plus.conf). Ersetzen Sie `api.example.com` und `meeting.example.com`, beziehen Sie TLS-Zertifikate, kopieren Sie die Datei nach `/etc/nginx/sites-available/paperphone-plus`, aktivieren Sie sie und führen Sie `sudo nginx -t && sudo systemctl reload nginx` aus. Setzen Sie im Backend `LIVEKIT_URL=wss://meeting.example.com`. Nginx proxyt nur API und WebSocket; TCP 7881 und UDP 7882 müssen direkt in Host- und Cloud-Firewall geöffnet werden.
-
-> [!TIP]
-> **Erweitert: Zeabur + Vercel Hybrid-Bereitstellung**
-> Nach der Bereitstellung auf Zeabur können Sie den **client**-Dienst manuell löschen und das Frontend stattdessen auf Vercel bereitstellen (siehe Option 2 unten).
-> So werden Server/MySQL/Redis auf Zeabur gehostet, während das Frontend durch Vercels globales CDN beschleunigt wird.
-> Das Frontend benötigt **keine Umgebungsvariablen auf Vercel** — Benutzer geben einfach die Backend-Serveradresse auf der Anmeldeseite ein.
-
-### Option 1: Docker Compose (Empfohlen)
+### Docker Compose (recommended)
 ```bash
 git clone <repo-url> && cd paperphone-plus
 cp server/.env.example server/.env
-# Bearbeiten: DB_PASS / JWT_SECRET / LIVEKIT_URL usw.
+# Edit DB_PASS / REDIS_PASS / JWT_SECRET / LIVEKIT_URL, then:
 docker compose up -d
-open http://localhost
+curl -fsS http://localhost:3000/health
 ```
 
-### Option 2: Frontend auf Vercel
+### Local development (not a Web deployment)
 ```bash
-# 1. Dieses Repository forken
-# 2. In Vercel importieren: Root Directory = client/, Build = npm run build, Output = dist/
-#    Keine Umgebungsvariablen erforderlich
-# 3. Backend über Docker oder Zeabur bereitstellen
-# 4. Vercel-Frontend öffnen, Backend-Serveradresse auf der Anmeldeseite eingeben
-#    z.B. https://your-server.zeabur.app
-```
-
-### Option 3: Lokale Entwicklung
-```bash
-# Backend (Rust)
 cd server && cp .env.example .env && cargo run --release
-
-# Frontend (React)
-cd client && npm install && npm run dev
+cd client && npm install && npm run dev  # shared frontend source only
 ```
 
 ---
@@ -250,7 +228,7 @@ Unter **Profil > Nachrichtenschutz** kann ein Zusatzpasswort für alle Chats auf
 
 ### FCM Private Key Zeilenumbruch-Behandlung
 
-Das `private_key`-Feld in der Firebase-Dienstkonto-JSON-Datei enthält einen RSA-Privatschlüssel im PEM-Format, der **echte Zeilenumbrüche** (`\n`, ASCII 0x0A) zwischen jeder 64-Zeichen-Zeile erfordert. Viele Bereitstellungsplattformen (Zeabur, Vercel, Railway, Docker) speichern Umgebungsvariablen jedoch als einzeilige Strings und konvertieren `\n` in die wörtliche Zwei-Zeichen-Sequenz `\` + `n`.
+Das `private_key`-Feld in der Firebase-Dienstkonto-JSON-Datei enthält einen RSA-Privatschlüssel im PEM-Format, der **echte Zeilenumbrüche** (`\n`, ASCII 0x0A) zwischen jeder 64-Zeichen-Zeile erfordert. Viele Bereitstellungsplattformen (Zeabur, Railway, Docker) speichern Umgebungsvariablen jedoch als einzeilige Strings und konvertieren `\n` in die wörtliche Zwei-Zeichen-Sequenz `\` + `n`.
 
 **Dies ist die häufigste Ursache für FCM-Push-Benachrichtigungsfehler** — der PEM-Parser schlägt stillschweigend fehl und es werden keine Push-Benachrichtigungen gesendet, ohne Fehlerprotokolle.
 
@@ -272,7 +250,7 @@ Das `private_key`-Feld in der Firebase-Dienstkonto-JSON-Datei enthält einen RSA
 |-----------|-------------------|----------|
 | **Zeabur** | Einzeilig (`\n` escaped) | JSON-Wert direkt im Variables-Panel einfügen |
 | **Docker / docker-compose** | Beides | YAML `\|` für mehrzeilig; einzeilig in `.env` |
-| **Vercel / Railway** | Einzeilig (`\n` escaped) | Eingabefelder unterstützen typischerweise keine echten Zeilenumbrüche |
+| **Railway / Docker** | Einzeilig (`\n` escaped) | Eingabefelder unterstützen typischerweise keine echten Zeilenumbrüche |
 | **Linux .env-Datei** | Mehrzeilig (in Anführungszeichen) | Sicherstellen, dass Anführungszeichen korrekt geschlossen sind |
 
 **Fehlerbehebung**: Wenn FCM-Variablen gesetzt sind, aber Android-Push nicht funktioniert, Serverprotokolle prüfen:

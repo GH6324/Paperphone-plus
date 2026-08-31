@@ -1,6 +1,6 @@
 🌐 **他の言語:** [中文](README.md) · [English](README_EN.md) · [한국어](README_KO.md) · [Français](README_FR.md) · [Deutsch](README_DE.md) · [Русский](README_RU.md) · [Español](README_ES.md)
 
-WeChat スタイルのエンドツーエンド暗号化メッセンジャー。ステートレス ECDH + XSalsa20-Poly1305 によるメッセージごとの暗号化、リアルタイムビデオ通話、Cloudflare R2 ファイルストレージ、多言語サポート、iOS PWA デプロイに対応。
+WeChat スタイルのエンドツーエンド暗号化メッセンジャー。ステートレス ECDH + XSalsa20-Poly1305 によるメッセージごとの暗号化、リアルタイムビデオ通話、Cloudflare R2 ファイルストレージ、多言語サポート、Android・iOS・Windows・macOS ネイティブクライアントに対応。
 
 [![Rust](https://img.shields.io/badge/Rust-1.83+-orange)](#) [![React](https://img.shields.io/badge/React-19-blue)](#) [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](#) [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)](#) [![Redis](https://img.shields.io/badge/Redis-7.x-red)](#) [![WebRTC](https://img.shields.io/badge/WebRTC-LiveKit%20SFU-orange)](#) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 
@@ -57,7 +57,7 @@ WeChat スタイルのエンドツーエンド暗号化メッセンジャー。�
 | ⏱️ メッセージ自動削除 | 5 段階（なし / 1 日 / 3 日 / 1 週間 / 1 ヶ月）、DM では双方が設定可能、グループではオーナーのみ |
 | 🔔 プッシュ通知 | Web Push (VAPID) + FCM + OneSignal + ntfy + APNS 5 チャネル — オフラインでも通知到達（iOS ネイティブ + Google サービスなしの中国製 Android 対応） |
 | 🌐 多言語対応 | 中国語、英語、日本語、韓国語、フランス語、ドイツ語、ロシア語、スペイン語 — 自動検出 + 手動切替 |
-| 📱 iOS — 企業証明書不要 | Safari「ホーム画面に追加」による PWA、Apple 署名なしで永続的に動作 |
+| 📱 iOS ネイティブクライアント | セルフホストしたバックエンドに接続 |
 | 📱 Android ネイティブアプリ | [Google Play](https://play.google.com/store/apps/details?id=com.fm619.paperphoneplus) で公開中、FCM プッシュ通知対応 |
 | 📱 iOS ネイティブアプリ | [App Store](https://apps.apple.com/us/app/paperphoneplus/id6769265178) で公開中、APNS プッシュ通知対応 |
 | 🖥️ Windows デスクトップクライアント | ネイティブ Windows デスクトップアプリ、[ダウンロードはこちら](https://github.com/619dev/ppp-win/releases) |
@@ -71,7 +71,7 @@ WeChat スタイルのエンドツーエンド暗号化メッセンジャー。�
 | 🗂️ R2 オブジェクトストレージ | Cloudflare R2 で画像/音声ファイルを保存 — オプションの公開 CDN URL |
 | 🔑 二要素認証 (2FA) | Google Authenticator 互換 TOTP、8 個のリカバリーコード、ログイン時に強制 |
 | 📷 QR コードスキャン＆共有 | QR コードをスキャンして友達追加やグループ参加、有効期限設定可能 |
-| 🏗️ セルフホスト対応 | Docker Compose、Zeabur ワンクリック、またはフロントエンドを Vercel にデプロイ |
+| 🏗️ Self-hosting | Deploy the backend with Docker Compose or Zeabur; connect using an official native client |
 | 🌐 プロキシ設定 | SOCKS5 / HTTP / HTTPS プロキシ対応 — ログインページと設定ページでサーバーアドレス、ポート、ユーザー名、パスワードを設定可能（制限されたネットワーク環境向け） |
 | 🛡️ コンテンツモデレーション | ユーザー報告（6 カテゴリ）+ ユーザーブロック（投稿/メッセージを即時非表示）+ 利用規約（EULA） |
 | 🔧 管理パネル | 内蔵 Web 管理ダッシュボード（`/admin`、パス変更可能）、パスワード保護、報告審査、コンテンツ削除、ユーザー BAN — 8 言語対応 |
@@ -108,13 +108,12 @@ PaperPhonePlus は、ローカルのアカウント状態、リアルタイム�
   aws-sdk-s3 — Cloudflare R2 ファイルストレージ（S3 互換 API）
   argon2 + jsonwebtoken 認証
 
-フロントエンド (client/)
+Shared frontend source (client/, not deployed independently)
   React 19 + TypeScript + Vite 6
   Zustand 状態管理
   libsodium-wrappers-sumo (WebAssembly — Curve25519 / XSalsa20-Poly1305)
   WebRTC API — ビデオ/音声通話
   Web Audio API — リアルタイムボイスチェンジャー（ScriptProcessorNode オーディオチェーン）
-  PWA: manifest.json + Service Worker
 
 暗号化レイヤー
   ステートレス ECDH + XSalsa20-Poly1305 — メッセージごとの一時キーペア
@@ -124,49 +123,28 @@ PaperPhonePlus は、ローカルのアカウント状態、リアルタイム�
 
 ---
 
-> 📖 **[詳細デプロイガイド (中文)](DEPLOY_CN.md)** | **[Deployment Guide (English)](DEPLOY_EN.md)** — Zeabur + Vercel ハイブリッドデプロイ、Docker Compose + Nginx ローカルデプロイ、およびクライアントサーバーアドレス設定の完全なステップバイステップガイド。
+> 📖 **[Deployment Guide](DEPLOY_EN.md)** — backend-only Zeabur and Docker Compose + Nginx instructions, plus native-client server address configuration.
+>
+> **Important: the Web frontend is no longer deployed.** `/client` is shared frontend source for Android, iOS, Windows, and macOS. Do not deploy it to Docker, Zeabur, Vercel, or Nginx.
 
-### オプション 0: Zeabur ワンクリッククラウドデプロイ
+### Zeabur one-click deployment
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/SK6T93?referralCode=619dev)
 
-> **Zeabur の通話ネットワーク制限：** テンプレートは WebSocket/API 7880 と ICE/TCP 7881 で LiveKit をデプロイします。現在 Zeabur は UDP サービスポートを公開できないため、1:1通話と会議は TCP フォールバックを使用します。本番通話には LiveKit Cloud または UDP 対応 VM を使用してください。
+The template creates only `server`, MySQL, Redis, and LiveKit. Record the public HTTPS domain of `server` and enter it in an official native client.
 
-#### サーバー側 Nginx 設定
-
-2ドメイン対応の本番設定 [deploy/nginx/paperphone-plus.conf](deploy/nginx/paperphone-plus.conf) を使用します。`api.example.com` と `meeting.example.com` を実際のドメインに変更し、TLS 証明書を取得して `/etc/nginx/sites-available/paperphone-plus` にコピーし、有効化後に `sudo nginx -t && sudo systemctl reload nginx` を実行します。バックエンドには `LIVEKIT_URL=wss://meeting.example.com` を設定します。Nginx は API と WebSocket のみをプロキシするため、TCP 7881 と UDP 7882 はホストおよびクラウドのファイアウォールで直接開放してください。
-
-> [!TIP]
-> **上級者向け: Zeabur + Vercel ハイブリッドデプロイ**
-> Zeabur でデプロイ後、**client** サービスを手動で削除し、代わりにフロントエンドを Vercel にデプロイできます（下記オプション 2 参照）。
-> これにより server/MySQL/Redis は Zeabur でホストされ、フロントエンドは Vercel のグローバル CDN で高速化されます。
-> フロントエンドでは **Vercel 上で環境変数の設定は不要** — ユーザーはログインページでバックエンドサーバーアドレスを入力するだけです。
-
-### オプション 1: Docker Compose（推奨）
+### Docker Compose (recommended)
 ```bash
 git clone <repo-url> && cd paperphone-plus
 cp server/.env.example server/.env
-# 編集: DB_PASS / JWT_SECRET / LIVEKIT_URL など
+# Edit DB_PASS / REDIS_PASS / JWT_SECRET / LIVEKIT_URL, then:
 docker compose up -d
-open http://localhost
+curl -fsS http://localhost:3000/health
 ```
 
-### オプション 2: フロントエンドを Vercel にデプロイ
+### Local development (not a Web deployment)
 ```bash
-# 1. このリポジトリをフォーク
-# 2. Vercel にインポート: Root Directory = client/, Build = npm run build, Output = dist/
-#    環境変数の設定不要
-# 3. バックエンドを Docker または Zeabur でデプロイ
-# 4. Vercel でデプロイしたフロントエンドを開き、ログインページでバックエンドサーバーアドレスを入力
-#    例: https://your-server.zeabur.app
-```
-
-### オプション 3: ローカル開発
-```bash
-# バックエンド (Rust)
 cd server && cp .env.example .env && cargo run --release
-
-# フロントエンド (React)
-cd client && npm install && npm run dev
+cd client && npm install && npm run dev  # shared frontend source only
 ```
 
 ---
@@ -250,7 +228,7 @@ cd client && npm install && npm run dev
 
 ### FCM 秘密鍵の改行処理
 
-Firebase サービスアカウント JSON の `private_key` フィールドには PEM 形式の RSA 秘密鍵が含まれており、64 文字ごとに**実際の改行文字**（`\n`、ASCII 0x0A）が必要です。しかし多くのデプロイプラットフォーム（Zeabur、Vercel、Railway、Docker）は環境変数を単一行の文字列として保存し、`\n` を文字通りの 2 文字 `\` + `n` に変換します。
+Firebase サービスアカウント JSON の `private_key` フィールドには PEM 形式の RSA 秘密鍵が含まれており、64 文字ごとに**実際の改行文字**（`\n`、ASCII 0x0A）が必要です。しかし多くのデプロイプラットフォーム（Zeabur、Railway、Docker）は環境変数を単一行の文字列として保存し、`\n` を文字通りの 2 文字 `\` + `n` に変換します。
 
 **これが FCM プッシュ通知の失敗で最もよくある原因です** — PEM パーサーがサイレントに失敗し、プッシュ通知が送信されず、エラーログも出力されません。
 
@@ -272,7 +250,7 @@ Firebase サービスアカウント JSON の `private_key` フィールドに�
 |-----------------|---------|------|
 | **Zeabur** | 単一行（`\n` エスケープ） | Variables パネルに JSON 値を直接貼り付け |
 | **Docker / docker-compose** | どちらでも | YAML は `\|` で複数行対応、`.env` は単一行推奨 |
-| **Vercel / Railway** | 単一行（`\n` エスケープ） | 入力フィールドは通常、実際の改行に非対応 |
+| **Railway / Docker** | 単一行（`\n` エスケープ） | 入力フィールドは通常、実際の改行に非対応 |
 | **Linux .env ファイル** | 複数行（引用符囲み） | 引用符が正しく閉じられていることを確認 |
 
 **トラブルシューティング**: FCM 変数を設定済みだが Android プッシュが動かない場合、サーバーログを確認：
